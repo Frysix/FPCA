@@ -18,3 +18,6 @@ foreach ($Drive in $Drives) {
 
 Write-Host "Drives found:" -ForegroundColor Cyan
 $DriveLetters | ForEach-Object { Write-Host $_ }
+
+#END REMOVE BEFORE PUBLICATION
+Pause
