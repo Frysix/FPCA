@@ -1,0 +1,15 @@
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Debug\net8.0\PSlauncher.exe
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Debug\net8.0\PSlauncher.deps.json
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Debug\net8.0\PSlauncher.runtimeconfig.json
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Debug\net8.0\PSlauncher.dll
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Debug\net8.0\PSlauncher.pdb
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.GeneratedMSBuildEditorConfig.editorconfig
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.AssemblyInfoInputs.cache
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.AssemblyInfo.cs
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.csproj.CoreCompileInputs.cache
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.sourcelink.json
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.dll
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\refint\PSlauncher.dll
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.pdb
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\PSlauncher.genruntimeconfig.cache
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Debug\net8.0\ref\PSlauncher.dll

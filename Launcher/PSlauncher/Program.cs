@@ -8,18 +8,17 @@ class Program
     {
         string batPath = Path.Combine(Path.GetTempPath(), "prep_script.bat");
 
-        // Write batch content (you can expand this)
-        File.WriteAllText(batPath, @"@echo off
-        powershell -ExecutionPolicy Bypass -Command ^
-        ""$scriptPath = Join-Path $env:TEMP 'setup.ps1'; ^
-        Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/setup.ps1' -OutFile $scriptPath; ^
-        powershell -ExecutionPolicy Bypass -File $scriptPath""
-        ");
+        // Write the corrected batch content
+        string batchContent = @"@echo on
+            powershell -NoExit -ExecutionPolicy Bypass -NoProfile -Command ""$scriptPath = Join-Path $env:TEMP 'Installer.ps1'; Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Frysix/FPCA/main/Installer/Installer.ps1' -OutFile $scriptPath; & $scriptPath"" ^ ";
 
-        // Run the .bat with elevated permissions
-        ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c \"" + batPath + "\"");
-        psi.Verb = "runas"; // â† Triggers UAC prompt for admin
-        psi.UseShellExecute = true;
+        File.WriteAllText(batPath, batchContent);
+
+        ProcessStartInfo psi = new ProcessStartInfo("cmd.exe", "/c \"" + batPath + "\"")
+        {
+            Verb = "runas", // UAC elevation
+            UseShellExecute = true
+        };
 
         try
         {

@@ -1,0 +1,15 @@
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\FPCA Installer.exe
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\FPCA Installer.deps.json
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\FPCA Installer.runtimeconfig.json
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\FPCA Installer.dll
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\FPCA Installer.pdb
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\PSlauncher.GeneratedMSBuildEditorConfig.editorconfig
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\PSlauncher.AssemblyInfoInputs.cache
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\PSlauncher.AssemblyInfo.cs
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\PSlauncher.csproj.CoreCompileInputs.cache
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\PSlauncher.sourcelink.json
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\FPCA Installer.dll
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\refint\FPCA Installer.dll
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\FPCA Installer.pdb
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\PSlauncher.genruntimeconfig.cache
+C:\Repos\FPCA\Launcher\PSlauncher\obj\Release\net8.0\ref\FPCA Installer.dll

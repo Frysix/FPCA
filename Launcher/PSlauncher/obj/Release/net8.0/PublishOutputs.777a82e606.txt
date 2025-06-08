@@ -1,0 +1,5 @@
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\publish\FPCA Installer.exe
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\publish\FPCA Installer.dll
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\publish\FPCA Installer.deps.json
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\publish\FPCA Installer.runtimeconfig.json
+C:\Repos\FPCA\Launcher\PSlauncher\bin\Release\net8.0\publish\FPCA Installer.pdb
