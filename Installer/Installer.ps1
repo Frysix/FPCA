@@ -19,6 +19,32 @@ foreach ($Drive in $Drives) {
 Write-Host "Drives found:" -ForegroundColor Cyan
 $DriveLetters | ForEach-Object { Write-Host $_ }
 
+#Checks if there is an existing installation on any of the drives
+foreach ($Letter in $DriveLetters) {
+    if (test-path -path "$Letter\FPCA\fpca.info") {
+        $info = @{}
+        $section = ""
+        foreach ($line in Get-Content "$Letter\FPCA\fpca.info") {
+            $line = $line.Trim()
+            if ($line -match "^\s*#|^\s*;|^\s*$") {
+                continue
+            }
+            if ($line -match "^\[(.+)\]$") {
+                $section = $matches[1]
+                $info[$section] = @{}
+            } elseif ($line -match "^(.*?)=(.*)$") {
+                $key = $matches[1].Trim()
+                $value = $matches[2].Trim()
+                if ($section -ne "") {
+                    $info[$section][$key] = $value
+                }
+            }
+        }
+        Write-Host "Existing installation found on drive $Letter" -ForegroundColor Yellow
+        Write-Host "Version: $($info['General']['Version'])" -ForegroundColor Yellow
+        
+    }
+}
 
 
 #END REMOVE BEFORE PUBLICATION
