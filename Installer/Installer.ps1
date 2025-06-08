@@ -163,4 +163,4 @@ Write-Host "Starting WebInstaller script..." -ForegroundColor Cyan
 # Initialize the global progress table for the WebInstaller script
 $Global:ProgressTable = [hashtable]::Synchronized(@{})
 # Launch the WebInstaller script with the required parameters
-& "$env:TEMP\WebInstaller.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA" -ChunkNumber 4 -ConnectionLimit 10
+& "$env:TEMP\WebInstaller.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
