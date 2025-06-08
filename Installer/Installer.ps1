@@ -22,6 +22,29 @@ foreach ($Drive in $Drives) {
 Write-Host "Drives found:" -ForegroundColor Cyan
 $DriveLetters | ForEach-Object { Write-Host $_ }
 
+# Get the online fpca.info file from the GitHub repository
+$OnlineRawInfo = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/fpca.info" -UseBasicParsing
+$lines = $OnlineRawInfo.Content -split "`n"
+$OnlineInfo = @{}
+$section = ""
+# Parse the online fpca.info online content
+foreach ($line in $lines) {
+    $line = $line.Trim()
+    if ($line -match "^\s*#|^\s*;|^\s*$") {
+        continue
+    }
+    if ($line -match "^\[(.+)\]$") {
+        $section = $matches[1]
+        $OnlineInfo[$section] = @{}
+    } elseif ($line -match "^(.*?)=(.*)$") {
+        $key = $matches[1].Trim()
+        $value = $matches[2].Trim()
+        if ($section -ne "") {
+            $OnlineInfo[$section][$key] = $value
+        }
+    }
+}
+
 # Checks if there is an existing installation on any of the drives
 # If an installation is found, it reads the fpca.info file and displays the version and start file.
 foreach ($Letter in $DriveLetters) {
@@ -48,28 +71,6 @@ foreach ($Letter in $DriveLetters) {
         }
         Write-Host "Existing installation found on drive $Letter" -ForegroundColor Yellow
         Write-Host "Version: $($info['General']['Version'])" -ForegroundColor Yellow
-        # Check the online version and ask for update if the online version is newer
-        $OnlineRawInfo = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/fpca.info" -UseBasicParsing
-        $lines = $OnlineRawInfo.Content -split "`n"
-        $OnlineInfo = @{}
-        $section = ""
-        # Parse the online fpca.info online content
-        foreach ($line in $lines) {
-            $line = $line.Trim()
-            if ($line -match "^\s*#|^\s*;|^\s*$") {
-                continue
-            }
-            if ($line -match "^\[(.+)\]$") {
-                $section = $matches[1]
-                $OnlineInfo[$section] = @{}
-            } elseif ($line -match "^(.*?)=(.*)$") {
-                $key = $matches[1].Trim()
-                $value = $matches[2].Trim()
-                if ($section -ne "") {
-                    $OnlineInfo[$section][$key] = $value
-                }
-            }
-        }
         # Compare the online version with the local version and launch the installed script if the versions match
         if ($OnlineInfo['General']['Version'] -eq $info['General']['Version']) {
             $InstallToDo = "Installed"
