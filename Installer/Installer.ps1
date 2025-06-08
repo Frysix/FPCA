@@ -94,7 +94,7 @@ if ($InstallToDo -eq "Installed") {
     } else {
         Write-Host "Start file not found: $($info['Files']['start'])" -ForegroundColor Red
         $result = [System.Windows.Forms.MessageBox]::Show("Cannot find Start file. Do you want to install version: $($OnlineInfo['General']['Version'])?","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
-        if (-not ($result -eq [System.Windows.Forms.MessageBoxDialogResult]::Yes)) {
+        if (-not ($result -eq [System.Windows.Forms.DialogResult]::Yes)) {
             Exit
         }
     }
