@@ -3,9 +3,9 @@
 # It creates a specified number of chunks, then it downloads each chunk in parallel,
 # and finally it combines the chunks into a single file.
 # Define the parameters for the script
-# Usage: .\WebInstaller.ps1 -Url "http://example.com/file.zip" -OutputFile "C:\path\to\output\file.zip" -ChunkNumber 4 -ConnectionLimit 10
+# Usage: .\WebInstaller.ps1 -Url "http://example.com/file.zip" -OutputFile "C:\path\to\output\file" -ChunkNumber 4 -ConnectionLimit 10
 param(
-    $Global:ProgressTable,
+    $ProgressTable,
     [string]$Url,
     [string]$OutputFile,
     [int]$ChunkNumber,
@@ -28,7 +28,14 @@ Add-Type -AssemblyName System.Collections
 [System.Net.ServicePointManager]::DefaultConnectionLimit = $ConnectionLimit
 
 #Import the required modules
-Import-Module ".\InternetHelper.psm1" -Force
+if (test-path -path "$env:TEMP\InternetHelper.psm1") {
+    Write-Host "Importing InternetHelper module..."
+} else {
+    Write-Host "InternetHelper module not found. Downloading..."
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/InternetHelper/InternetHelper.psm1" -OutFile "$env:TEMP\InternetHelper.psm1"
+    Start-Sleep -Milliseconds 250
+}
+Import-Module "$env:TEMP\InternetHelper.psm1" -Force
 
 
 # Calculate the file length and chunk size

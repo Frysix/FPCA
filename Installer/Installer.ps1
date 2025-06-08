@@ -150,3 +150,17 @@ While ($PathNull) {
 }
 
 Write-Host "Downloading new installation from: $OnlineInfo['General']['Link']" -ForegroundColor Cyan
+# Download WebInstaller.ps1 from the online repository
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/InternetHelper/WebInstaller.ps1" -OutFile "$env:TEMP\WebInstaller.ps1"
+if (-not (Test-Path -Path "$env:TEMP\WebInstaller.ps1")) {
+    Write-Host "Failed to download WebInstaller.ps1. Exiting installation." -ForegroundColor Red
+    Exit
+}
+
+# Start the WebInstaller script to download the files
+Write-Host "Starting WebInstaller script..." -ForegroundColor Cyan
+
+# Initialize the global progress table for the WebInstaller script
+$Global:ProgressTable = [hashtable]::Synchronized(@{})
+# Launch the WebInstaller script with the required parameters
+& "$env:TEMP\WebInstaller.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA.zip" -ChunkNumber 4 -ConnectionLimit 10
