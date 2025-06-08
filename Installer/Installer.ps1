@@ -101,7 +101,7 @@ if ($InstallToDo -eq "Installed") {
     }
 }
 
-# If the script is installed but the user wants to update it, it will download the online version and update in the current insallation directory.
+# If the script is installed but the user wants to update it, it will download the online version and update in the current installation directory.
 if ($InstallToDo -eq "Update") {
 
 }
@@ -114,14 +114,39 @@ $FolderBrowserDialog.ShowNewFolderButton = $true
 $FolderBrowserDialog.SelectedPath = "C:\"
 
 # Show the dialog and check if the user selected a folder
-$result = $FolderBrowserDialog.ShowDialog()
-if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
-    $InstallPath = $FolderBrowserDialog.SelectedPath
-    Write-Host "Selected installation path: $InstallPath" -ForegroundColor Green
-    # Download the online version of the application
-    Write-Host $OnlineInfo['General']['Link']
-    Pause
-} else {
-    Write-Host "Installation cancelled." -ForegroundColor Red
-    Exit
+$loops = 0
+$InstallPath = ""
+$PathNull = $true
+While ($PathNull) {
+    if ($loops -lt 5) {
+        $result = $FolderBrowserDialog.ShowDialog()
+        if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+            $InstallPath = $FolderBrowserDialog.SelectedPath
+            if (test-path -path $InstallPath) {
+                Write-Host "Selected installation path: $InstallPath" -ForegroundColor Green
+                $PathNull = $false
+            } else {
+                Write-Host "Selected path does not exist. Please select a valid folder." -ForegroundColor Red
+                $FolderBrowserDialog.SelectedPath = "C:\"
+            }
+        } else {
+            Write-Host "Installation cancelled." -ForegroundColor Red
+            $result = [System.Windows.Forms.MessageBox]::Show("Installation cancelled. Do you want to exit?","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+            if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                Exit
+            }
+        }
+        $loops++
+    } else {
+        Write-Host "Too many attempts to select a folder. Exiting installation." -ForegroundColor Red
+        $result = [System.Windows.Forms.MessageBox]::Show("Too many attempts to select a folder. Do you want to exit?","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+        if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Exit
+        } else {
+            $loops = 0
+            $FolderBrowserDialog.SelectedPath = "C:\"
+        }
+    }
 }
+
+Write-Host "Downloading new installation from: $OnlineInfo['General']['Link']" -ForegroundColor Cyan
