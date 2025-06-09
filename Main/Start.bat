@@ -5,18 +5,18 @@ setlocal enabledelayedexpansion
 
 REM Check if the script is running with administrative privileges
 REM If not, create a file to indicate the user is not an admin
-powershell -NoProfile -Executionpolicy Bypass -Command "function Get-AdminStatus {if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {return $false} else {return $true}}; if (-not (Get-AdminStatus)) {$null | out-file -filepath """%~dp0\UserNotAdmin.txt""" -encoding ascii}"
-if exist "%~dp0\UserNotAdmin.txt" (goto NotAdmin) else (goto IsAdmin)
+powershell -NoProfile -Executionpolicy Bypass -Command "function Get-AdminStatus {if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {return $false} else {return $true}}; if (Get-AdminStatus) {$null | out-file -filepath """%~dp0\UserIsAdmin.txt""" -encoding ascii}"
+if exist "%~dp0\UserIsAdmin.txt" (goto IsAdmin) else (goto NotAdmin)
 
 REM User is not administrator relaunch script as administrator
 :NotAdmin
-powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UserNotAdmin.txt""") {remove-item -path """%~dp0\UserNotAdmin.txt""" -recurse -force}"
 powershell -NoProfile -Executionpolicy Bypass -Command "start-process -WindowStyle Hidden -filepath """%~dp0\Start.bat""" -verb runas"
 Exit
 
 REM User is administrator, proceed with the application launch
 REM Launches PowerShell script to check for updates and start the application
 :IsAdmin
+powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UserIsAdmin.txt""") {remove-item -path """%~dp0\UserIsAdmin.txt""" -recurse -force}"
 powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\Start-Check.ps1"
 
 REM Check if the file FirstLaunch.txt exists
