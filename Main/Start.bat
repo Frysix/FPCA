@@ -26,11 +26,11 @@ REM If the file exists, it is the first launch of the application
 REM Delete the FirstLaunch.txt file and launch the application with the correct argument
 :FirstLaunch
 powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\FirstLaunch.txt""") {remove-item -path """%~dp0\FirstLaunch.txt""" -recurse -force}"
-powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -ArgumentList "FirstLaunch"
+powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "FirstLaunch"
 Exit
 
 REM Normal launch of the application
 REM If the file does not exist, it is a normal launch
 :NormalLaunch
-powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -ArgumentList "NormalLaunch"
+powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "NormalLaunch"
 Exit
