@@ -17,10 +17,13 @@ Remove-Item $ZipFile -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Path $TempFPCA -Force | Out-Null
 
 # Copy all contents from main to FPCA (without main folder)
-Copy-Item "$Source\*" $TempFPCA -Recurse
+Copy-Item "$Source\*" $TempFPCA -Recurse -Force
 
 # Create the zip with FPCA as the root folder
 Compress-Archive -Path $TempFPCA -DestinationPath $ZipFile
+
+# Wait for a moment to ensure the zip file is created
+Start-Sleep -Seconds 1
 
 # Clean up temp folder
 Remove-Item $TempFPCA -Recurse -Force

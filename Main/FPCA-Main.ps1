@@ -110,6 +110,8 @@ $Null = $UiPowershell.AddScript({
         $Global:UiHash.UIClosed = $true
         
     } catch {
+        # If an error occurs during the execution of the UI script, it will be caught here.
+        # Display an error message to the user.
         [System.Windows.Forms.MessageBox]::Show("UI failed: $($_.Exception.Message)")
         $Global:UiHash.UIClosed = $true
     }
@@ -129,7 +131,24 @@ $Null = Register-ObjectEvent -InputObject $UiPowershell -EventName InvocationSta
 # This starts the execution of the UI script in the runspace.
 $UiHandle = $UiPowershell.BeginInvoke()
 
+# Define function to handle task distribution.
+function Invoke-Task {
+    Param(
+        [Parameter(Mandatory=$true)]
+        [scriptblock]$TaskScriptBlock
+    )
+    # INSERT CODE TO HANDLE TASK DISTRIBUTION HERE
+}
+
 # Wait for the UI to close
-while ($UiPowershell.InvocationStateInfo.State -eq 'Running') {
-    Start-Sleep -Milliseconds 200
+while ($Global:MainHash.MainListener) {
+    # Sleep for a short duration to prevent high CPU usage.
+    Start-Sleep -Milliseconds 100
+
+    # Check if the UI is closed by checking the UIClosed variable in the UiHash.
+    # If the UI is closed, set the MainListener to false to exit the loop.
+    if ($Global:UiHash.UIClosed) {
+        # If the UI is closed, break the loop and exit the script.
+        $Global:MainHash.MainListener = $false
+    }
 }
