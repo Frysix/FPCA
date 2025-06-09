@@ -88,7 +88,7 @@ foreach ($Letter in $DriveLetters) {
 # If the script is already installed it checks if the start file exists and starts it.
 # If the start file does not exist, it prompts the user to install the online version.
 if ($InstallToDo -eq "Installed") {
-    if (Test-Path -Path "$Letter\FPCA\$($info['Files']['start'])") {
+    if (Test-Path -Path "$FPCAPath\$($info['Files']['start'])") {
         Write-Host "Start file found: $($info['Files']['start'])" -ForegroundColor Yellow
         Start-Process -WindowStyle Hidden -FilePath "$Letter\FPCA\$($info['Files']['start'])" -WorkingDirectory $FPCAPath -Verb Runas
         Exit

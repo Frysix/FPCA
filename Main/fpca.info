@@ -7,6 +7,6 @@ start=Start.bat
 [General]
 link=https://ftp.frysix.com/public/file/r_wb0osawembhff0ufnzia/FPCA.zip
 firstlaunch=true
-version=0.4
+version=0.5
 installdate=
 
