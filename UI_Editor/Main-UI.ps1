@@ -1,3 +1,9 @@
+$STOFFICE_LAUNCH_CHECKBOX_CheckedChanged = {
+}
+$CheckBox2_CheckedChanged = {
+}
+$FIREFOX_INSTALL_CHECKBOX_CheckedChanged = {
+}
 $PC_BOARD_MODEL_LABEL_Click = {
 }
 $Label2_Click = {

@@ -48,6 +48,9 @@ $Global:UiHash.LaunchType = $LaunchType
 $Global:UiHash.FPCAInfo = $Global:MainHash.FPCAInfo
 $Global:UiHash.FPCASettings = $Global:MainHash.FPCASettings
 $Global:UiHash.PSScriptroot = $PSScriptRoot
+# Initialize bool variable to initial state.
+$Global:UiHash.UIClosed = $false
+
 # Get UI settings from the Settings.ini file.
 # These settings will be used to configure the UI elements and their behavior.
 if ($Global:UiHash.FPCASettings.General.Theme -eq 'Light') {
@@ -141,7 +144,8 @@ function Invoke-Task {
 }
 
 # Wait for the UI to close
-while ($Global:MainHash.MainListener) {
+$Global:MainHash.MainListener = $true
+While ($Global:MainHash.MainListener) {
     # Sleep for a short duration to prevent high CPU usage.
     Start-Sleep -Milliseconds 100
 
@@ -152,3 +156,7 @@ while ($Global:MainHash.MainListener) {
         $Global:MainHash.MainListener = $false
     }
 }
+
+# End of script.
+# Trigger on loop exit.
+Exit
