@@ -3,3 +3,4 @@ version=0.3
 link=https://ftp.frysix.com/public/file/r_wb0osawembhff0ufnzia/FPCA.zip
 [Files]
 start=Start.bat
+main=FPCA-main.ps1
