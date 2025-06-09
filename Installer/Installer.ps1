@@ -226,6 +226,24 @@ foreach ($line in Get-Content "$InstallPath\FPCA\fpca.info") {
     }
 }
 
+# Writes the installation log for the files used in the installation
+# This segment creates a log file in the TEMP directory with the paths of the files used during the installation.
+# This later helps Start-Check.ps1 delete the temporary files after the installation is complete.
+$LogContent = @(
+    "$env:TEMP\WebInstaller.ps1",
+    "$env:TEMP\InternetHelper.psm1",
+    "$env:TEMP\Installer.ps1",
+    "$env:TEMP\FPCAinstaller.bat"
+)
+# Create a log of the files used in the installation
+$LogFilePath = "$env:TEMP\Install.log"
+if (Test-Path -Path $LogFilePath) {
+    Remove-Item -Path $LogFilePath -Force -ErrorAction SilentlyContinue
+}
+# Add the installation details to the log content
+New-Item -Path $LogFilePath -ItemType File -Force | Out-Null
+Set-Content -Path $LogFilePath -Value $LogContent -Encoding UTF8
+
 # Start the installed script
 Write-Host "Starting installed App Version: $NewInstallInfo['General']['Version']" -ForegroundColor Cyan
 Start-Process -WindowStyle Hidden -FilePath "$InstallPath\FPCA\$($NewInstallInfo['Files']['Start'])" -WorkingDirectory "$InstallPath\FPCA" -Verb Runas
