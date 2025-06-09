@@ -48,6 +48,23 @@ $Global:UiHash.LaunchType = $LaunchType
 $Global:UiHash.FPCAInfo = $Global:MainHash.FPCAInfo
 $Global:UiHash.FPCASettings = $Global:MainHash.FPCASettings
 $Global:UiHash.PSScriptroot = $PSScriptRoot
+# Get UI settings from the Settings.ini file.
+# These settings will be used to configure the UI elements and their behavior.
+if ($Global:UiHash.FPCASettings.General.Theme -eq 'Light') {
+    $Global:UiHash.BackColor_Back_Gradient = [System.Drawing.Color]::FromArgb(([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)))
+    $Global:UiHash.BackColor_Outer_Gradient = ""
+    $Global:UiHash.BackColor_Inner_Gradient = ""
+    $Global:UiHash.BackColor_Text_Gradient = ""
+} else {
+    # Default is dark theme.
+    $Global:UiHash.FPCASettings.General.Theme = 'Dark'
+    # Set the default background color for the UI.
+    $Global:UiHash.BackColor_Back_Gradient = [System.Drawing.Color]::FromArgb(([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)))
+    $Global:UiHash.BackColor_Outer_Gradient = ""
+    $Global:UiHash.BackColor_Inner_Gradient = [System.Drawing.Color]::Gray
+    $Global:UiHash.BackColor_Text_Gradient = ""
+
+}
 
 
 # Create a runspace for the UI
