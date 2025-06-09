@@ -10,5 +10,5 @@ Param(
 Add-Type -AssemblyName System.Windows.Forms
 
 # Test to see if everything works till now ---- REMOVE THIS WHEN DONE TESTING ----
-[System.Windows.Froms.MessageBox]::Show("Welcome to Frysix's Powershell Configurator App (FPCA)!`nThe Launch Type Was: ${LaunchType}", "FPCA - Main Menu", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+[System.Windows.Forms.MessageBox]::Show("Welcome to Frysix's Powershell Configurator App (FPCA)!`nThe Launch Type Was: ${LaunchType}", "FPCA - Main Menu", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
 Exit
