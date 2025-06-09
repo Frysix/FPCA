@@ -53,7 +53,7 @@ foreach ($Letter in $DriveLetters) {
         $info = @{}
         $section = ""
         # Parse the fpca.info content
-        foreach ($line in Get-Content "$Letter\FPCA\fpca.info") {
+        foreach ($line in Get-Content "$FPCAPath\fpca.info") {
             $line = $line.Trim()
             if ($line -match "^\s*#|^\s*;|^\s*$") {
                 continue
@@ -103,7 +103,8 @@ if ($InstallToDo -eq "Installed") {
 
 # If the script is installed but the user wants to update it, it will download the online version and update in the current installation directory.
 if ($InstallToDo -eq "Update") {
-
+    #
+    # INSERT CODE TO UPDATE THE EXISTING INSTALLATION HERE
 }
 
 # If the script is not installed, it will download the online version and install it.
@@ -113,7 +114,10 @@ $FolderBrowserDialog.Description = "Please select a folder where FPCA will insta
 $FolderBrowserDialog.ShowNewFolderButton = $true
 $FolderBrowserDialog.SelectedPath = "C:\"
 
-# Show the dialog and check if the user selected a folder
+# Loop to ensure a valid installation path is selected
+# If the user selects an invalid path or cancels the dialog, it will prompt the user to select a valid folder.
+# If the user selects a valid path, it will proceed with the installation.
+# If the user cancels the dialog, it will prompt the user to exit the installation.
 $loops = 0
 $InstallPath = ""
 $PathNull = $true
@@ -159,8 +163,73 @@ if (-not (Test-Path -Path "$env:TEMP\WebInstaller.ps1")) {
 
 # Start the WebInstaller script to download the files
 Write-Host "Starting WebInstaller script..." -ForegroundColor Cyan
+$loops = 0
+$NotInstalled = $true
+While ($NotInstalled) {
+    if ($loops -lt 3) {
+        # Initialize the global progress table for the WebInstaller script
+        $Global:ProgressTable = [hashtable]::Synchronized(@{})
+        # Launch the WebInstaller script with the required parameters
+        & "$env:TEMP\WebInstaller.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
+        # Check if the WebInstaller script was successful
+        if (test-path -path "$InstallPath\FPCA.zip") {
+            Write-Host "Installation completed successfully. Extracting..." -ForegroundColor Green
+            # Extract the downloaded zip file
+            Expand-Archive -Path "$InstallPath\FPCA.zip" -DestinationPath $InstallPath -Force
+            if (test-path -path "$InstallPath\FPCA\fpca.info") {
+                Write-Host "Installation completed successfully." -ForegroundColor Green
+                # Remove the zip file after extraction
+                Remove-Item -Path "$InstallPath\FPCA.zip" -Force
+                $NotInstalled = $false
+            } else {
+                Write-Host "Installation failed. fpca.info file not found in the installation directory." -ForegroundColor Red
+                $result = [System.Windows.Forms.MessageBox]::Show("Installation failed. fpca.info file not found. Do you want to retry?","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+                if (-not ($result -eq [System.Windows.Forms.DialogResult]::Yes)) {
+                    Exit
+                }
+            }
+        } else {
+            Write-Host "Installation failed. WebInstaller script did not complete successfully." -ForegroundColor Red
+            $result = [System.Windows.Forms.MessageBox]::Show("Installation failed. Do you want to retry?","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+            if (-not ($result -eq [System.Windows.Forms.DialogResult]::Yes)) {
+                Exit
+            }
+        }
+        # Increment the loop counter
+        $loops++
+    } else {
+        Write-Host "Too many attempts to install. Exiting installation." -ForegroundColor Red
+        $result = [System.Windows.Forms.MessageBox]::Show("Too many failed attempts to install. Exitting...","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::OK,[System.Windows.Forms.MessageBoxIcon]::Error)
+        Exit
+    }
+}
 
-# Initialize the global progress table for the WebInstaller script
-$Global:ProgressTable = [hashtable]::Synchronized(@{})
-# Launch the WebInstaller script with the required parameters
-& "$env:TEMP\WebInstaller.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
+# Read the fpca.info file from the installed directory to prevent issues with version mismatches
+# and to get the start file path and version information.
+Write-Host "Reading fpca.info file from the installed directory..." -ForegroundColor Cyan
+$NewInstallInfo = @{}
+$section = ""
+foreach ($line in Get-Content "$InstallPath\FPCA\fpca.info") {
+    $line = $line.Trim()
+    if ($line -match "^\s*#|^\s*;|^\s*$") {
+        continue
+    }
+    if ($line -match "^\[(.+)\]$") {
+        $section = $matches[1]
+        $NewInstallInfo[$section] = @{}
+    } elseif ($line -match "^(.*?)=(.*)$") {
+        $key = $matches[1].Trim()
+        $value = $matches[2].Trim()
+        if ($section -ne "") {
+            $NewInstallInfo[$section][$key] = $value
+        }
+    }
+}
+
+# Start the installed script
+Write-Host "Starting installed App Version: $NewInstallInfo['General']['Version']" -ForegroundColor Cyan
+Start-Process -WindowStyle Hidden -FilePath "$InstallPath\FPCA\$($NewInstallInfo['Files']['Start'])" -WorkingDirectory "$InstallPath\FPCA" -Verb Runas
+# Exit the installer script
+Write-Host "FPCA App launched successfully. Closing installer script in 2 seconds..." -ForegroundColor Green
+Start-Sleep -Seconds 2
+Exit
