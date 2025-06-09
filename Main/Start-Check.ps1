@@ -53,23 +53,25 @@ if ($info['General']['firstlaunch'] -eq "true") {
     }
     # Write the updated info back to fpca.info file.
     Set-Content -Path "$Psscriptroot\fpca.info" -Value $infoContent -Encoding UTF8
-    # Makes the checks for temp files usually installed during setup and deletes them.
-    # Might make this more modular in the future.
-    
-    # Read the log file and store each line as a string in an array
-    $LogFilePath = "$env:TEMP\Install.log"
-    if (Test-Path $LogFilePath) {
-        $LogEntries = Get-Content $LogFilePath
-        foreach ($entry in $LogEntries) {
-            if (test-path -path $entry) {
-                # If the entry exists, delete it.
-                Remove-Item -Path $entry -Force -ErrorAction SilentlyContinue
-            }
-        }
-        # After processing all entries, delete the log file itself.
-        Remove-Item -Path $LogFilePath -Force -ErrorAction SilentlyContinue
-    }
+    # Set the IsFirstLaunch flag to true for further processing.
     $IsFirstLaunch = $true
+}
+
+# Makes the checks for temp files usually installed during setup and deletes them.
+# Might make this more modular in the future.
+    
+# Read the log file and store each line as a string in an array
+$LogFilePath = "$env:TEMP\Install.log"
+if (Test-Path -Path $LogFilePath) {
+    $LogEntries = Get-Content $LogFilePath
+    foreach ($entry in $LogEntries) {
+        if (test-path -path $entry) {
+            # If the entry exists, delete it.
+            Remove-Item -Path $entry -Force -ErrorAction SilentlyContinue
+        }
+    }
+    # After processing all entries, delete the log file itself.
+    Remove-Item -Path $LogFilePath -Force -ErrorAction SilentlyContinue
 }
 
 # This script checks for the existence of Settings.ini in the script's directory.
