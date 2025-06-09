@@ -90,7 +90,7 @@ foreach ($Letter in $DriveLetters) {
 if ($InstallToDo -eq "Installed") {
     if (Test-Path -Path "$FPCAPath\$($info['Files']['start'])") {
         Write-Host "Start file found: $($info['Files']['start'])" -ForegroundColor Yellow
-        Start-Process -WindowStyle Hidden -FilePath "$Letter\FPCA\$($info['Files']['start'])" -WorkingDirectory $FPCAPath -Verb Runas
+        Start-Process -WindowStyle Hidden -FilePath "$FPCAPath\$($info['Files']['start'])" -WorkingDirectory $FPCAPath -Verb Runas
         Exit
     } else {
         Write-Host "Start file not found: $($info['Files']['start'])" -ForegroundColor Red
