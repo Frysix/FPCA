@@ -20,7 +20,7 @@ powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%
 powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\Start-Check.ps1"
 
 REM Check if the file FirstLaunch.txt exists
-if exist "%~dp0\FirstLaunch.txt" (goto FirstLaunch) else (NormalLaunch)
+if exist "%~dp0\FirstLaunch.txt" (goto FirstLaunch) else (goto NormalLaunch)
 
 REM If the file exists, it is the first launch of the application
 REM Delete the FirstLaunch.txt file and launch the application with the correct argument
