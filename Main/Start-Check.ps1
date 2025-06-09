@@ -132,7 +132,6 @@ if ($Settings['Startup']['IntegrityCheckup'] -eq 'true') {
 }
 
 # If this is the first launch, create a file to indicate that the first launch has occurred.
-# If this is the first launch, create a file to indicate that the first launch has occurred.
 if ($IsFirstLaunch) {
     $Null | Out-File "$Psscriptroot\FirstLaunch.txt" -Encoding ASCII -Force
 } else {
