@@ -28,14 +28,24 @@ Add-Type -AssemblyName System.Collections
 [System.Net.ServicePointManager]::DefaultConnectionLimit = $ConnectionLimit
 
 #Import the required modules
-if (test-path -path "$env:TEMP\InternetHelper.psm1") {
-    Write-Host "Importing InternetHelper module..."
+if (test-path -path "$PSScriptroot\InternetHelper.psm1") {
+    # Check if the InternetHelper module exists in the script directory
+    Write-Host "Importing InternetHelper module from script directory..."
+    Import-Module "$PSScriptroot\InternetHelper.psm1" -Force
+} elseif (test-path -path "$PSScriptroot\Helper\InternetHelper.psm1") {
+    # Check if the Helper folder exists in the script Helper Subdirectory
+    Write-Host "Importing InternetHelper module from Helper folder..."
+    Import-Module "$PSScriptroot\Helper\InternetHelper.psm1" -Force
+} elseif (test-path -path "$env:TEMP\InternetHelper.psm1") {
+    # Check if the InternetHelper module exists in the TEMP folder
+    Write-Host "Importing InternetHelper module from TEMP folder..."
+    Import-Module "$env:TEMP\InternetHelper.psm1" -Force
 } else {
-    Write-Host "InternetHelper module not found. Downloading..."
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/InternetHelper/InternetHelper.psm1" -OutFile "$env:TEMP\InternetHelper.psm1"
+    Write-Host "InternetHelper module not found. Downloading to TEMP folder..."
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Helper/InternetHelper.psm1" -OutFile "$env:TEMP\InternetHelper.psm1"
     Start-Sleep -Milliseconds 250
+    Import-Module "$env:TEMP\InternetHelper.psm1" -Force
 }
-Import-Module "$env:TEMP\InternetHelper.psm1" -Force
 
 
 # Calculate the file length and chunk size

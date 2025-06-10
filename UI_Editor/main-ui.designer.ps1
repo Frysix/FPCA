@@ -283,11 +283,11 @@ $SETTINGS_CONFIG_TITLE_LABEL.add_Click($Label1_Click)
 #CONFIGFILEPATH_LINK_LABEL
 #
 $CONFIGFILEPATH_LINK_LABEL.ActiveLinkColor = [System.Drawing.Color]::White
-$CONFIGFILEPATH_LINK_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$CONFIGFILEPATH_LINK_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]8))
 $CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Red
-$CONFIGFILEPATH_LINK_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]254))
+$CONFIGFILEPATH_LINK_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]254))
 $CONFIGFILEPATH_LINK_LABEL.Name = [System.String]'CONFIGFILEPATH_LINK_LABEL'
-$CONFIGFILEPATH_LINK_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]259,[System.Int32]15))
+$CONFIGFILEPATH_LINK_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]262,[System.Int32]15))
 $CONFIGFILEPATH_LINK_LABEL.TabIndex = [System.Int32]16
 $CONFIGFILEPATH_LINK_LABEL.TabStop = $true
 $CONFIGFILEPATH_LINK_LABEL.Text = [System.String]'PATH TO CONFIG FILE LOCATION'
@@ -380,7 +380,7 @@ $DISCORD_INSTALL_CHECKBOX.UseVisualStyleBackColor = $true
 $MACRIUM_INSTALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
 $MACRIUM_INSTALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]114))
 $MACRIUM_INSTALL_CHECKBOX.Name = [System.String]'MACRIUM_INSTALL_CHECKBOX'
-$MACRIUM_INSTALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]95,[System.Int32]17))
+$MACRIUM_INSTALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
 $MACRIUM_INSTALL_CHECKBOX.TabIndex = [System.Int32]7
 $MACRIUM_INSTALL_CHECKBOX.Text = [System.String]'Macrium Reflect'
 $MACRIUM_INSTALL_CHECKBOX.UseVisualStyleBackColor = $true

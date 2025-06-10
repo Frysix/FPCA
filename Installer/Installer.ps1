@@ -154,24 +154,24 @@ While ($PathNull) {
 }
 
 Write-Host "Downloading new installation from: $OnlineInfo['General']['Link']" -ForegroundColor Cyan
-# Download WebInstaller.ps1 from the online repository
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/InternetHelper/WebInstaller.ps1" -OutFile "$env:TEMP\WebInstaller.ps1"
-if (-not (Test-Path -Path "$env:TEMP\WebInstaller.ps1")) {
-    Write-Host "Failed to download WebInstaller.ps1. Exiting installation." -ForegroundColor Red
+# Download Threaded-Installer.ps1 from the online repository
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Threaded-Installer.ps1" -OutFile "$env:TEMP\WebInstaller.ps1"
+if (-not (Test-Path -Path "$env:TEMP\Threaded-Installer.ps1")) {
+    Write-Host "Failed to download Threaded-Installer.ps1. Exiting installation." -ForegroundColor Red
     Exit
 }
 
-# Start the WebInstaller script to download the files
-Write-Host "Starting WebInstaller script..." -ForegroundColor Cyan
+# Start the Threaded-Installer script to download the files
+Write-Host "Starting Threaded-Installer script..." -ForegroundColor Cyan
 $loops = 0
 $NotInstalled = $true
 While ($NotInstalled) {
     if ($loops -lt 3) {
-        # Initialize the global progress table for the WebInstaller script
+        # Initialize the global progress table for theThreaded-Installer script
         $Global:ProgressTable = [hashtable]::Synchronized(@{})
-        # Launch the WebInstaller script with the required parameters
-        & "$env:TEMP\WebInstaller.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
-        # Check if the WebInstaller script was successful
+        # Launch the Threaded-Installer script with the required parameters
+        & "$env:TEMP\Threaded-Installer.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
+        # Check if the Threaded-Installer script was successful
         if (test-path -path "$InstallPath\FPCA.zip") {
             Write-Host "Installation completed successfully. Extracting..." -ForegroundColor Green
             # Extract the downloaded zip file
