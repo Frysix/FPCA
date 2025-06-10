@@ -1,3 +1,5 @@
+$VERSION_LABEL_Click = {
+}
 $STOFFICE_LAUNCH_CHECKBOX_CheckedChanged = {
 }
 $CheckBox2_CheckedChanged = {
