@@ -90,6 +90,18 @@ foreach ($Letter in $DriveLetters) {
 if ($InstallToDo -eq "Installed") {
     if (Test-Path -Path "$FPCAPath\$($info['Files']['start'])") {
         Write-Host "Start file found: $($info['Files']['start'])" -ForegroundColor Yellow
+        $LogContent = @(
+            "$env:TEMP\Installer.ps1",
+            "$env:TEMP\FPCAinstaller.bat"
+        )
+        # Create a log of the files used in the launch
+        $LogFilePath = "$env:TEMP\Install.log"
+        if (Test-Path -Path $LogFilePath) {
+            Remove-Item -Path $LogFilePath -Force -ErrorAction SilentlyContinue
+        }
+        # Add the installation details to the log content
+        New-Item -Path $LogFilePath -ItemType File -Force | Out-Null
+        Set-Content -Path $LogFilePath -Value $LogContent -Encoding UTF8
         Start-Process -WindowStyle Hidden -FilePath "$FPCAPath\$($info['Files']['start'])" -WorkingDirectory $FPCAPath -Verb Runas
         Exit
     } else {
