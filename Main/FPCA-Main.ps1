@@ -11,35 +11,10 @@ Param(
 $Global:MainHash = [hashtable]::Synchronized(@{})
 $Global:UiHash = [hashtable]::Synchronized(@{})
 
-# Define a function to read and parse UTF-8 encoded files according to ini format.
-function Get-FromUTF8File {
-    Param(
-        [Parameter(Mandatory=$true)]
-        [string]$FilePath
-    )
-    $info = @{}
-    $section = ""
-    # Parse the files content
-    foreach ($line in Get-Content $FilePath) {
-        $line = $line.Trim()
-        if ($line -match "^\s*#|^\s*;|^\s*$") {
-            continue
-        }
-        if ($line -match "^\[(.+)\]$") {
-            $section = $matches[1]
-            $info[$section] = @{}
-        } elseif ($line -match "^(.*?)=(.*)$") {
-            $key = $matches[1].Trim()
-            $value = $matches[2].Trim()
-            if ($section -ne "") {
-                $info[$section][$key] = $value
-            }
-        }
-    }
-    return $info
-}
-# Load the helper module for form-related operations.
+# Import the necessary modules for the application.
+Import-Module -Name "$PSScriptRoot\Helper\ParsingHelper.psm1" -Force
 Import-Module -Name "$PSScriptRoot\Helper\FormHelper.psm1" -Force
+Import-Module -Name "$PSScriptRoot\Helper\InternetHelper.psm1" -Force
 
 # Get info from the fpca.info file
 $Global:MainHash.FPCAInfo = Get-FromUTF8File -FilePath "$PSScriptRoot\fpca.info"
@@ -76,7 +51,10 @@ $Global:MainHash.CheckBoxStates = @{
     STOFFICE_LAUNCH_CHECKBOX = $false
     MORE_LAUNCH_CHECKBOX = $false
 }
-
+# Initialize settings related variables.
+[int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.General.MainLoopRefreshRate -Default 50
+[int32]$ConfigLinkUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.General.ConfigLinkUpdateCounter -Default 40
+[int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.General.InternetCheckUpdateCounter -Default 100
 
 # Create a runspace for the UI
 # This runspace will be used to execute the UI script in a separate thread.
@@ -273,9 +251,6 @@ function Invoke-Task {
 
 # Initialize the MainLoopCounter to 0 and set the MainListener to true.
 # Loading these variables before the MainForm is loaded ensures that the main loop can start immediately after the form is ready.
-[int32]$ConfigLinkUpdateCounter = 40
-[int32]$InternetCheckUpdateCounter = 100
-$Global:MainHash.MainListener = $true
 
 # Wait for the main form to be loaded before proceeding with the main loop.
 # This loop will check if the main form is loaded by checking the MainFormLoaded variable in the UiHash.
@@ -296,6 +271,15 @@ While ($Global:UiHash.MainFormLoaded -eq $false) {
     # Increment the loop counter to track how many times we've checked for the main form load.
     $MainFormLoadLoopCounter++
 }
+# Set the MainListener to true to indicate that the main loop should start.
+$Global:MainHash.MainListener = $true
+
+###########################################################################################################################
+#                                                                                                                         #
+#                                               MAIN APP LOOP STARTS HERE                                                 #
+#                                                                                                                         #
+###########################################################################################################################
+
 
 # Main loop to keep the application running.
 # This loop will run until the UI is closed, allowing the application to remain responsive.
@@ -345,7 +329,7 @@ While ($Global:MainHash.MainListener) {
         # Check if the internet connection is available.
         # If it is, update the InternetConnection property in the MainHash to true.
         # If it is not, update the InternetConnection property in the MainHash to false.
-        if (Test-Connection 8.8.8.8 -Count 1 -Quiet -ErrorAction SilentlyContinue) {
+        if (Get-InternetStatus) {
             $Global:MainHash.InternetConnection = $true
             $Global:UiHash.CONNECTION_TITLE_LABEL.ForeColor = [System.Drawing.Color]::Green
             #$Global:UiHash.CONNECTION_STATUS_PICTUREBOX.Image = [System.Drawing.Image]::FromFile("$PSScriptRoot\Assets\img\Internet-Connected.jpg")
@@ -400,7 +384,7 @@ While ($Global:MainHash.MainListener) {
                 } -ArgumentList $PSScriptroot | Out-Null
 
             } elseif ($Global:MainHash.ImportButtonMode -eq "None") {
-                
+
                 # If the ImportButtonMode is set to None, display a message to the user.
                 Start-Job -ScriptBlock {
                     Param(
@@ -538,9 +522,31 @@ While ($Global:MainHash.MainListener) {
             $Global:MainHash.CheckBoxStates.MORE_LAUNCH_CHECKBOX = $false
         }
     }
+
+    # Check if the LinkLabelClicked flag is set to true in the UiHash.
+    if ($Global:UiHash.LinkLabelClicked) {
+        # Reset the LinkLabelClicked flag to false.
+        $Global:UiHash.LinkLabelClicked = $false
+
+        # Check if the CONFIGFILEPATH_LINK_LABEL_CLICKED flag is set to true in the UiHash.
+        if ($Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED) {
+            # If it is set, open the Config folder in File Explorer.
+            Start-Process -FilePath "explorer.exe" -ArgumentList "$PSScriptRoot\Config"
+            # Reset the CONFIGFILEPATH_LINK_LABEL_CLICKED flag to false after processing the link label click.
+            $Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED = $false
+        }
+
+        # Check if the SYSTEMINFO_LINK_LABEL_CLICKED flag is set to true in the UiHash.
+        if ($Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED) {
+            # If it is set, open the System Information window.
+            Start-Process -FilePath "msinfo32.exe"
+            # Reset the SYSTEMINFO_LINK_LABEL_CLICKED flag to false after processing the link label click.
+            $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
+        }
+    }
     
     # Sleep for a short duration to prevent high CPU usage.
-    Start-Sleep -Milliseconds 50
+    Start-Sleep -Milliseconds $MainLoopRefreshRate
 }
 
 # End of script.

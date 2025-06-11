@@ -1,9 +1,8 @@
-# WebInstaller.ps1
 # This script downloads a file in chunks using PowerShell and .NET HttpClient.
 # It creates a specified number of chunks, then it downloads each chunk in parallel,
 # and finally it combines the chunks into a single file.
 # Define the parameters for the script
-# Usage: .\WebInstaller.ps1 -Url "http://example.com/file.zip" -OutputFile "C:\path\to\output\file" -ChunkNumber 4 -ConnectionLimit 10
+# Usage: & .\Threaded-Installer.ps1 -Url "http://example.com/file.zip" -OutputFile "C:\path\to\output\file" -ChunkNumber 4 -ConnectionLimit 10
 param(
     $ProgressTable,
     [string]$Url,
@@ -18,16 +17,48 @@ param(
 
 # Import the required .NET assemblies
 
-Add-Type -AssemblyName System.Net.Http
-Add-Type -AssemblyName System.IO
-Add-Type -AssemblyName System.Threading
-Add-Type -AssemblyName System.Collections
+Add-Type -AssemblyName System.Net.Http, System.IO, System.Threading, System.Collections
 
 
 # Increase the default connection limit to allow more concurrent connections
 [System.Net.ServicePointManager]::DefaultConnectionLimit = $ConnectionLimit
 
-#Import the required modules
+# Check if the required parameters are provided
+if (-not $Url -or -not $OutputFile -or -not $ChunkNumber) {
+    Write-Host "Usage: & .\Threaded-Installer.ps1 -Url <URL> -OutputFile <OutputFile> -ChunkNumber <ChunkNumber> -ConnectionLimit <ConnectionLimit>"
+    exit 1
+}
+# Validate the URL format
+if (-not $Url -or $Url -notmatch '^(http|https)://') {
+    Write-Host "Invalid URL format: $Url"
+    exit 1
+}
+# Validate the chunk number
+if (-not $ChunkNumber -or $ChunkNumber -le 0) {
+    Write-Host "Invalid chunk number: $ChunkNumber. It must be a positive integer."
+    exit 1
+}
+# Validate the output file path
+if (-not $OutputFile -or $OutputFile -notmatch '^[a-zA-Z]:\\') {
+    Write-Host "Invalid output file path: $OutputFile. It must be a valid file path."
+    exit 1
+}
+# Validate the connection limit
+if (-not $ConnectionLimit -or $ConnectionLimit -le 0) {
+    Write-Host "Invalid connection limit: $ConnectionLimit. It must be a positive integer."
+    exit 1
+}
+# Initialize the progress table if not provided
+if (-not $ProgressTable) {
+    $ProgressTable = @{}
+}
+# Check the output file's extension and if there is an extension, remove it
+if ($OutputFile -and $OutputFile.Contains('.')) {
+    $OutputFile = $OutputFile.Substring(0, $OutputFile.LastIndexOf('.'))
+}
+
+# Check if the InternetHelper module exists in the script directory or Helper subdirectory
+# If not, download it from the specified URL and import it
 if (test-path -path "$PSScriptroot\InternetHelper.psm1") {
     # Check if the InternetHelper module exists in the script directory
     Write-Host "Importing InternetHelper module from script directory..."
@@ -41,6 +72,7 @@ if (test-path -path "$PSScriptroot\InternetHelper.psm1") {
     Write-Host "Importing InternetHelper module from TEMP folder..."
     Import-Module "$env:TEMP\InternetHelper.psm1" -Force
 } else {
+    # If the InternetHelper module is not found, download it to the TEMP folder
     Write-Host "InternetHelper module not found. Downloading to TEMP folder..."
     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Helper/InternetHelper.psm1" -OutFile "$env:TEMP\InternetHelper.psm1"
     Start-Sleep -Milliseconds 250

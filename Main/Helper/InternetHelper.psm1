@@ -17,7 +17,11 @@ function Get-HttpWebSiteStatus {
         [parameter(mandatory=$true)]
         [string]$Url
     )
-
+    # Validate the URL format
+    if (-not $Url -or $Url -notmatch '^(http|https)://') {
+        throw "Invalid URL format: $Url"
+    }
+    # Create a web request to the specified URL
     $Request = [System.Net.WebRequest]::Create($Url)
     $Response = $Request.GetResponse()
     $WebsiteStatus = [int]$Response.StatusCode
@@ -29,12 +33,6 @@ function Get-HttpWebSiteStatus {
     }
 }
 
-# Function to check if the Microsoft server is reachable
-function Get-MSserverStatus {
-    $MSserverStatus = test-connection c2rsetup.officeapps.live.com -count 1 -quiet
-    return $MSserverStatus
-}
-
 # Function to get the file length from the server
 function Get-HttpFileLength {
     Param(
@@ -43,11 +41,15 @@ function Get-HttpFileLength {
         [string]$Url
     )
 
+    # Validate the URL format
+    if (-not $Url -or $Url -notmatch '^(http|https)://') {
+        throw "Invalid URL format: $Url"
+    }
+    # Create a web request to the specified URL
     $Request = [System.Net.HttpWebRequest]::Create($Url)
     $Request.Method = "GET"
     $Request.AllowAutoRedirect = $true
     $Headers = $Response.Headers
-
     $Response = $Request.GetResponse()
     $Headers = $Response.Headers
 
