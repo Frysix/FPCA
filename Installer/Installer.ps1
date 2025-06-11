@@ -155,7 +155,7 @@ While ($PathNull) {
 
 Write-Host "Downloading new installation from: $OnlineInfo['General']['Link']" -ForegroundColor Cyan
 # Download Threaded-Installer.ps1 from the online repository
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Threaded-Installer.ps1" -OutFile "$env:TEMP\WebInstaller.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Threaded-Installer.ps1" -OutFile "$env:TEMP\Threaded-Installer.ps1"
 if (-not (Test-Path -Path "$env:TEMP\Threaded-Installer.ps1")) {
     Write-Host "Failed to download Threaded-Installer.ps1. Exiting installation." -ForegroundColor Red
     Exit
