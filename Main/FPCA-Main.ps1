@@ -52,9 +52,9 @@ $Global:MainHash.CheckBoxStates = @{
     MORE_LAUNCH_CHECKBOX = $false
 }
 # Initialize settings related variables.
-[int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.General.MainLoopRefreshRate -Default 50
-[int32]$ConfigLinkUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.General.ConfigLinkUpdateCounter -Default 40
-[int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.General.InternetCheckUpdateCounter -Default 100
+[int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainLoopRefreshRate -Default 50
+[int32]$ConfigLinkUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigLinkUpdateCounter -Default 40
+[int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.InternetCheckUpdateCounter -Default 100
 
 # Create a runspace for the UI
 # This runspace will be used to execute the UI script in a separate thread.
