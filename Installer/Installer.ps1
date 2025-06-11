@@ -230,7 +230,7 @@ foreach ($line in Get-Content "$InstallPath\FPCA\fpca.info") {
 # This segment creates a log file in the TEMP directory with the paths of the files used during the installation.
 # This later helps Start-Check.ps1 delete the temporary files after the installation is complete.
 $LogContent = @(
-    "$env:TEMP\WebInstaller.ps1",
+    "$env:TEMP\Threaded-Installer.ps1",
     "$env:TEMP\InternetHelper.psm1",
     "$env:TEMP\Installer.ps1",
     "$env:TEMP\FPCAinstaller.bat"
