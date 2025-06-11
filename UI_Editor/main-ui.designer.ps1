@@ -14,6 +14,9 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Button]$SETTINGS_BUTTON = $null
 [System.Windows.Forms.TabControl]$MAIN_TAB_CONTROL = $null
 [System.Windows.Forms.TabPage]$CONFIG_TAB = $null
+[System.Windows.Forms.CheckBox]$CONFEXPLORER_SETTINGS_CHECKBOX = $null
+[System.Windows.Forms.CheckBox]$UPMSSTORE_SETTINGS_CHECKBOX = $null
+[System.Windows.Forms.CheckBox]$UPWIN_SETTINGS_CHECKBOX = $null
 [System.Windows.Forms.Label]$SETTINGS_CONFIG_TITLE_LABEL = $null
 [System.Windows.Forms.LinkLabel]$CONFIGFILEPATH_LINK_LABEL = $null
 [System.Windows.Forms.Button]$IMPORT_CONFIG_BUTTON = $null
@@ -77,6 +80,9 @@ $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $CONNECTION_TITLE_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $CONNECTION_STATUS_PICTUREBOX = (New-Object -TypeName System.Windows.Forms.PictureBox)
+$UPWIN_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$UPMSSTORE_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$CONFEXPLORER_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
@@ -244,6 +250,9 @@ $MAIN_TAB_CONTROL.TabIndex = [System.Int32]2
 #CONFIG_TAB
 #
 $CONFIG_TAB.BackColor = [System.Drawing.Color]::Gray
+$CONFIG_TAB.Controls.Add($CONFEXPLORER_SETTINGS_CHECKBOX)
+$CONFIG_TAB.Controls.Add($UPMSSTORE_SETTINGS_CHECKBOX)
+$CONFIG_TAB.Controls.Add($UPWIN_SETTINGS_CHECKBOX)
 $CONFIG_TAB.Controls.Add($SETTINGS_CONFIG_TITLE_LABEL)
 $CONFIG_TAB.Controls.Add($CONFIGFILEPATH_LINK_LABEL)
 $CONFIG_TAB.Controls.Add($IMPORT_CONFIG_BUTTON)
@@ -273,7 +282,7 @@ $CONFIG_TAB.Text = [System.String]'Configuration'
 #SETTINGS_CONFIG_TITLE_LABEL
 #
 $SETTINGS_CONFIG_TITLE_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI Semibold',[System.Single]10,[System.Drawing.FontStyle]::Bold))
-$SETTINGS_CONFIG_TITLE_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]129,[System.Int32]3))
+$SETTINGS_CONFIG_TITLE_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]128,[System.Int32]3))
 $SETTINGS_CONFIG_TITLE_LABEL.Name = [System.String]'SETTINGS_CONFIG_TITLE_LABEL'
 $SETTINGS_CONFIG_TITLE_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]68,[System.Int32]20))
 $SETTINGS_CONFIG_TITLE_LABEL.TabIndex = [System.Int32]17
@@ -509,6 +518,37 @@ $CONNECTION_STATUS_PICTUREBOX.SizeMode = [System.Windows.Forms.PictureBoxSizeMod
 $CONNECTION_STATUS_PICTUREBOX.TabIndex = [System.Int32]5
 $CONNECTION_STATUS_PICTUREBOX.TabStop = $false
 #
+#UPWIN_SETTINGS_CHECKBOX
+#
+$UPWIN_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$UPWIN_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]27))
+$UPWIN_SETTINGS_CHECKBOX.Name = [System.String]'UPWIN_SETTINGS_CHECKBOX'
+$UPWIN_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
+$UPWIN_SETTINGS_CHECKBOX.TabIndex = [System.Int32]18
+$UPWIN_SETTINGS_CHECKBOX.Text = [System.String]'Update Windows'
+$UPWIN_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
+#
+#UPMSSTORE_SETTINGS_CHECKBOX
+#
+$UPMSSTORE_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$UPMSSTORE_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]44))
+$UPMSSTORE_SETTINGS_CHECKBOX.Name = [System.String]'UPMSSTORE_SETTINGS_CHECKBOX'
+$UPMSSTORE_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
+$UPMSSTORE_SETTINGS_CHECKBOX.TabIndex = [System.Int32]19
+$UPMSSTORE_SETTINGS_CHECKBOX.Text = [System.String]'Update MS Store'
+$UPMSSTORE_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
+$UPMSSTORE_SETTINGS_CHECKBOX.add_CheckedChanged($CheckBox2_CheckedChanged)
+#
+#CONFEXPLORER_SETTINGS_CHECKBOX
+#
+$CONFEXPLORER_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$CONFEXPLORER_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]61))
+$CONFEXPLORER_SETTINGS_CHECKBOX.Name = [System.String]'CONFEXPLORER_SETTINGS_CHECKBOX'
+$CONFEXPLORER_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
+$CONFEXPLORER_SETTINGS_CHECKBOX.TabIndex = [System.Int32]20
+$CONFEXPLORER_SETTINGS_CHECKBOX.Text = [System.String]'Config Explorer'
+$CONFEXPLORER_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
+#
 #MAIN_FORM
 #
 $MAIN_FORM.AutoValidate = [System.Windows.Forms.AutoValidate]::EnablePreventFocusChange
@@ -547,6 +587,9 @@ Add-Member -InputObject $MAIN_FORM -Name SYSTEMINFO_LINK_LABEL -Value $SYSTEMINF
 Add-Member -InputObject $MAIN_FORM -Name SETTINGS_BUTTON -Value $SETTINGS_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name MAIN_TAB_CONTROL -Value $MAIN_TAB_CONTROL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_TAB -Value $CONFIG_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name CONFEXPLORER_SETTINGS_CHECKBOX -Value $CONFEXPLORER_SETTINGS_CHECKBOX -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name UPMSSTORE_SETTINGS_CHECKBOX -Value $UPMSSTORE_SETTINGS_CHECKBOX -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name UPWIN_SETTINGS_CHECKBOX -Value $UPWIN_SETTINGS_CHECKBOX -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name SETTINGS_CONFIG_TITLE_LABEL -Value $SETTINGS_CONFIG_TITLE_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIGFILEPATH_LINK_LABEL -Value $CONFIGFILEPATH_LINK_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name IMPORT_CONFIG_BUTTON -Value $IMPORT_CONFIG_BUTTON -MemberType NoteProperty

@@ -50,6 +50,9 @@ $Global:MainHash.CheckBoxStates = @{
     VLC_INSTALL_CHECKBOX = $false
     STOFFICE_LAUNCH_CHECKBOX = $false
     MORE_LAUNCH_CHECKBOX = $false
+    UPWIN_SETTINGS_CHECKBOX = $false
+    UPMSSTORE_SETTINGS_CHECKBOX = $false
+    CONFEXPLORER_SETTINGS_CHECKBOX = $false
 }
 # Initialize settings related variables.
 [int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainLoopRefreshRate -Default 50
@@ -137,6 +140,15 @@ $Null = $UiPowershell.AddScript({
         $MORE_LAUNCH_CHECKBOX.Add_CheckedChanged({
             $Global:UiHash.CheckBoxChanged = $true
         })
+        $UPWIN_SETTINGS_CHECKBOX.Add_CheckedChanged({
+            $Global:UiHash.CheckBoxChanged = $true
+        })
+        $UPMSSTORE_SETTINGS_CHECKBOX.Add_CheckedChanged({
+            $Global:UiHash.CheckBoxChanged = $true
+        })
+        $CONFEXPLORER_SETTINGS_CHECKBOX.Add_CheckedChanged({
+            $Global:UiHash.CheckBoxChanged = $true
+        })
         # Add CheckBoxes to the UiHash for later access.
         $Global:UiHash.GOOGLE_INSTALL_CHECKBOX = $GOOGLE_INSTALL_CHECKBOX
         $Global:UiHash.FIREFOX_INSTALL_CHECKBOX = $FIREFOX_INSTALL_CHECKBOX
@@ -150,6 +162,9 @@ $Null = $UiPowershell.AddScript({
         $Global:UiHash.VLC_INSTALL_CHECKBOX = $VLC_INSTALL_CHECKBOX
         $Global:UiHash.STOFFICE_LAUNCH_CHECKBOX = $STOFFICE_LAUNCH_CHECKBOX
         $Global:UiHash.MORE_LAUNCH_CHECKBOX = $MORE_LAUNCH_CHECKBOX
+        $Global:UiHash.UPWIN_SETTINGS_CHECKBOX = $UPWIN_SETTINGS_CHECKBOX
+        $Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX = $UPMSSTORE_SETTINGS_CHECKBOX
+        $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX = $CONFEXPLORER_SETTINGS_CHECKBOX
 
         # Add Label link click event handlers.
         $SYSTEMINFO_LINK_LABEL.Add_Click({
@@ -353,7 +368,7 @@ While ($Global:MainHash.MainListener) {
             $Global:UiHash.MainForm.Close()
 
             # CHANGE THIS TO OPEN THE SETTINGS UI WHEN IMPLEMENTED.
-            Show-TopMostMessageBox -Message "CODE NOT IMPLEMENTED YET: SETTINGS UI" -Title "FPCA - Error" -Icon "Error" -Owner $Global:UiHash.MainForm
+            Show-TopMostMessageBox -Message "CODE NOT IMPLEMENTED YET: SETTINGS UI" -Title "FPCA - Error" -Icon "Error"
 
             # Break the loop to prevent further processing in this iteration.
             Break
@@ -520,6 +535,33 @@ While ($Global:MainHash.MainListener) {
             # If the More Launch checkbox is unchecked, set the state to false in the MainHash.
             $Global:UiHash.MORE_LAUNCH_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
             $Global:MainHash.CheckBoxStates.MORE_LAUNCH_CHECKBOX = $false
+        }
+        if ($Global:UiHash.UPWIN_SETTINGS_CHECKBOX.Checked) {
+            # If the UPWIN Settings checkbox is checked, set the state to true in the MainHash.
+            $Global:UiHash.UPWIN_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
+            $Global:MainHash.CheckBoxStates.UPWIN_SETTINGS_CHECKBOX = $true
+        } else {
+            # If the UPWIN Settings checkbox is unchecked, set the state to false in the MainHash.
+            $Global:UiHash.UPWIN_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
+            $Global:MainHash.CheckBoxStates.UPWIN_SETTINGS_CHECKBOX = $false
+        }
+        if ($Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX.Checked) {
+            # If the UPMSSTORE Settings checkbox is checked, set the state to true in the MainHash.
+            $Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
+            $Global:MainHash.CheckBoxStates.UPMSSTORE_SETTINGS_CHECKBOX = $true
+        } else {
+            # If the UPMSSTORE Settings checkbox is unchecked, set the state to false in the MainHash.
+            $Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
+            $Global:MainHash.CheckBoxStates.UPMSSTORE_SETTINGS_CHECKBOX = $false
+        }
+        if ($Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX.Checked) {
+            # If the Config Explorer Settings checkbox is checked, set the state to true in the MainHash.
+            $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
+            $Global:MainHash.CheckBoxStates.CONFEXPLORER_SETTINGS_CHECKBOX = $true
+        } else {
+            # If the Config Explorer Settings checkbox is unchecked, set the state to false in the MainHash.
+            $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
+            $Global:MainHash.CheckBoxStates.CONFEXPLORER_SETTINGS_CHECKBOX = $false
         }
     }
 
