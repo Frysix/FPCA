@@ -37,26 +37,28 @@ foreach ($line in Get-Content "$Psscriptroot\fpca.info") {
 # It sets the firstlaunch flag to false and records the installation date.
 $IsFirstLaunch = $false
 if ($info['General']['firstlaunch'] -eq "true") {
-    # Set the first launch value to false.
-    $info['General']['firstlaunch'] = "false"
-    # Set the installdate value to the current date.
-    $info['General']['installdate'] = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
-    
-    # Update the info dictionary with the new values.
-    $infoContent = @()
+    $infoContent = [System.Collections.Generic.List[string]]::new()
+    $sectionCount = $info.Keys.Count
+    $sectionIndex = 0
+
     foreach ($section in $info.Keys) {
-        $infoContent += "[$section]"
+        $infoContent.Add("[$section]")
         foreach ($key in $info[$section].Keys) {
-            $infoContent += "$key=$($info[$section][$key])"
+            $infoContent.Add("$key=$($info[$section][$key])")
         }
-        $infoContent += ""
+        $sectionIndex++
+        # Only add a blank line if not the last section
+        if ($sectionIndex -lt $sectionCount) {
+            $infoContent.Add("")
+        }
     }
-    if (Test-Path -Path "$Psscriptroot\fpca.info") {
-        Remove-Item -Path "$Psscriptroot\fpca.info" -Force -ErrorAction SilentlyContinue
+
+    # Remove the file if it exists
+    if (Test-Path -Path "$PSScriptRoot\fpca.info") {
+        Remove-Item -Path "$PSScriptRoot\fpca.info" -Force -ErrorAction SilentlyContinue
     }
-    New-Item -Path "$Psscriptroot\fpca.info" -ItemType File -Force -ErrorAction SilentlyContinue | Out-Null
     # Write the updated info back to fpca.info file.
-    Set-Content -Path "$Psscriptroot\fpca.info" -Value $infoContent -Encoding UTF8
+    Set-Content -Path "$PSScriptRoot\fpca.info" -Value $infoContent -Encoding UTF8
     # Set the IsFirstLaunch flag to true for further processing.
     $IsFirstLaunch = $true
 }

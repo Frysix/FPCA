@@ -26,23 +26,37 @@ $DriveLetters | ForEach-Object { Write-Host $_ }
 $OnlineRawInfo = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/fpca.info" -UseBasicParsing
 $lines = $OnlineRawInfo.Content -split "`n"
 $OnlineInfo = @{}
-$section = ""
-# Parse the online fpca.info online content
+$section = $null
+
+for ($i = 0; $i -lt [Math]::Min(5, $lines.Count); $i++) {
+    $ascii = ($lines[$i].ToCharArray() | ForEach-Object { [int]$_ }) -join ','
+    Write-Host "Line ${i}: '$($lines[$i])' | ASCII: $ascii"
+}
+
 foreach ($line in $lines) {
-    $line = $line.Trim()
-    if ($line -match "^\s*#|^\s*;|^\s*$") {
+    # Remove BOM, tabs, carriage returns, and trim spaces
+    $line = $line -replace "^\xEF\xBB\xBF", ""
+    $line = $line -replace "`r", ""              
+    $line = $line -replace "`t", ""              
+    $line = $line.Trim()                         
+
+    if ($line -match "^\s*#|^\s*;|^\s*$") { continue }
+    if ($line -match "^\s*\[(.+?)\]\s*$") {
+        $section = $matches[1].Trim()
+        $OnlineInfo[$section] = @{}
         continue
     }
-    if ($line -match "^\[(.+)\]$") {
-        $section = $matches[1]
-        $OnlineInfo[$section] = @{}
-    } elseif ($line -match "^(.*?)=(.*)$") {
+    if ($line -match "^(.*?)=(.*)$" -and $section) {
         $key = $matches[1].Trim()
         $value = $matches[2].Trim()
-        if ($section -ne "") {
-            $OnlineInfo[$section][$key] = $value
-        }
+        $OnlineInfo[$section][$key] = $value
     }
+}
+
+# Debug output
+$OnlineInfo.GetEnumerator() | ForEach-Object {
+    Write-Host "[$($_.Key)]"
+    $_.Value.GetEnumerator() | ForEach-Object { Write-Host "$($_.Key)=$($_.Value)" }
 }
 
 # Checks if there is an existing installation on any of the drives
