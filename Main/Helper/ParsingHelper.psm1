@@ -46,3 +46,19 @@ function Convert-StringToInt {
         return $Default
     }
 }
+
+# This function reads ps1 files from a specified file and returns their content as script blocks.
+function Get-ScriptBlocksFromFile {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$FilePath
+    )
+    $scriptBlocks = @()
+    if (Test-Path -Path $FilePath) {
+        $content = Get-Content -Path $FilePath -Raw
+        $scriptBlocks = $content -split "`n" | ForEach-Object { [scriptblock]::Create($_) }
+    } else {
+        Write-Host "File not found: $FilePath"
+    }
+    return $scriptBlocks
+}

@@ -1,5 +1,7 @@
 $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Panel]$SIDE_PANNEL = $null
+[System.Windows.Forms.Label]$INTERNET_TITLE_LABEL = $null
+[System.Windows.Forms.Label]$CONNECTION_TITLE_LABEL = $null
 [System.Windows.Forms.Label]$PC_RAM_FREQUENCY_LABEL = $null
 [System.Windows.Forms.Label]$PC_RAM_GBCOUNT_LABEL = $null
 [System.Windows.Forms.Label]$RAM_LABEL = $null
@@ -36,13 +38,18 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Label]$INSTALL_CONFIG_TITLE_LABEL = $null
 [System.Windows.Forms.Button]$CONFIG_START_BUTTON = $null
 [System.Windows.Forms.TabPage]$APP_TAB = $null
+[System.Windows.Forms.RichTextBox]$RichTextBox1 = $null
+[System.Windows.Forms.CheckBox]$AUTOREFRESH_APP_CHECKBOX = $null
+[System.Windows.Forms.CheckBox]$USECUSTOM_APP_CHECKBOX = $null
+[System.Windows.Forms.Button]$REFRESH_APP_BUTTON = $null
+[System.Windows.Forms.Panel]$MODULAR_APP_PANEL = $null
 [System.Windows.Forms.Label]$VERSION_LABEL = $null
 [System.Windows.Forms.Label]$VERSION_NUMBER_LABEL = $null
-[System.Windows.Forms.Label]$CONNECTION_TITLE_LABEL = $null
-[System.Windows.Forms.PictureBox]$CONNECTION_STATUS_PICTUREBOX = $null
 function InitializeComponent
 {
 $SIDE_PANNEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$INTERNET_TITLE_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$CONNECTION_TITLE_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $PC_RAM_FREQUENCY_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $PC_RAM_GBCOUNT_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $RAM_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
@@ -57,6 +64,9 @@ $SYSTEMINFO_LINK_LABEL = (New-Object -TypeName System.Windows.Forms.LinkLabel)
 $SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MAIN_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $CONFIG_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$CONFEXPLORER_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$UPMSSTORE_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$UPWIN_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $SETTINGS_CONFIG_TITLE_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $CONFIGFILEPATH_LINK_LABEL = (New-Object -TypeName System.Windows.Forms.LinkLabel)
 $IMPORT_CONFIG_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
@@ -76,22 +86,24 @@ $GOOGLE_INSTALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $INSTALL_CONFIG_TITLE_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $CONFIG_START_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $APP_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$RichTextBox1 = (New-Object -TypeName System.Windows.Forms.RichTextBox)
+$AUTOREFRESH_APP_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$USECUSTOM_APP_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$REFRESH_APP_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
+$MODULAR_APP_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$CONNECTION_TITLE_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$CONNECTION_STATUS_PICTUREBOX = (New-Object -TypeName System.Windows.Forms.PictureBox)
-$UPWIN_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$UPMSSTORE_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$CONFEXPLORER_SETTINGS_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
-([System.ComponentModel.ISupportInitialize]$CONNECTION_STATUS_PICTUREBOX).BeginInit()
+$APP_TAB.SuspendLayout()
 $MAIN_FORM.SuspendLayout()
 #
 #SIDE_PANNEL
 #
 $SIDE_PANNEL.BackColor = [System.Drawing.Color]::Gray
+$SIDE_PANNEL.Controls.Add($INTERNET_TITLE_LABEL)
+$SIDE_PANNEL.Controls.Add($CONNECTION_TITLE_LABEL)
 $SIDE_PANNEL.Controls.Add($PC_RAM_FREQUENCY_LABEL)
 $SIDE_PANNEL.Controls.Add($PC_RAM_GBCOUNT_LABEL)
 $SIDE_PANNEL.Controls.Add($RAM_LABEL)
@@ -106,8 +118,28 @@ $SIDE_PANNEL.Controls.Add($SYSTEMINFO_LINK_LABEL)
 $SIDE_PANNEL.Controls.Add($SETTINGS_BUTTON)
 $SIDE_PANNEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]12,[System.Int32]12))
 $SIDE_PANNEL.Name = [System.String]'SIDE_PANNEL'
-$SIDE_PANNEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]92,[System.Int32]301))
+$SIDE_PANNEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]92,[System.Int32]341))
 $SIDE_PANNEL.TabIndex = [System.Int32]1
+#
+#INTERNET_TITLE_LABEL
+#
+$INTERNET_TITLE_LABEL.BackColor = [System.Drawing.Color]::Transparent
+$INTERNET_TITLE_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI Black',[System.Single]9,[System.Drawing.FontStyle]::Bold))
+$INTERNET_TITLE_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]242))
+$INTERNET_TITLE_LABEL.Name = [System.String]'INTERNET_TITLE_LABEL'
+$INTERNET_TITLE_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]78,[System.Int32]16))
+$INTERNET_TITLE_LABEL.TabIndex = [System.Int32]12
+$INTERNET_TITLE_LABEL.Text = [System.String]'Internet:'
+#
+#CONNECTION_TITLE_LABEL
+#
+$CONNECTION_TITLE_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9))
+$CONNECTION_TITLE_LABEL.ForeColor = [System.Drawing.Color]::Red
+$CONNECTION_TITLE_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]258))
+$CONNECTION_TITLE_LABEL.Name = [System.String]'CONNECTION_TITLE_LABEL'
+$CONNECTION_TITLE_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]86,[System.Int32]19))
+$CONNECTION_TITLE_LABEL.TabIndex = [System.Int32]4
+$CONNECTION_TITLE_LABEL.Text = [System.String]'Disconnected'
 #
 #PC_RAM_FREQUENCY_LABEL
 #
@@ -227,7 +259,7 @@ $SETTINGS_BUTTON.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::Fro
 
 $SETTINGS_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
 $SETTINGS_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
-$SETTINGS_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]272))
+$SETTINGS_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]312))
 $SETTINGS_BUTTON.Name = [System.String]'SETTINGS_BUTTON'
 $SETTINGS_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]86,[System.Int32]26))
 $SETTINGS_BUTTON.TabIndex = [System.Int32]0
@@ -244,8 +276,8 @@ $MAIN_TAB_CONTROL.HotTrack = $true
 $MAIN_TAB_CONTROL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]110,[System.Int32]12))
 $MAIN_TAB_CONTROL.Name = [System.String]'MAIN_TAB_CONTROL'
 $MAIN_TAB_CONTROL.SelectedIndex = [System.Int32]0
-$MAIN_TAB_CONTROL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]436,[System.Int32]301))
-$MAIN_TAB_CONTROL.TabIndex = [System.Int32]2
+$MAIN_TAB_CONTROL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]544,[System.Int32]341))
+$MAIN_TAB_CONTROL.TabIndex = [System.Int32]3
 #
 #CONFIG_TAB
 #
@@ -275,9 +307,40 @@ $CONFIG_TAB.ForeColor = [System.Drawing.SystemColors]::ControlText
 $CONFIG_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $CONFIG_TAB.Name = [System.String]'CONFIG_TAB'
 $CONFIG_TAB.Padding = (New-Object -TypeName System.Windows.Forms.Padding -ArgumentList @([System.Int32]3))
-$CONFIG_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]428,[System.Int32]273))
+$CONFIG_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]536,[System.Int32]313))
 $CONFIG_TAB.TabIndex = [System.Int32]0
 $CONFIG_TAB.Text = [System.String]'Configuration'
+#
+#CONFEXPLORER_SETTINGS_CHECKBOX
+#
+$CONFEXPLORER_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$CONFEXPLORER_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]61))
+$CONFEXPLORER_SETTINGS_CHECKBOX.Name = [System.String]'CONFEXPLORER_SETTINGS_CHECKBOX'
+$CONFEXPLORER_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
+$CONFEXPLORER_SETTINGS_CHECKBOX.TabIndex = [System.Int32]20
+$CONFEXPLORER_SETTINGS_CHECKBOX.Text = [System.String]'Config Explorer'
+$CONFEXPLORER_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
+#
+#UPMSSTORE_SETTINGS_CHECKBOX
+#
+$UPMSSTORE_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$UPMSSTORE_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]44))
+$UPMSSTORE_SETTINGS_CHECKBOX.Name = [System.String]'UPMSSTORE_SETTINGS_CHECKBOX'
+$UPMSSTORE_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
+$UPMSSTORE_SETTINGS_CHECKBOX.TabIndex = [System.Int32]19
+$UPMSSTORE_SETTINGS_CHECKBOX.Text = [System.String]'Update MS Store'
+$UPMSSTORE_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
+$UPMSSTORE_SETTINGS_CHECKBOX.add_CheckedChanged($CheckBox2_CheckedChanged)
+#
+#UPWIN_SETTINGS_CHECKBOX
+#
+$UPWIN_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$UPWIN_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]27))
+$UPWIN_SETTINGS_CHECKBOX.Name = [System.String]'UPWIN_SETTINGS_CHECKBOX'
+$UPWIN_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
+$UPWIN_SETTINGS_CHECKBOX.TabIndex = [System.Int32]18
+$UPWIN_SETTINGS_CHECKBOX.Text = [System.String]'Update Windows'
+$UPWIN_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
 #
 #SETTINGS_CONFIG_TITLE_LABEL
 #
@@ -294,7 +357,7 @@ $SETTINGS_CONFIG_TITLE_LABEL.add_Click($Label1_Click)
 $CONFIGFILEPATH_LINK_LABEL.ActiveLinkColor = [System.Drawing.Color]::White
 $CONFIGFILEPATH_LINK_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]8))
 $CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Red
-$CONFIGFILEPATH_LINK_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]254))
+$CONFIGFILEPATH_LINK_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]108,[System.Int32]292))
 $CONFIGFILEPATH_LINK_LABEL.Name = [System.String]'CONFIGFILEPATH_LINK_LABEL'
 $CONFIGFILEPATH_LINK_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]262,[System.Int32]15))
 $CONFIGFILEPATH_LINK_LABEL.TabIndex = [System.Int32]16
@@ -307,7 +370,7 @@ $CONFIGFILEPATH_LINK_LABEL.TextAlign = [System.Drawing.ContentAlignment]::Middle
 $IMPORT_CONFIG_BUTTON.BackColor = [System.Drawing.Color]::Silver
 $IMPORT_CONFIG_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
 $IMPORT_CONFIG_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]8.25,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
-$IMPORT_CONFIG_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]268,[System.Int32]250))
+$IMPORT_CONFIG_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]376,[System.Int32]287))
 $IMPORT_CONFIG_BUTTON.Name = [System.String]'IMPORT_CONFIG_BUTTON'
 $IMPORT_CONFIG_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]61,[System.Int32]20))
 $IMPORT_CONFIG_BUTTON.TabIndex = [System.Int32]15
@@ -460,7 +523,7 @@ $INSTALL_CONFIG_TITLE_LABEL.Text = [System.String]'Install:'
 $CONFIG_START_BUTTON.BackColor = [System.Drawing.Color]::Silver
 $CONFIG_START_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
 $CONFIG_START_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
-$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]335,[System.Int32]244))
+$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]443,[System.Int32]284))
 $CONFIG_START_BUTTON.Name = [System.String]'CONFIG_START_BUTTON'
 $CONFIG_START_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]26))
 $CONFIG_START_BUTTON.TabIndex = [System.Int32]0
@@ -470,18 +533,77 @@ $CONFIG_START_BUTTON.UseVisualStyleBackColor = $false
 #APP_TAB
 #
 $APP_TAB.BackColor = [System.Drawing.Color]::Gray
+$APP_TAB.Controls.Add($RichTextBox1)
+$APP_TAB.Controls.Add($AUTOREFRESH_APP_CHECKBOX)
+$APP_TAB.Controls.Add($USECUSTOM_APP_CHECKBOX)
+$APP_TAB.Controls.Add($REFRESH_APP_BUTTON)
+$APP_TAB.Controls.Add($MODULAR_APP_PANEL)
 $APP_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $APP_TAB.Name = [System.String]'APP_TAB'
 $APP_TAB.Padding = (New-Object -TypeName System.Windows.Forms.Padding -ArgumentList @([System.Int32]3))
-$APP_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]428,[System.Int32]273))
+$APP_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]536,[System.Int32]313))
 $APP_TAB.TabIndex = [System.Int32]1
 $APP_TAB.Text = [System.String]'App'
+#
+#RichTextBox1
+#
+$RichTextBox1.BackColor = [System.Drawing.Color]::DarkGray
+$RichTextBox1.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$RichTextBox1.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]354,[System.Int32]3))
+$RichTextBox1.Name = [System.String]'RichTextBox1'
+$RichTextBox1.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]179,[System.Int32]231))
+$RichTextBox1.TabIndex = [System.Int32]4
+$RichTextBox1.Text = [System.String]''
+#
+#AUTOREFRESH_APP_CHECKBOX
+#
+$AUTOREFRESH_APP_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$AUTOREFRESH_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]446,[System.Int32]265))
+$AUTOREFRESH_APP_CHECKBOX.Name = [System.String]'AUTOREFRESH_APP_CHECKBOX'
+$AUTOREFRESH_APP_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]16))
+$AUTOREFRESH_APP_CHECKBOX.TabIndex = [System.Int32]3
+$AUTOREFRESH_APP_CHECKBOX.Text = [System.String]'Auto Refresh'
+$AUTOREFRESH_APP_CHECKBOX.UseVisualStyleBackColor = $true
+#
+#USECUSTOM_APP_CHECKBOX
+#
+$USECUSTOM_APP_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$USECUSTOM_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]446,[System.Int32]243))
+$USECUSTOM_APP_CHECKBOX.Name = [System.String]'USECUSTOM_APP_CHECKBOX'
+$USECUSTOM_APP_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]16))
+$USECUSTOM_APP_CHECKBOX.TabIndex = [System.Int32]2
+$USECUSTOM_APP_CHECKBOX.Text = [System.String]'Use Custom'
+$USECUSTOM_APP_CHECKBOX.UseVisualStyleBackColor = $true
+$USECUSTOM_APP_CHECKBOX.add_CheckedChanged($USECUSTOM_APP_CHECKBOX_CheckedChanged)
+#
+#REFRESH_APP_BUTTON
+#
+$REFRESH_APP_BUTTON.BackColor = [System.Drawing.Color]::Silver
+$REFRESH_APP_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
+$REFRESH_APP_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
+$REFRESH_APP_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]443,[System.Int32]284))
+$REFRESH_APP_BUTTON.Name = [System.String]'REFRESH_APP_BUTTON'
+$REFRESH_APP_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]26))
+$REFRESH_APP_BUTTON.TabIndex = [System.Int32]1
+$REFRESH_APP_BUTTON.Text = [System.String]'Refresh'
+$REFRESH_APP_BUTTON.UseVisualStyleBackColor = $false
+$REFRESH_APP_BUTTON.add_Click($REFRESH_APP_BUTTON_Click)
+#
+#MODULAR_APP_PANEL
+#
+$MODULAR_APP_PANEL.AutoScroll = $true
+$MODULAR_APP_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$MODULAR_APP_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$MODULAR_APP_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]3))
+$MODULAR_APP_PANEL.Name = [System.String]'MODULAR_APP_PANEL'
+$MODULAR_APP_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]345,[System.Int32]307))
+$MODULAR_APP_PANEL.TabIndex = [System.Int32]0
 #
 #VERSION_LABEL
 #
 $VERSION_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
 $VERSION_LABEL.ForeColor = [System.Drawing.Color]::White
-$VERSION_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]464,[System.Int32]7))
+$VERSION_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]576,[System.Int32]5))
 $VERSION_LABEL.Name = [System.String]'VERSION_LABEL'
 $VERSION_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]57,[System.Int32]17))
 $VERSION_LABEL.TabIndex = [System.Int32]3
@@ -492,87 +614,37 @@ $VERSION_LABEL.add_Click($VERSION_LABEL_Click)
 #
 $VERSION_NUMBER_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
 $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::White
-$VERSION_NUMBER_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]517,[System.Int32]7))
+$VERSION_NUMBER_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]625,[System.Int32]5))
 $VERSION_NUMBER_LABEL.Name = [System.String]'VERSION_NUMBER_LABEL'
 $VERSION_NUMBER_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]29,[System.Int32]17))
 $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
 $VERSION_NUMBER_LABEL.Text = [System.String]'0.0'
 #
-#CONNECTION_TITLE_LABEL
-#
-$CONNECTION_TITLE_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
-$CONNECTION_TITLE_LABEL.ForeColor = [System.Drawing.Color]::Red
-$CONNECTION_TITLE_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]337,[System.Int32]7))
-$CONNECTION_TITLE_LABEL.Name = [System.String]'CONNECTION_TITLE_LABEL'
-$CONNECTION_TITLE_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]78,[System.Int32]19))
-$CONNECTION_TITLE_LABEL.TabIndex = [System.Int32]4
-$CONNECTION_TITLE_LABEL.Text = [System.String]'Connection:'
-#
-#CONNECTION_STATUS_PICTUREBOX
-#
-$CONNECTION_STATUS_PICTUREBOX.BackColor = [System.Drawing.Color]::Transparent
-$CONNECTION_STATUS_PICTUREBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]415,[System.Int32]5))
-$CONNECTION_STATUS_PICTUREBOX.Name = [System.String]'CONNECTION_STATUS_PICTUREBOX'
-$CONNECTION_STATUS_PICTUREBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]28,[System.Int32]23))
-$CONNECTION_STATUS_PICTUREBOX.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::StretchImage
-$CONNECTION_STATUS_PICTUREBOX.TabIndex = [System.Int32]5
-$CONNECTION_STATUS_PICTUREBOX.TabStop = $false
-#
-#UPWIN_SETTINGS_CHECKBOX
-#
-$UPWIN_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$UPWIN_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]27))
-$UPWIN_SETTINGS_CHECKBOX.Name = [System.String]'UPWIN_SETTINGS_CHECKBOX'
-$UPWIN_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
-$UPWIN_SETTINGS_CHECKBOX.TabIndex = [System.Int32]18
-$UPWIN_SETTINGS_CHECKBOX.Text = [System.String]'Update Windows'
-$UPWIN_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
-#
-#UPMSSTORE_SETTINGS_CHECKBOX
-#
-$UPMSSTORE_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$UPMSSTORE_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]44))
-$UPMSSTORE_SETTINGS_CHECKBOX.Name = [System.String]'UPMSSTORE_SETTINGS_CHECKBOX'
-$UPMSSTORE_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
-$UPMSSTORE_SETTINGS_CHECKBOX.TabIndex = [System.Int32]19
-$UPMSSTORE_SETTINGS_CHECKBOX.Text = [System.String]'Update MS Store'
-$UPMSSTORE_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
-$UPMSSTORE_SETTINGS_CHECKBOX.add_CheckedChanged($CheckBox2_CheckedChanged)
-#
-#CONFEXPLORER_SETTINGS_CHECKBOX
-#
-$CONFEXPLORER_SETTINGS_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$CONFEXPLORER_SETTINGS_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]132,[System.Int32]61))
-$CONFEXPLORER_SETTINGS_CHECKBOX.Name = [System.String]'CONFEXPLORER_SETTINGS_CHECKBOX'
-$CONFEXPLORER_SETTINGS_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]17))
-$CONFEXPLORER_SETTINGS_CHECKBOX.TabIndex = [System.Int32]20
-$CONFEXPLORER_SETTINGS_CHECKBOX.Text = [System.String]'Config Explorer'
-$CONFEXPLORER_SETTINGS_CHECKBOX.UseVisualStyleBackColor = $true
-#
 #MAIN_FORM
 #
+$MAIN_FORM.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
 $MAIN_FORM.AutoValidate = [System.Windows.Forms.AutoValidate]::EnablePreventFocusChange
 $MAIN_FORM.BackColor = [System.Drawing.Color]::FromArgb(([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)))
 
-$MAIN_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]558,[System.Int32]325))
-$MAIN_FORM.Controls.Add($CONNECTION_STATUS_PICTUREBOX)
-$MAIN_FORM.Controls.Add($CONNECTION_TITLE_LABEL)
+$MAIN_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]666,[System.Int32]365))
 $MAIN_FORM.Controls.Add($VERSION_NUMBER_LABEL)
 $MAIN_FORM.Controls.Add($VERSION_LABEL)
 $MAIN_FORM.Controls.Add($MAIN_TAB_CONTROL)
 $MAIN_FORM.Controls.Add($SIDE_PANNEL)
+$MAIN_FORM.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]8.25,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
 $MAIN_FORM.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
 $MAIN_FORM.MaximizeBox = $false
-$MAIN_FORM.MinimizeBox = $false
 $MAIN_FORM.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $MAIN_FORM.Text = [System.String]'FPCA - (Frysix''s Powershell Configurator App)'
 $MAIN_FORM.TopMost = $true
 $SIDE_PANNEL.ResumeLayout($false)
 $MAIN_TAB_CONTROL.ResumeLayout($false)
 $CONFIG_TAB.ResumeLayout($false)
-([System.ComponentModel.ISupportInitialize]$CONNECTION_STATUS_PICTUREBOX).EndInit()
+$APP_TAB.ResumeLayout($false)
 $MAIN_FORM.ResumeLayout($false)
 Add-Member -InputObject $MAIN_FORM -Name SIDE_PANNEL -Value $SIDE_PANNEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name INTERNET_TITLE_LABEL -Value $INTERNET_TITLE_LABEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name CONNECTION_TITLE_LABEL -Value $CONNECTION_TITLE_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name PC_RAM_FREQUENCY_LABEL -Value $PC_RAM_FREQUENCY_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name PC_RAM_GBCOUNT_LABEL -Value $PC_RAM_GBCOUNT_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name RAM_LABEL -Value $RAM_LABEL -MemberType NoteProperty
@@ -609,9 +681,12 @@ Add-Member -InputObject $MAIN_FORM -Name GOOGLE_INSTALL_CHECKBOX -Value $GOOGLE_
 Add-Member -InputObject $MAIN_FORM -Name INSTALL_CONFIG_TITLE_LABEL -Value $INSTALL_CONFIG_TITLE_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_START_BUTTON -Value $CONFIG_START_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name APP_TAB -Value $APP_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name RichTextBox1 -Value $RichTextBox1 -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name AUTOREFRESH_APP_CHECKBOX -Value $AUTOREFRESH_APP_CHECKBOX -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name USECUSTOM_APP_CHECKBOX -Value $USECUSTOM_APP_CHECKBOX -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name REFRESH_APP_BUTTON -Value $REFRESH_APP_BUTTON -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name MODULAR_APP_PANEL -Value $MODULAR_APP_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_LABEL -Value $VERSION_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_NUMBER_LABEL -Value $VERSION_NUMBER_LABEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CONNECTION_TITLE_LABEL -Value $CONNECTION_TITLE_LABEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CONNECTION_STATUS_PICTUREBOX -Value $CONNECTION_STATUS_PICTUREBOX -MemberType NoteProperty
 }
 . InitializeComponent

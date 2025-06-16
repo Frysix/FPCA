@@ -1,3 +1,7 @@
+$REFRESH_APP_BUTTON_Click = {
+}
+$USECUSTOM_APP_CHECKBOX_CheckedChanged = {
+}
 $VERSION_LABEL_Click = {
 }
 $STOFFICE_LAUNCH_CHECKBOX_CheckedChanged = {
