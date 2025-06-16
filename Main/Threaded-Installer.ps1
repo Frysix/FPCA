@@ -23,11 +23,7 @@ Add-Type -AssemblyName System.Net.Http, System.IO, System.Threading, System.Coll
 # Increase the default connection limit to allow more concurrent connections
 [System.Net.ServicePointManager]::DefaultConnectionLimit = $ConnectionLimit
 
-# Check if the required parameters are provided
-if (-not $Url -or -not $OutputFile -or -not $ChunkNumber) {
-    Write-Host "Usage: & .\Threaded-Installer.ps1 -Url <URL> -OutputFile <OutputFile> -ChunkNumber <ChunkNumber> -ConnectionLimit <ConnectionLimit>"
-    exit 1
-}
+
 # Validate the URL format
 if (-not $Url -or $Url -notmatch '^(http|https)://') {
     Write-Host "Invalid URL format: $Url"
