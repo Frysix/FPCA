@@ -51,6 +51,10 @@ if ($info['General']['firstlaunch'] -eq "true") {
         }
         $infoContent += ""
     }
+    if (Test-Path -Path "$Psscriptroot\fpca.info") {
+        Remove-Item -Path "$Psscriptroot\fpca.info" -Force -ErrorAction SilentlyContinue
+    }
+    New-Item -Path "$Psscriptroot\fpca.info" -ItemType File -Force -ErrorAction SilentlyContinue | Out-Null
     # Write the updated info back to fpca.info file.
     Set-Content -Path "$Psscriptroot\fpca.info" -Value $infoContent -Encoding UTF8
     # Set the IsFirstLaunch flag to true for further processing.
