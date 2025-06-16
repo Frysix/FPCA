@@ -179,10 +179,8 @@ $loops = 0
 $NotInstalled = $true
 While ($NotInstalled) {
     if ($loops -lt 3) {
-        # Initialize the global progress table for theThreaded-Installer script
-        $Global:ProgressTable = [hashtable]::Synchronized(@{})
         # Launch the Threaded-Installer script with the required parameters
-        & "$env:TEMP\Threaded-Installer.ps1" -ProgressTable $Global:ProgressTable -Url $OnlineInfo['General']['Link'] -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
+        & "$env:TEMP\Threaded-Installer.ps1" -Url $OnlineInfo.General.Link -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
         # Check if the Threaded-Installer script was successful
         if (test-path -path "$InstallPath\FPCA.zip") {
             Write-Host "Installation completed successfully. Extracting..." -ForegroundColor Green

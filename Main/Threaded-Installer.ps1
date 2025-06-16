@@ -4,7 +4,7 @@
 # Define the parameters for the script
 # Usage: & .\Threaded-Installer.ps1 -Url "http://example.com/file.zip" -OutputFile "C:\path\to\output\file" -ChunkNumber 4 -ConnectionLimit 10
 param(
-    $ProgressTable,
+    [hashtable]$ProgressTable = [hashtable]::Synchronized(@{}),
     [string]$Url,
     [string]$OutputFile,
     [int]$ChunkNumber,
