@@ -28,10 +28,6 @@ $lines = $OnlineRawInfo.Content -split "`n"
 $OnlineInfo = @{}
 $section = $null
 
-for ($i = 0; $i -lt [Math]::Min(5, $lines.Count); $i++) {
-    $ascii = ($lines[$i].ToCharArray() | ForEach-Object { [int]$_ }) -join ','
-    Write-Host "Line ${i}: '$($lines[$i])' | ASCII: $ascii"
-}
 
 foreach ($line in $lines) {
     # Remove BOM, tabs, carriage returns, and trim spaces
