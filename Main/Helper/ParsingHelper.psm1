@@ -62,3 +62,48 @@ function Get-ScriptBlocksFromFile {
     }
     return $scriptBlocks
 }
+
+# Specifically designed to parse a configuration file in a custom format.
+# The file contains sections, checkboxes, and settings in a structured format.
+function Get-FromConfigFile {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$FilePath
+    )
+    $result = @{}
+    $category = $null
+    $checkbox = $null
+
+    foreach ($line in Get-Content $FilePath) {
+        $line = $line.Trim()
+        if ($line -match "^\[(.+)\]$") {
+            $category = $matches[1]
+            $result[$category] = @{}
+            $checkbox = $null
+        } elseif ($line -match "^\((.+)\)$" -and $category) {
+            $checkbox = $matches[1]
+            $result[$category][$checkbox] = @{}
+        } elseif ($line -match "^(.*?)=(.*)$" -and $category -and $checkbox) {
+            $setting = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            $result[$category][$checkbox][$setting] = $value
+        }
+    }
+    return $result
+}
+
+# Convert PSCustomObject to Hashtable
+function ConvertTo-Hashtable($obj) {
+    if ($obj -is [System.Collections.IDictionary]) {
+        $hash = @{}
+        foreach ($key in $obj.Keys) {
+            $hash[$key] = ConvertTo-Hashtable $obj[$key]
+        }
+        return $hash
+    } elseif ($obj -is [System.Collections.IEnumerable] -and
+              -not ($obj -is [string])) {
+        return @($obj | ForEach-Object { ConvertTo-Hashtable $_ })
+    } else {
+        return $obj
+    }
+}

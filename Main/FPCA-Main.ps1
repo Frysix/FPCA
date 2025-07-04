@@ -15,6 +15,7 @@ $Global:UiHash = [hashtable]::Synchronized(@{})
 Import-Module -Name "$PSScriptRoot\Helper\ParsingHelper.psm1" -Force
 Import-Module -Name "$PSScriptRoot\Helper\FormHelper.psm1" -Force
 Import-Module -Name "$PSScriptRoot\Helper\InternetHelper.psm1" -Force
+Import-Module -Name "$PSScriptRoot\Helper\InfoHelper.psm1" -Force
 
 # Get info from the fpca.info file
 $Global:MainHash.FPCAInfo = Get-FromUTF8File -FilePath "$PSScriptRoot\fpca.info"
@@ -28,8 +29,10 @@ $Global:UiHash.PSScriptroot = $PSScriptRoot
 $Global:MainHash.PSScriptroot = $PSScriptRoot
 $Global:MainHash.ImportButtonMode = "None"
 $Global:MainHash.PreviousTab = $null
+$Global:UiHash.UIClosedFor = ""
 # Initialize bool variable to initial state.
-$Global:UiHash.UIClosed = $false
+$Global:UiHash.UIClosedByUser = $false
+$Global:UiHash.StartConfigClosingRunning = $false
 $Global:UiHash.MainFormLoaded = $false
 $Global:UiHash.CheckBoxChanged = $false
 $Global:UiHash.AppCheckBoxChanged = $false
@@ -69,6 +72,9 @@ $Global:MainHash.CheckBoxStates = @{
 [int32]$ConfigLinkUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigLinkUpdateCounter -Default 40
 [int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.InternetCheckUpdateCounter -Default 100
 [int32]$RefreshAppLoopCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.RefreshAppLoopCounter -Default 250
+[int32]$ConfigLinkUpdateCounter_Max = [int32]$ConfigLinkUpdateCounter
+[int32]$InternetCheckUpdateCounter_Max = [int32]$InternetCheckUpdateCounter
+[int32]$RefreshAppLoopCounter_Max = [int32]$RefreshAppLoopCounter
 
 # Create a runspace for the UI
 # This runspace will be used to execute the UI script in a separate thread.
@@ -95,7 +101,7 @@ $Null = $UiPowershell.AddScript({
         Import-Module -Name "$($Global:UiHash['PSScriptroot'])\Helper\FormHelper.psm1" -Force
 
         # Add the main form to the runspace.
-        . (Join-Path $Global:UiHash.PSScriptroot '\UI-Script\Main-Ui.ps1')
+        . (Join-Path $Global:UiHash.PSScriptroot '\UI-Scripts\Main-Ui.ps1')
 
         # Define actions made by the buttons in the main form.
         $CONFIG_START_BUTTON.Add_Click({
@@ -173,6 +179,12 @@ $Null = $UiPowershell.AddScript({
         $CONFEXPLORER_SETTINGS_CHECKBOX.Add_CheckedChanged({
             $Global:UiHash.CheckBoxChanged = $true
         })
+        $USECUSTOM_CUSTOMCONFIG_CHECKBOX.Add_CheckedChanged({
+            $Global:UiHash.CheckBoxChanged = $true
+        })
+        $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Add_CheckedChanged({
+            $Global:UiHash.CheckBoxChanged = $true
+        })
         # Add checkboxes checkedchanged event handlers for app tab settings.
         $USECUSTOM_APP_CHECKBOX.Add_CheckedChanged({
             $Global:UiHash.AppCheckBoxChanged = $true
@@ -196,6 +208,8 @@ $Null = $UiPowershell.AddScript({
         $Global:UiHash.UPWIN_SETTINGS_CHECKBOX = $UPWIN_SETTINGS_CHECKBOX
         $Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX = $UPMSSTORE_SETTINGS_CHECKBOX
         $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX = $CONFEXPLORER_SETTINGS_CHECKBOX
+        $Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX = $USECUSTOM_CUSTOMCONFIG_CHECKBOX
+        $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
         # Add app checkboxes to the UiHash for later access.
         $Global:UiHash.USECUSTOM_APP_CHECKBOX = $USECUSTOM_APP_CHECKBOX
         $Global:UiHash.AUTOREFRESH_APP_CHECKBOX = $AUTOREFRESH_APP_CHECKBOX
@@ -247,6 +261,7 @@ $Null = $UiPowershell.AddScript({
                 foreach ($section in $Global:UiHash.NewAppUiObjects.Keys) {
                     $Global:UiHash.NewAppUiObjects[$section].Clicked = $false
                     $Global:UiHash.ActiveSection = $section
+                    $Global:UiHash.NewAppUiObjects[$section].InstallationState = "Installed"
                     $Global:UiHash.NewAppUiObjects[$section]['button'].Add_Click({
                         # Check if the button has already been clicked
                         if ($Global:UiHash.NewAppUiObjects[$Global:UiHash.ActiveSection].Clicked -eq $false) {
@@ -292,8 +307,18 @@ $Null = $UiPowershell.AddScript({
         # This is the main entry point for the UI, where the user can interact with the application.
         $MAIN_FORM.ShowDialog()
         # After the dialog is closed, the script will continue executing.
-        # This variable is changed to indicate that the UI has been closed.
-        $Global:UiHash.UIClosed = $true
+
+        # Handle for conditional closing of the UI.
+        if ($Global:UiHash.UIClosedFor -eq "StartConfig") {
+            # Check for last actions before closing the UI and runspace before launching the configuration script.
+            While ($Global:UiHash.StartConfigClosingRunning) {
+                # Sleep for a short duration to prevent high CPU usage while waiting for the UI to close.
+                Start-Sleep -Milliseconds 100
+            }
+        } else {
+            # This variable is changed to indicate that the UI has been closed.
+            $Global:UiHash.UIClosedByUser = $true
+        }
         
     } catch {
         # If an error occurs during the execution of the UI script, it will be caught here.
@@ -319,45 +344,11 @@ $Null = Register-ObjectEvent -InputObject $UiPowershell -EventName InvocationSta
 # This starts the execution of the UI script in the runspace.
 $UiHandle = $UiPowershell.BeginInvoke()
 
-# Create a runspace pool for handling tasks in parallel.
-$RunspacePool = [runspacefactory]::CreateRunspacePool(1, 5)
-$RunspacePool.Open()
-$Jobs = @()
-
-# Define function to handle task distribution.
-function Invoke-ThreadedTask {
-    Param(
-        [Parameter(Mandatory=$true)]
-        [string]$TaskScriptPath,
-        [Parameter(Mandatory=$true)]
-        $RunspacePool,
-        [Parameter(Mandatory=$true)]
-        $Jobs
-    )
-    if ($Global:MainHash.ActiveTasks -ge 5) {
-        Return "Maximum number of active tasks reached. Please wait for some tasks to complete before starting new ones."
-    }
-    $Global:MainHash.ActiveTasks += 1
-    $PowerShell = [powershell]::Create()
-    $PowerShell.RunspacePool = $RunspacePool
-    $PowerShell.AddScript({
-        Param(
-            [string]$TaskScriptPath,
-            $Global:MainHash
-        )
- 
-        & $TaskScriptPath -Global:MainHash $Global:MainHash
-        # After the task is completed, decrement the ActiveTasks counter.
-        $Global:MainHash.ActiveTasks -= 1
-
-    }).AddArgument($TaskScriptPath).AddArgument($Global:MainHash)
-    $Jobs += $PowerShell.BeginInvoke()
-}
-
-# Fetching none changing data from the pc for the UI.
 # This section gathers system information such as CPU, RAM, GPU, and motherboard details.
-
-
+$CPUinfo = Get-CPUName
+$MBinfo = Get-MotherboardInfo
+$GPUinfo = Get-GPUName
+$Raminfo = Get-RAMInfo
 
 # Initialize the MainLoopCounter to 0 and set the MainListener to true.
 # Loading these variables before the MainForm is loaded ensures that the main loop can start immediately after the form is ready.
@@ -366,6 +357,7 @@ function Invoke-ThreadedTask {
 # This loop will check if the main form is loaded by checking the MainFormLoaded variable in the UiHash.
 # If the main form is not loaded after a certain number of iterations, it will display an error message and exit.
 $MainFormLoadLoopCounter = 0
+$Global:MainHash.MainListener = $true
 While ($Global:UiHash.MainFormLoaded -eq $false) {
     if ($MainFormLoadLoopCounter -gt 500) {
         # If the main form is not loaded after 500 iterations, display an error message and exit.
@@ -382,13 +374,20 @@ While ($Global:UiHash.MainFormLoaded -eq $false) {
     $MainFormLoadLoopCounter++
 }
 # Set the MainListener to true to indicate that the main loop should start.
-$Global:MainHash.MainListener = $true
 
 ###########################################################################################################################
 #                                                                                                                         #
 #                                               MAIN APP LOOP STARTS HERE                                                 #
 #                                                                                                                         #
 ###########################################################################################################################
+
+# Assing system information to the UiHash for display in the UI.
+$Global:UiHash.PC_CPU_NAME_LABEL.Text = $CPUinfo
+$Global:UiHash.PC_BOARD_BRANDNAME_LABEL.Text = $MBinfo.BrandName
+$Global:UiHash.PC_BOARD_MODEL_LABEL.Text = $MBinfo.Model
+$Global:UiHash.PC_GPU_MODEL_LABEL.Text = $GPUinfo
+$Global:UiHash.PC_RAM_GBCOUNT_LABEL.Text = $Raminfo.Amount
+$Global:UiHash.PC_RAM_FREQUENCY_LABEL.Text = $Raminfo.Frequency
 
 
 # Main loop to keep the application running.
@@ -400,7 +399,7 @@ While ($Global:MainHash.MainListener) {
 
     # Check if the UI is closed by checking the UIClosed variable in the UiHash.
     # If the UI is closed, set the MainListener to false to exit the loop.
-    if ($Global:UiHash.UIClosed) {
+    if ($Global:UiHash.UIClosedByUser) {
         # If the UI is closed, break the loop and exit the script.
         Break
     }
@@ -422,10 +421,10 @@ While ($Global:MainHash.MainListener) {
     $Global:MainHash.PreviousTab = $Global:MainHash.CurrentTab
 
 
-    # Check if the InternetCheckUpdateCounter has reached 100 iterations.
-    if ($InternetCheckUpdateCounter -gt 100) {
+    # Check if the InternetCheckUpdateCounter has reached the max defined counter of iterations.
+    if ($InternetCheckUpdateCounter -gt $InternetCheckUpdateCounter_Max) {
         # Reset the InternetCheckUpdateCounter to 0.
-        $InternetCheckUpdateCounter = 0
+        [int32]$InternetCheckUpdateCounter = 0
         # Check if the internet connection is available.
         # If it is, update the InternetConnection property in the MainHash to true.
         # If it is not, update the InternetConnection property in the MainHash to false.
@@ -486,9 +485,9 @@ While ($Global:MainHash.MainListener) {
     if ($Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name -eq "CONFIG_TAB") {
         # Check if the ConfigLinkUpdateCounter has reached 40 iterations.
         # This counter is used to periodically check for updates in the config files.
-        if ($ConfigLinkUpdateCounter -gt 40) {
+        if ($ConfigLinkUpdateCounter -gt $ConfigLinkUpdateCounter_Max) {
             # Reset the ConfigLinkUpdateCounter to 0.
-            $ConfigLinkUpdateCounter = 0
+            [int32]$ConfigLinkUpdateCounter = 0
             # Check if the config files exist in the Config folder.
             # If they do, update the ConfigFiles property in the MainHash with the list of config files.
             # Change the ImportButtonMode based on the number of config files found.
@@ -523,6 +522,45 @@ While ($Global:MainHash.MainListener) {
                 Start-Process -FilePath "explorer.exe" -ArgumentList "$PSScriptRoot\Assets\config"
                 # Reset the CONFIGFILEPATH_LINK_LABEL_CLICKED flag to false after processing the link label click.
                 $Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED = $false
+            }
+
+            # Check if the CONFIG_START_BUTTON_CLICKED flag is set to true in the UiHash.
+            # If it is set, it means that the user has clicked the Start Config button.
+            if ($Global:UiHash.CONFIG_START_BUTTON_CLICKED) {
+                if (-not ($Global:MainHash.CheckBoxStates.Values -contains $true)) {
+                    # If no checkboxes are checked, display a message to the user.
+                    Start-Job -ScriptBlock {
+                        Param(
+                            [string]$ScriptRoot
+                        )
+                        Import-Module -Name "$ScriptRoot\Helper\FormHelper.psm1" -Force
+                        Show-TopMostMessageBox -Message "Please select at least one checkbox to proceed." -Title "FPCA - No Selection" -Icon "Warning"
+                    } -ArgumentList $PSScriptroot | Out-Null
+                    $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
+                } else {
+                    $Global:UiHash.UIClosedFor = "StartConfig"
+                    $Global:UiHash.StartConfigClosingRunning = $true
+                    $Global:UiHash.MainForm.Close()
+                    $DefaultInfo = Get-FromUTF8File -FilePath "$PSScriptRoot\Assets\defaultconfig\Default.info"
+                    $Tasks = @{}
+                    foreach ($cb in $Global:MainHash.CheckBoxStates.GetEnumerator()) {
+                        if ($cb.Value -eq $true) {
+                            foreach ($section in $DefaultInfo.Keys) {
+                                if ($DefaultInfo[$section]['Checkbox'] -eq $cb.Key) {
+                                    $Tasks[$section] = $DefaultInfo[$section]
+                                }
+                            }
+                        }
+                    }
+                    foreach ($task in $Tasks.GetEnumerator()) {
+                        if ($task.Value['SpecialScript'] -ne "false") {
+                            & "$PSScriptRoot\Scripts\$($task.Value['SpecialScript'])"
+                        }
+                    }
+                    $TaskInfoJson = $Tasks | ConvertTo-Json -Compress
+                    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\FPCA-Config.ps1`" -TaskInfo `"$TaskInfoJson`""
+                    Exit
+                }
             }
 
             # Check if the IMPORT_CONFIG_BUTTON_CLICKED flag is set to true in the UiHash.
@@ -715,6 +753,25 @@ While ($Global:MainHash.MainListener) {
                 $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
                 $Global:MainHash.CheckBoxStates.CONFEXPLORER_SETTINGS_CHECKBOX = $false
             }
+            if ($Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX.Checked) {
+                # If the Use Custom Config checkbox is checked, set the state to true in the MainHash.
+                $Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
+                $Global:MainHash.UseCustomConfig = $true
+            } else {
+                # If the Use Custom Config checkbox is unchecked, set the state to false in the MainHash.
+                $Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
+                $Global:MainHash.UseCustomConfig = $false
+            }
+            if ($Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Checked) {
+                # If the Auto Refresh Config checkbox is checked, set the state to true in the MainHash.
+                $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
+                $Global:MainHash.AutoRefreshConfig = $true
+            } else {
+                # If the Auto Refresh Config checkbox is unchecked, set the state to false in the MainHash.
+                $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
+                $Global:MainHash.AutoRefreshConfig = $false
+            }
+
         }
 
         # INSERT MORE CONFIG TAB HANDLING HERE
@@ -734,9 +791,9 @@ While ($Global:MainHash.MainListener) {
 
         if ($Global:MainHash.AutoRefreshApp){
             $RefreshAppLoopCounter++
-            if ($RefreshAppLoopCounter -gt 250) {
+            if ($RefreshAppLoopCounter -gt $RefreshAppLoopCounter_Max) {
                 # Reset the RefreshAppLoopCounter to 0.
-                $RefreshAppLoopCounter = 0
+                [int32]$RefreshAppLoopCounter = 0
                 # Request a refresh of the application UI.
                 if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED -eq $false) {
                     $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $true
@@ -773,6 +830,23 @@ While ($Global:MainHash.MainListener) {
         if ($Global:UiHash.AppButtonClicked) {
             # Reset the AppButtonClicked flag to false.
             $Global:UiHash.AppButtonClicked = $false
+
+            foreach ($section in $Global:UiHash.NewAppUiObjects) {
+                if ($Global:UiHash.NewAppUiObjects[$section].ButtonClicked) {
+                    if ($Global:UiHash.NewAppUiObjects[$section].InstallationState -eq "Installed") {
+                        Start-Job -Name "${section}_Download" -ScriptBlock {
+                            Param(
+                                $Global:UiHash,
+                                $section
+                            )
+                            Start-Process -FilePath "$($Global:UiHash['PSScriptroot'])\Apps-Data\PortableApps$($Global:UiHash.DLinfo[$section].Folder)\$($Global:UiHash.DLinfo[$section].Executable)" -Verb Runas
+                        }.AddArgument($Global:UiHash).AddArgument($section) | Out-Null
+                    } elseif ($Global:UiHash.NewAppUiObjects[$section].InstallationState -eq "NotInstalled") {
+
+                    }
+                }
+            }
+
         }
 
         # INSERT APPLICATION TAB HANDLING HERE

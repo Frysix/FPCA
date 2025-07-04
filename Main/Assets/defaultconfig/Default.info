@@ -1,0 +1,92 @@
+[CHROME]
+Checkbox=GOOGLE_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Google Chrome
+SpecialScript=false
+ScriptPath=false
+[FIREFOX]
+Checkbox=FIREFOX_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Firefox
+SpecialScript=false
+ScriptPath=false
+[ACROBAT]
+Checkbox=WINRAR_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Acrobat Reader
+SpecialScript=false
+ScriptPath=false
+[WINRAR]
+Checkbox=ACROBAT_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Winrar
+SpecialScript=false
+ScriptPath=false
+[7ZIP]
+Checkbox=SEVENZIP_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=7-Zip
+SpecialScript=false
+ScriptPath=false
+[MACRIUM]
+Checkbox=MACRIUM_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Macrium
+SpecialScript=false
+ScriptPath=false
+[DISCORD]
+Checkbox=DISCORD_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Discord
+SpecialScript=false
+ScriptPath=false
+[STEAM]
+Checkbox=STEAM_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Steam
+SpecialScript=false
+ScriptPath=false
+[ZOOM]
+Checkbox=ZOOM_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=Zoom
+SpecialScript=false
+ScriptPath=false
+[VLC]
+Checkbox=VLC_INSTALL_CHECKBOX
+TaskType=Install
+DisplayName=VLC Media Player
+SpecialScript=false
+ScriptPath=false
+
+[OFFICE]
+Checkbox=STOFFICE_LAUNCH_CHECKBOX
+TaskType=MiscInstall
+DisplayName=Office and Libreoffice Install
+SpecialScript=\STOfficeV3.ps1
+ScriptPath=false
+[MORE]
+Checkbox=MORE_LAUNCH_CHECKBOX
+TaskType=MiscInstall
+DisplayName=More Options...
+SpecialScript=false
+ScriptPath=false
+
+[UPWIN]
+Checkbox=UPWIN_SETTINGS_CHECKBOX
+TaskType=Settings
+DisplayName=Update Windows
+SpecialScript=false
+ScriptPath=false
+[UPMSS]
+Checkbox=UPMSSTORE_SETTINGS_CHECKBOX
+TaskType=Settings
+DisplayName=Update Microsoft Store
+SpecialScript=false
+ScriptPath=false
+[CONFEXP]
+Checkbox=CONFEXPLORER_SETTINGS_CHECKBOX
+TaskType=Settings
+DisplayName=Configure Explorer
+SpecialScript=false
+ScriptPath=false
