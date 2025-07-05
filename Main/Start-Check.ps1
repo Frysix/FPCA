@@ -37,6 +37,10 @@ foreach ($line in Get-Content "$Psscriptroot\fpca.info") {
 # It sets the firstlaunch flag to false and records the installation date.
 $IsFirstLaunch = $false
 if ($info['General']['firstlaunch'] -eq "true") {
+
+    $info['General']['firstlaunch'] = "false"
+    $info['General']['installDate'] = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+
     $infoContent = [System.Collections.Generic.List[string]]::new()
     $sectionCount = $info.Keys.Count
     $sectionIndex = 0

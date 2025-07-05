@@ -1,3 +1,5 @@
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX_CheckedChanged = {
+}
 $REFRESH_APP_BUTTON_Click = {
 }
 $USECUSTOM_APP_CHECKBOX_CheckedChanged = {

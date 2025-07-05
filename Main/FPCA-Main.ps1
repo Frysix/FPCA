@@ -40,41 +40,31 @@ $Global:UiHash.ConfigButtonClicked = $false
 $Global:UiHash.PermanentButtonClicked = $false
 $Global:UiHash.LinkLabelClicked = $false
 $Global:UiHash.AppButtonClicked = $false
-$Global:MainHash.AppRefreshRunning = $false
-$Global:MainHash.AppRefreshFinished = $false
-$Global:UiHash.RefreshUiRequested = $false
 $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $false
-$Global:UiHash.IMPORT_CONFIG_BUTTON_CLICKED = $false
 $Global:UiHash.SETTINGS_BUTTON_CLICKED = $false
 $Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED = $false
 $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
 $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
+$Global:UiHash.REFRESH_CONFIG_PANEL = $false
+$Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $false
 # Initialize hashtable to store CheckBox states.
-$Global:MainHash.CheckBoxStates = @{
-    GOOGLE_INSTALL_CHECKBOX = $false
-    FIREFOX_INSTALL_CHECKBOX = $false
-    WINRAR_INSTALL_CHECKBOX = $false
-    ACROBAT_INSTALL_CHECKBOX = $false
-    SEVENZIP_INSTALL_CHECKBOX = $false
-    MACRIUM_INSTALL_CHECKBOX = $false
-    DISCORD_INSTALL_CHECKBOX = $false
-    STEAM_INSTALL_CHECKBOX = $false
-    ZOOM_INSTALL_CHECKBOX = $false
-    VLC_INSTALL_CHECKBOX = $false
-    STOFFICE_LAUNCH_CHECKBOX = $false
-    MORE_LAUNCH_CHECKBOX = $false
-    UPWIN_SETTINGS_CHECKBOX = $false
-    UPMSSTORE_SETTINGS_CHECKBOX = $false
-    CONFEXPLORER_SETTINGS_CHECKBOX = $false
-}
+$Global:UiHash.ConfigCheckBoxStates = @{}
 # Initialize settings related variables.
+$Global:MainHash.AutoRefreshApp = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshApp
+$Global:MainHash.AutoRefreshConfig = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshConfig
 [int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainLoopRefreshRate -Default 50
 [int32]$ConfigLinkUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigLinkUpdateCounter -Default 40
 [int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.InternetCheckUpdateCounter -Default 100
 [int32]$RefreshAppLoopCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.RefreshAppLoopCounter -Default 250
+[int32]$MainUiTimerInterval = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainUiTimerInterval -Default 1000
+[int32]$ConfigPanelUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigPanelUpdateCounter -Default 150
+[int32]$MainFormLoadLoopCounter_Max = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainFormLoadLoopCounter -Default 500
+[int32]$ConfigPanelUpdateCounter_Max = [int32]$ConfigPanelUpdateCounter
 [int32]$ConfigLinkUpdateCounter_Max = [int32]$ConfigLinkUpdateCounter
 [int32]$InternetCheckUpdateCounter_Max = [int32]$InternetCheckUpdateCounter
 [int32]$RefreshAppLoopCounter_Max = [int32]$RefreshAppLoopCounter
+$Global:UiHash.MainUiTimerInterval = [int32]$MainUiTimerInterval
+
 
 # Create a runspace for the UI
 # This runspace will be used to execute the UI script in a separate thread.
@@ -116,72 +106,20 @@ $Null = $UiPowershell.AddScript({
                 $Global:UiHash.PermanentButtonClicked = $true
             }
         })
-        $IMPORT_CONFIG_BUTTON.Add_Click({
-            if ($Global:UiHash.IMPORT_CONFIG_BUTTON_CLICKED -eq $false) {
-                $Global:UiHash.IMPORT_CONFIG_BUTTON_CLICKED = $true
-                $Global:UiHash.ConfigButtonClicked = $true
-            }
-        })
         $REFRESH_APP_BUTTON.Add_Click({
             if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED -eq $false) {
                 $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $true
             }
         })
+        $CONFIG_RESETCOMBOBOX_BUTTON.Add_Click({
+            $CONFIGFILE_COMBOBOX.SelectedItem = $null
+        })
         #Add Button's control to the UiHash for later access.
         $Global:UiHash.CONFIG_START_BUTTON = $CONFIG_START_BUTTON
         $Global:UiHash.SETTINGS_BUTTON = $SETTINGS_BUTTON
-        $Global:UiHash.IMPORT_CONFIG_BUTTON = $IMPORT_CONFIG_BUTTON
         $Global:UiHash.REFRESH_APP_BUTTON = $REFRESH_APP_BUTTON
 
         # Define config checkbox actions.
-        $GOOGLE_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $FIREFOX_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $WINRAR_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $ACROBAT_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $7ZIP_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $MACRIUM_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $DISCORD_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $STEAM_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $ZOOM_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $VLC_INSTALL_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $STOFFICE_LAUNCH_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $MORE_LAUNCH_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $UPWIN_SETTINGS_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $UPMSSTORE_SETTINGS_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $CONFEXPLORER_SETTINGS_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        $USECUSTOM_CUSTOMCONFIG_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
         $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Add_CheckedChanged({
             $Global:UiHash.CheckBoxChanged = $true
         })
@@ -193,22 +131,6 @@ $Null = $UiPowershell.AddScript({
             $Global:UiHash.AppCheckBoxChanged = $true
         })
         # Add CheckBoxes to the UiHash for later access.
-        $Global:UiHash.GOOGLE_INSTALL_CHECKBOX = $GOOGLE_INSTALL_CHECKBOX
-        $Global:UiHash.FIREFOX_INSTALL_CHECKBOX = $FIREFOX_INSTALL_CHECKBOX
-        $Global:UiHash.WINRAR_INSTALL_CHECKBOX = $WINRAR_INSTALL_CHECKBOX
-        $Global:UiHash.ACROBAT_INSTALL_CHECKBOX = $ACROBAT_INSTALL_CHECKBOX
-        $Global:UiHash.SEVENZIP_INSTALL_CHECKBOX = $7ZIP_INSTALL_CHECKBOX
-        $Global:UiHash.MACRIUM_INSTALL_CHECKBOX = $MACRIUM_INSTALL_CHECKBOX
-        $Global:UiHash.DISCORD_INSTALL_CHECKBOX = $DISCORD_INSTALL_CHECKBOX
-        $Global:UiHash.STEAM_INSTALL_CHECKBOX = $STEAM_INSTALL_CHECKBOX
-        $Global:UiHash.ZOOM_INSTALL_CHECKBOX = $ZOOM_INSTALL_CHECKBOX
-        $Global:UiHash.VLC_INSTALL_CHECKBOX = $VLC_INSTALL_CHECKBOX
-        $Global:UiHash.STOFFICE_LAUNCH_CHECKBOX = $STOFFICE_LAUNCH_CHECKBOX
-        $Global:UiHash.MORE_LAUNCH_CHECKBOX = $MORE_LAUNCH_CHECKBOX
-        $Global:UiHash.UPWIN_SETTINGS_CHECKBOX = $UPWIN_SETTINGS_CHECKBOX
-        $Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX = $UPMSSTORE_SETTINGS_CHECKBOX
-        $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX = $CONFEXPLORER_SETTINGS_CHECKBOX
-        $Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX = $USECUSTOM_CUSTOMCONFIG_CHECKBOX
         $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
         # Add app checkboxes to the UiHash for later access.
         $Global:UiHash.USECUSTOM_APP_CHECKBOX = $USECUSTOM_APP_CHECKBOX
@@ -239,6 +161,7 @@ $Null = $UiPowershell.AddScript({
         $Global:UiHash.PC_GPU_MODEL_LABEL = $PC_GPU_MODEL_LABEL
         $Global:UiHash.PC_RAM_GBCOUNT_LABEL = $PC_RAM_GBCOUNT_LABEL
         $Global:UiHash.PC_RAM_FREQUENCY_LABEL = $PC_RAM_FREQUENCY_LABEL
+        $Global:UiHash.FOUNDCONFIG_STATUS_LABEL = $FOUNDCONFIG_STATUS_LABEL
 
         # Add picture box controls to the UiHash for later access.
         $Global:UiHash.CONNECTION_STATUS_PICTUREBOX = $CONNECTION_STATUS_PICTUREBOX
@@ -246,35 +169,86 @@ $Null = $UiPowershell.AddScript({
         # Add tab controls to the UiHash for later access.
         $Global:UiHash.MAIN_TAB_CONTROL = $MAIN_TAB_CONTROL
 
+        # Add combobox controls to the UiHash for later access.
+        $Global:UiHash.CONFIGFILE_COMBOBOX = $CONFIGFILE_COMBOBOX
+        $CONFIGFILE_COMBOBOX.Add_SelectedIndexChanged({
+            if ($Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL -eq $false) {
+                $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $true
+            }
+        })
+
         # Add the modular app panel to the UiHash for later access.
 
         $Timer = New-Object System.Windows.Forms.Timer
-        $Timer.Interval = 1000 
+        $Timer.Interval = $Global:UiHash.MainUiTimerInterval # Set the timer interval to the value defined in the settings.
         $Timer.Add_Tick({
             # This block is executed every second when the timer ticks.
-            # Check if the REFRESH_APP_BUTTON_CLICKED flag is set to true in the UiHash.
-            if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED) {
-                $Global:UiHash.NewAppUiObjects = @{}
-                # Clear the MODULAR_APP_PANEL controls to remove old UI elements.
-                $MODULAR_APP_PANEL.Controls.Clear()
-                . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Gen-App-Ui.ps1') -UiHash $Global:UiHash
-                foreach ($section in $Global:UiHash.NewAppUiObjects.Keys) {
-                    $Global:UiHash.NewAppUiObjects[$section].Clicked = $false
-                    $Global:UiHash.ActiveSection = $section
-                    $Global:UiHash.NewAppUiObjects[$section].InstallationState = "Installed"
-                    $Global:UiHash.NewAppUiObjects[$section]['button'].Add_Click({
-                        # Check if the button has already been clicked
-                        if ($Global:UiHash.NewAppUiObjects[$Global:UiHash.ActiveSection].Clicked -eq $false) {
-                            # Set the button clicked state to true
-                            $Global:UiHash.NewAppUiObjects[$Global:UiHash.ActiveSection].Clicked = $true
-                            $Global:UiHash.AppButtonClicked = $true
-                        }
-                    })
-                    $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].label)
-                    $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].progressbar)
-                    $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].button)
+            if ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "CONFIG_TAB") {
+
+                ### CONFIG TAB HANDLING ###
+                if ($Global:UiHash.REFRESH_CONFIG_PANEL) {
+                    # Clear the CONFIG_PANEL controls to remove old UI elements.
+                    $DEFAULT_CONFIG_PANEL.Controls.Clear()
+                    # Generate the default config UI elements.
+                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Gen-DefaultConfig-Ui.ps1') -UiHash $Global:UiHash
+                    
+                    # Add group labels first
+                    foreach ($taskType in $Global:UiHash.DefaultConfigGroupLabels.Keys) {
+                        $DEFAULT_CONFIG_PANEL.Controls.Add($Global:UiHash.DefaultConfigGroupLabels[$taskType])
+                    }
+                    
+                    # Add checkboxes
+                    foreach ($section in $Global:UiHash.DefaultConfigUiObjects.Keys) {
+                        $DEFAULT_CONFIG_PANEL.Controls.Add($Global:UiHash.DefaultConfigUiObjects[$section].CheckBox)
+                    }
+                    
+                    $Global:UiHash.REFRESH_CONFIG_PANEL = $false
+
+                } elseif ($Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL) {
+                    # Clear the CUSTOM_CONFIG_PANEL controls to remove old UI elements.
+                    $CUSTOM_CONFIG_PANEL.Controls.Clear()
+                    # Generate the custom config UI elements.
+                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Gen-CustomConfig-Ui.ps1') -UiHash $Global:UiHash
+                    
+                    # Add group labels first
+                    foreach ($taskType in $Global:UiHash.CustomConfigGroupLabels.Keys) {
+                        $CUSTOM_CONFIG_PANEL.Controls.Add($Global:UiHash.CustomConfigGroupLabels[$taskType])
+                    }
+                    
+                    # Add checkboxes
+                    foreach ($section in $Global:UiHash.CustomConfigUiObjects.Keys) {
+                        $CUSTOM_CONFIG_PANEL.Controls.Add($Global:UiHash.CustomConfigUiObjects[$section].CheckBox)
+                    }
+                    
+                    $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $false
+
                 }
-                $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $false
+
+            } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "APP_TAB") {
+                # Check if the REFRESH_APP_BUTTON_CLICKED flag is set to true in the UiHash.
+                if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED) {
+                    $Global:UiHash.NewAppUiObjects = @{}
+                    # Clear the MODULAR_APP_PANEL controls to remove old UI elements.
+                    $MODULAR_APP_PANEL.Controls.Clear()
+                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Gen-App-Ui.ps1') -UiHash $Global:UiHash
+                    foreach ($section in $Global:UiHash.NewAppUiObjects.Keys) {
+                        $Global:UiHash.NewAppUiObjects[$section].Clicked = $false
+                        $Global:UiHash.ActiveSection = $section
+                        $Global:UiHash.NewAppUiObjects[$section].InstallationState = "Installed"
+                        $Global:UiHash.NewAppUiObjects[$section]['button'].Add_Click({
+                            # Check if the button has already been clicked
+                            if ($Global:UiHash.NewAppUiObjects[$Global:UiHash.ActiveSection].Clicked -eq $false) {
+                                # Set the button clicked state to true
+                                $Global:UiHash.NewAppUiObjects[$Global:UiHash.ActiveSection].Clicked = $true
+                                $Global:UiHash.AppButtonClicked = $true
+                            }
+                        })
+                        $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].label)
+                        $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].progressbar)
+                        $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].button)
+                    }
+                    $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $false
+                }
             }
         })
         $Timer.Start()  # Start the timer to trigger the tick event every second.
@@ -359,7 +333,7 @@ $Raminfo = Get-RAMInfo
 $MainFormLoadLoopCounter = 0
 $Global:MainHash.MainListener = $true
 While ($Global:UiHash.MainFormLoaded -eq $false) {
-    if ($MainFormLoadLoopCounter -gt 500) {
+    if ($MainFormLoadLoopCounter -gt [int32]$MainFormLoadLoopCounter_Max) {
         # If the main form is not loaded after 500 iterations, display an error message and exit.
         [System.Windows.Forms.MessageBox]::Show("Main form failed to load. Please try again or contact support.", "FPCA - Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         $Global:MainHash.MainListener = $false
@@ -396,6 +370,7 @@ While ($Global:MainHash.MainListener) {
     # Increment counters to track the number of iterations in the main loop.
     $ConfigLinkUpdateCounter++
     $InternetCheckUpdateCounter++
+    $ConfigPanelUpdateCounter++
 
     # Check if the UI is closed by checking the UIClosed variable in the UiHash.
     # If the UI is closed, set the MainListener to false to exit the loop.
@@ -415,6 +390,10 @@ While ($Global:MainHash.MainListener) {
     if ($Global:MainHash.CurrentTab -eq "APP_TAB" -and $Global:MainHash.PreviousTab -ne "APP_TAB") {
         if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED -eq $false) {
             $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $true
+        }
+    } elseif ($Global:MainHash.CurrentTab -eq "CONFIG_TAB" -and $Global:MainHash.PreviousTab -ne "CONFIG_TAB") {
+        if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
+            $Global:UiHash.REFRESH_CONFIG_PANEL = $true
         }
     }
     # Update previous tab for next iteration
@@ -493,20 +472,68 @@ While ($Global:MainHash.MainListener) {
             # Change the ImportButtonMode based on the number of config files found.
             # Asynchronously update the UI label with the path to the config files.
             if (Test-Path -Path "$PSScriptRoot\Assets\config\*.config") {
-                $Global:MainHash.ConfigFiles = @(Get-ChildItem -Path "$PSScriptRoot\Assets\config\*.config" | ForEach-Object { $_.Name })
-                if ($Global:MainHash.ConfigFiles.Count -eq 1) {
-                    $Global:MainHash.ImportButtonMode = "Single"
+                $ConfigFiles = Get-ChildItem -Path "$PSScriptRoot\Assets\config" -Filter '*.config' | Where-Object { $_.Name -ne 'Default.config' }
+                if ($ConfigFiles.Count -ne 0) {
+                    # Store the currently selected item (by value)
+                    $selected = $Global:UiHash.CONFIGFILE_COMBOBOX.SelectedItem
+
+                    # Clear and repopulate
+                    $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Clear()
+                    foreach ($file in $ConfigFiles) {
+                        $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Add($file.Name)
+                    }
+
+                    # Restore selection if it still exists
+                    if ($selected -and $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Contains($selected)) {
+                        $Global:UiHash.CONFIGFILE_COMBOBOX.SelectedItem = $selected
+                    }
+
+                    # Set the ImportButtonMode to "Config" to indicate that config files are available for import.
+                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Green
+                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.Text = "Found!"
                     $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Green
-                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.Text = "$PSScriptroot\Assets\config\$($Global:MainHash.ConfigFiles[0])"
+                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.Text = "$PSScriptRoot\Assets\config"
                 } else {
-                    $Global:MainHash.ImportButtonMode = "Multiple"
-                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Yellow
-                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.Text = "Multiple config files found! Click to open folder."
+                    if ($Global:UiHash.CONFIGFILE_COMBOBOX.SelectedItem -ne $null) {
+                        $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Clear()
+                    }
+                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Red
+                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.Text = "Not Found!"
+                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Red
+                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.Text = "No config files found! Click to open folder."
                 }
-            } else {
-                $Global:MainHash.ImportButtonMode = "None"
-                $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Red
-                $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.Text = "No config files found! Click to open folder."
+            }
+        }
+
+        # Check if the ConfigPanelUpdateCounter has reached the defined iterations by settings.
+        if ($Global:MainHash.AutoRefreshConfig -eq "true") {
+            $ConfigPanelUpdateCounter++
+            # Check if the ConfigPanelUpdateCounter has reached defined iterations by settings.
+            if ([int32]$ConfigPanelUpdateCounter -gt [int32]$ConfigPanelUpdateCounter_Max) {
+                [int32]$ConfigPanelUpdateCounter = 0
+                if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
+                    $Global:UiHash.REFRESH_CONFIG_PANEL = $true
+                }
+                if ($Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL -eq $false) {
+                    $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $true
+                }
+            }
+        }
+
+        if ($Global:UiHash.ConfigCheckBoxChanged) {
+            # Reset the ConfigCheckBoxChanged flag to false.
+            $Global:UiHash.ConfigCheckBoxChanged = $false
+
+            # Check the state of each checkbox and update the ConfigCheckBoxStates hashtable accordingly.
+            foreach ($section in $Global:UiHash.DefaultConfigUiObjects.Keys) {
+                $Global:UiHash.ConfigCheckBoxStates[$section] = $Global:UiHash.DefaultConfigUiObjects[$section].CheckBox.Checked
+                if ($Global:UiHash.ConfigCheckBoxStates[$section]) {
+                    # If the checkbox is checked, set the ForeColor to Green.
+                    $Global:UiHash.DefaultConfigUiObjects[$section].CheckBox.ForeColor = [System.Drawing.Color]::Green
+                } else {
+                    # If the checkbox is unchecked, set the ForeColor to Black.
+                    $Global:UiHash.DefaultConfigUiObjects[$section].CheckBox.ForeColor = [System.Drawing.Color]::Black
+                }
             }
         }
 
@@ -527,88 +554,7 @@ While ($Global:MainHash.MainListener) {
             # Check if the CONFIG_START_BUTTON_CLICKED flag is set to true in the UiHash.
             # If it is set, it means that the user has clicked the Start Config button.
             if ($Global:UiHash.CONFIG_START_BUTTON_CLICKED) {
-                if (-not ($Global:MainHash.CheckBoxStates.Values -contains $true)) {
-                    # If no checkboxes are checked, display a message to the user.
-                    Start-Job -ScriptBlock {
-                        Param(
-                            [string]$ScriptRoot
-                        )
-                        Import-Module -Name "$ScriptRoot\Helper\FormHelper.psm1" -Force
-                        Show-TopMostMessageBox -Message "Please select at least one checkbox to proceed." -Title "FPCA - No Selection" -Icon "Warning"
-                    } -ArgumentList $PSScriptroot | Out-Null
-                    $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
-                } else {
-                    $Global:UiHash.UIClosedFor = "StartConfig"
-                    $Global:UiHash.StartConfigClosingRunning = $true
-                    $Global:UiHash.MainForm.Close()
-                    $DefaultInfo = Get-FromUTF8File -FilePath "$PSScriptRoot\Assets\defaultconfig\Default.info"
-                    $Tasks = @{}
-                    foreach ($cb in $Global:MainHash.CheckBoxStates.GetEnumerator()) {
-                        if ($cb.Value -eq $true) {
-                            foreach ($section in $DefaultInfo.Keys) {
-                                if ($DefaultInfo[$section]['Checkbox'] -eq $cb.Key) {
-                                    $Tasks[$section] = $DefaultInfo[$section]
-                                }
-                            }
-                        }
-                    }
-                    foreach ($task in $Tasks.GetEnumerator()) {
-                        if ($task.Value['SpecialScript'] -ne "false") {
-                            & "$PSScriptRoot\Scripts\$($task.Value['SpecialScript'])"
-                        }
-                    }
-                    $TaskInfoJson = $Tasks | ConvertTo-Json -Compress
-                    Start-Process powershell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSScriptRoot\FPCA-Config.ps1`" -TaskInfo `"$TaskInfoJson`""
-                    Exit
-                }
-            }
-
-            # Check if the IMPORT_CONFIG_BUTTON_CLICKED flag is set to true in the UiHash.
-            if ($Global:UiHash.IMPORT_CONFIG_BUTTON_CLICKED) {
-
-                if ($Global:MainHash.ImportButtonMode -eq "Single") {
-
-                    # CHANGE THIS TO EXECUTE THE SINGLE CONFIG IMPORT CODE.
-                    Start-Job -ScriptBlock {
-                        Param(
-                            [string]$ScriptRoot
-                        )
-                        Import-Module -Name "$ScriptRoot\Helper\FormHelper.psm1" -Force
-                        Show-TopMostMessageBox -Message "CODE NOT IMPLEMENTED YET: SINGLE FILE IMPORT" -Title "FPCA - Error" -Icon "Error"
-                    } -ArgumentList $PSScriptroot | Out-Null
-
-                } elseif ($Global:MainHash.ImportButtonMode -eq "Multiple") {
-
-                    # CHANGE THIS TO OPEN THE MULTIPLE FILE IMPORT UI WHEN IMPLEMENTED.
-                    Start-Job -ScriptBlock {
-                        Param(
-                            [string]$ScriptRoot
-                        )
-                        Import-Module -Name "$ScriptRoot\Helper\FormHelper.psm1" -Force
-                        Show-TopMostMessageBox -Message "CODE NOT IMPLEMENTED YET: MULTIPLE FILE IMPORT" -Title "FPCA - Error" -Icon "Error"
-                    } -ArgumentList $PSScriptroot | Out-Null
-
-                } elseif ($Global:MainHash.ImportButtonMode -eq "None") {
-
-                    # If the ImportButtonMode is set to None, display a message to the user.
-                    Start-Job -ScriptBlock {
-                        Param(
-                            [string]$ScriptRoot
-                        )
-                        Import-Module -Name "$ScriptRoot\Helper\FormHelper.psm1" -Force
-                        Show-TopMostMessageBox -Message "No config files found! Please add a config file to the Config folder." -Title "FPCA - No Config Files" -Icon "Information" -Owner $Global:UiHash.MainForm
-                    } -ArgumentList $PSScriptroot | Out-Null
-
-                } else {
-                    # If the ImportButtonMode is not set to Single, Multiple or None, display an error message.
-                    # This is a fallback error handling mechanism.
-                    # Close the main form to prevent further interaction.
-                    $Global:UiHash.MainForm.Close()
-                    Show-TopMostMessageBox -Message "Import button broke... Something went terribly wrong..." -Title "FPCA - Error" -Icon "Error"
-                    Break
-                }
-                # Reset the IMPORT_CONFIG_BUTTON_CLICKED flag to false after processing the import button click.
-                $Global:UiHash.IMPORT_CONFIG_BUTTON_CLICKED = $false
+                
             }
 
         }
@@ -618,150 +564,6 @@ While ($Global:MainHash.MainListener) {
         if ($Global:UiHash.CheckBoxChanged) {
             # Reset the CheckBoxChanged flag to false.
             $Global:UiHash.CheckBoxChanged = $false
-            if ($Global:UiHash.GOOGLE_INSTALL_CHECKBOX.Checked) {
-                # If the Google Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.GOOGLE_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green 
-                $Global:MainHash.CheckBoxStates.GOOGLE_INSTALL_CHECKBOX = $true
-            } else {
-                # If the Google Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.GOOGLE_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.GOOGLE_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.FIREFOX_INSTALL_CHECKBOX.Checked) {
-                # If the Firefox Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.FIREFOX_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.FIREFOX_INSTALL_CHECKBOX = $true
-            } else {
-                # If the Firefox Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.FIREFOX_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.FIREFOX_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.WINRAR_INSTALL_CHECKBOX.Checked) {
-                # If the WinRAR Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.WINRAR_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.WINRAR_INSTALL_CHECKBOX = $true
-            } else {
-                # If the WinRAR Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.WINRAR_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.WINRAR_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.ACROBAT_INSTALL_CHECKBOX.Checked) {
-                # If the Acrobat Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.ACROBAT_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.ACROBAT_INSTALL_CHECKBOX = $true
-            } else {
-                # If the Acrobat Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.ACROBAT_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.ACROBAT_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.SEVENZIP_INSTALL_CHECKBOX.Checked) {
-                # If the 7-Zip Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.SEVENZIP_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.SEVENZIP_INSTALL_CHECKBOX = $true
-            } else {
-                # If the 7-Zip Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.SEVENZIP_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.SEVENZIP_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.MACRIUM_INSTALL_CHECKBOX.Checked) {
-                # If the Macrium Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.MACRIUM_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.MACRIUM_INSTALL_CHECKBOX = $true
-            } else {
-                # If the Macrium Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.MACRIUM_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.MACRIUM_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.DISCORD_INSTALL_CHECKBOX.Checked) {
-                # If the Discord Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.DISCORD_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.DISCORD_INSTALL_CHECKBOX = $true
-            } else {
-                # If the Discord Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.DISCORD_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.DISCORD_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.STEAM_INSTALL_CHECKBOX.Checked) {
-                # If the Steam Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.STEAM_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.STEAM_INSTALL_CHECKBOX = $true
-            } else {
-                # If the Steam Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.STEAM_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.STEAM_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.ZOOM_INSTALL_CHECKBOX.Checked) {
-                # If the Zoom Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.ZOOM_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.ZOOM_INSTALL_CHECKBOX = $true
-            } else {
-                # If the Zoom Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.ZOOM_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.ZOOM_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.VLC_INSTALL_CHECKBOX.Checked) {
-                # If the VLC Install checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.VLC_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.VLC_INSTALL_CHECKBOX = $true
-            } else {
-                # If the VLC Install checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.VLC_INSTALL_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.VLC_INSTALL_CHECKBOX = $false
-            }
-            if ($Global:UiHash.STOFFICE_LAUNCH_CHECKBOX.Checked) {
-                # If the SoftOffice Launch checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.STOFFICE_LAUNCH_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.STOFFICE_LAUNCH_CHECKBOX = $true
-            } else {
-                # If the SoftOffice Launch checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.STOFFICE_LAUNCH_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.STOFFICE_LAUNCH_CHECKBOX = $false
-            }
-            if ($Global:UiHash.MORE_LAUNCH_CHECKBOX.Checked) {
-                # If the More Launch checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.MORE_LAUNCH_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.MORE_LAUNCH_CHECKBOX = $true
-            } else {
-                # If the More Launch checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.MORE_LAUNCH_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.MORE_LAUNCH_CHECKBOX = $false
-            }
-            if ($Global:UiHash.UPWIN_SETTINGS_CHECKBOX.Checked) {
-                # If the UPWIN Settings checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.UPWIN_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.UPWIN_SETTINGS_CHECKBOX = $true
-            } else {
-                # If the UPWIN Settings checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.UPWIN_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.UPWIN_SETTINGS_CHECKBOX = $false
-            }
-            if ($Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX.Checked) {
-                # If the UPMSSTORE Settings checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.UPMSSTORE_SETTINGS_CHECKBOX = $true
-            } else {
-                # If the UPMSSTORE Settings checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.UPMSSTORE_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.UPMSSTORE_SETTINGS_CHECKBOX = $false
-            }
-            if ($Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX.Checked) {
-                # If the Config Explorer Settings checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.CheckBoxStates.CONFEXPLORER_SETTINGS_CHECKBOX = $true
-            } else {
-                # If the Config Explorer Settings checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.CONFEXPLORER_SETTINGS_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.CheckBoxStates.CONFEXPLORER_SETTINGS_CHECKBOX = $false
-            }
-            if ($Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX.Checked) {
-                # If the Use Custom Config checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.UseCustomConfig = $true
-            } else {
-                # If the Use Custom Config checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.USECUSTOM_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.UseCustomConfig = $false
-            }
             if ($Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Checked) {
                 # If the Auto Refresh Config checkbox is checked, set the state to true in the MainHash.
                 $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
