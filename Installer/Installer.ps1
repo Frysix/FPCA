@@ -49,12 +49,6 @@ foreach ($line in $lines) {
     }
 }
 
-# Debug output
-$OnlineInfo.GetEnumerator() | ForEach-Object {
-    Write-Host "[$($_.Key)]"
-    $_.Value.GetEnumerator() | ForEach-Object { Write-Host "$($_.Key)=$($_.Value)" }
-}
-
 # Checks if there is an existing installation on any of the drives
 # If an installation is found, it reads the fpca.info file and displays the version and start file.
 foreach ($Letter in $DriveLetters) {
@@ -175,7 +169,7 @@ While ($PathNull) {
     }
 }
 
-Write-Host "Downloading new installation from: $OnlineInfo['General']['Link']" -ForegroundColor Cyan
+Write-Host "Downloading new installation from: $($OnlineInfo['General']['Link'])" -ForegroundColor Cyan
 # Download Threaded-Installer.ps1 from the online repository
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Threaded-Installer.ps1" -OutFile "$env:TEMP\Threaded-Installer.ps1"
 if (-not (Test-Path -Path "$env:TEMP\Threaded-Installer.ps1")) {
@@ -189,7 +183,6 @@ $loops = 0
 $NotInstalled = $true
 While ($NotInstalled) {
     if ($loops -lt 3) {
-        Write-Host $OnlineInfo.General.link
         # Launch the Threaded-Installer script with the required parameters
         & "$env:TEMP\Threaded-Installer.ps1" -Url $OnlineInfo.General.link -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
         # Check if the Threaded-Installer script was successful
@@ -198,13 +191,18 @@ While ($NotInstalled) {
             # Extract the downloaded zip file
             Expand-Archive -Path "$InstallPath\FPCA.zip" -DestinationPath $InstallPath -Force
             if (test-path -path "$InstallPath\FPCA\fpca.info") {
-                Write-Host "Installation completed successfully." -ForegroundColor Green
+                Write-Host "Extraction completed successfully. Cleaning Up" -ForegroundColor Green
                 # Remove the zip file after extraction
                 Remove-Item -Path "$InstallPath\FPCA.zip" -Force
+                if (-not (test-path -path "$InstallPath\FPCA.zip")) {
+                    Write-Host "Cleanup completed successfully." -ForegroundColor Green
+                } else {
+                    Write-Host "Cleanup failed." -ForegroundColor Red
+                }
                 $NotInstalled = $false
             } else {
-                Write-Host "Installation failed. fpca.info file not found in the installation directory." -ForegroundColor Red
-                $result = [System.Windows.Forms.MessageBox]::Show("Installation failed. fpca.info file not found. Do you want to retry?","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
+                Write-Host "Extraction failed. fpca.info file not found in the installation directory." -ForegroundColor Red
+                $result = [System.Windows.Forms.MessageBox]::Show("Extraction failed. fpca.info file not found. Do you want to retry?","FPCA Installer",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Information)
                 if (-not ($result -eq [System.Windows.Forms.DialogResult]::Yes)) {
                     Exit
                 }
@@ -266,7 +264,7 @@ New-Item -Path $LogFilePath -ItemType File -Force | Out-Null
 Set-Content -Path $LogFilePath -Value $LogContent -Encoding UTF8
 
 # Start the installed script
-Write-Host "Starting installed App Version: $NewInstallInfo['General']['Version']" -ForegroundColor Cyan
+Write-Host "Starting installed App Version: $($NewInstallInfo['General']['Version'])" -ForegroundColor Cyan
 Start-Process -WindowStyle Hidden -FilePath "$InstallPath\FPCA\$($NewInstallInfo['Files']['Start'])" -WorkingDirectory "$InstallPath\FPCA" -Verb Runas
 # Exit the installer script
 Write-Host "FPCA App launched successfully. Closing installer script in 2 seconds..." -ForegroundColor Green

@@ -381,11 +381,41 @@ While ($Global:MainHash.MainListener) {
         # If the UI is closed, break the loop and exit the script.
         # Display a message box to inform the user that the application is closing and if they want to delete the application
         if ($Global:MainHash.FPCASettings.General.DeleteOnExit -eq "true") {
-            #Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"Start-Sleep -Seconds 3; Get-Process -Name 'powershell' | Where-Object { `$_.MainWindowTitle -like '*FPCA*' } | Stop-Process -Force; Start-Sleep -Seconds 2; Remove-Item -Path '$PSScriptRoot' -Recurse -Force`"" -WindowStyle Hidden
+            $result = [System.Windows.Forms.DialogResult]::Yes
         } elseif ($Global:MainHash.FPCASettings.General.DeleteOnExit -eq "prompt") {
             $result = Show-TopMostMessageBox -Message "Do you want to delete FPCA?" -Title "FPCA - Delete Application" -Icon "Question" -Buttons "YesNo"
-            if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-                #Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"Start-Sleep -Seconds 3; Get-Process -Name 'powershell' | Where-Object { `$_.MainWindowTitle -like '*FPCA*' } | Stop-Process -Force; Start-Sleep -Seconds 2; Remove-Item -Path '$PSScriptRoot' -Recurse -Force`"" -WindowStyle Hidden
+        } else {
+            $result = [System.Windows.Forms.DialogResult]::No
+        }
+        # If the user chooses to delete the application, create a scheduled task to delete the application folder.
+        if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+            try {
+                # Create a scheduled task that runs once and deletes itself
+                $taskName = "DeleteFPCA_$(Get-Random)"
+                Write-Host "Creating task: $taskName"
+                    
+                $action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"Write-Host 'Task Started'; Start-Sleep -Seconds 5; Write-Host 'Deleting $PSScriptRoot'; Remove-Item -Path '$PSScriptRoot' -Recurse -Force; Write-Host 'Done'; Unregister-ScheduledTask -TaskName '$taskName' -Confirm:`$false; Write-Host 'Task Unregistered'; Start-Sleep -Seconds 2; Write-Host 'Exiting PowerShell'`""
+                $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(3)
+                $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+                    
+                $task = Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest
+                Write-Host "Task created successfully: $($task.TaskName)"
+                    
+                # Verify the task was created
+                $createdTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+                if ($createdTask) {
+                    Write-Host "Task verified in scheduler"
+                } else {
+                    Write-Host "Task NOT found in scheduler"
+                }
+                    
+            } catch {
+                Write-Host "Error creating task: $($_.Exception.Message)"
+                # Fallback to batch file
+                $bat = [System.IO.Path]::GetTempFileName() + ".bat"
+                $batContent = "@echo off`necho Waiting...`ntimeout /t 3 /nobreak`necho Deleting $PSScriptRoot`nrmdir /s /q `"$PSScriptRoot`"`necho Done`npause`ndel `"%~f0`""
+                Set-Content -Path $bat -Value $batContent
+                Start-Process -FilePath $bat
             }
         }
         Break
