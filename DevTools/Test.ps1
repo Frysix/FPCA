@@ -15,7 +15,7 @@ Write-Host $PSScriptRoot
 
 
 
-[]
+
 Link1=
 ZipName=
 Folder=

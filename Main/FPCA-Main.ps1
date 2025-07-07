@@ -289,6 +289,9 @@ $Null = $UiPowershell.AddScript({
                 # Sleep for a short duration to prevent high CPU usage while waiting for the UI to close.
                 Start-Sleep -Milliseconds 100
             }
+        } elseif ($Global:UiHash.UIClosedFor -eq "Settings") {
+            # If the UI is closed for settings
+            
         } else {
             # This variable is changed to indicate that the UI has been closed.
             $Global:UiHash.UIClosedByUser = $true
@@ -376,6 +379,15 @@ While ($Global:MainHash.MainListener) {
     # If the UI is closed, set the MainListener to false to exit the loop.
     if ($Global:UiHash.UIClosedByUser) {
         # If the UI is closed, break the loop and exit the script.
+        # Display a message box to inform the user that the application is closing and if they want to delete the application
+        if ($Global:MainHash.FPCASettings.General.DeleteOnExit -eq "true") {
+            #Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"Start-Sleep -Seconds 3; Get-Process -Name 'powershell' | Where-Object { `$_.MainWindowTitle -like '*FPCA*' } | Stop-Process -Force; Start-Sleep -Seconds 2; Remove-Item -Path '$PSScriptRoot' -Recurse -Force`"" -WindowStyle Hidden
+        } elseif ($Global:MainHash.FPCASettings.General.DeleteOnExit -eq "prompt") {
+            $result = Show-TopMostMessageBox -Message "Do you want to delete FPCA?" -Title "FPCA - Delete Application" -Icon "Question" -Buttons "YesNo"
+            if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                #Start-Process PowerShell.exe -ArgumentList "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"Start-Sleep -Seconds 3; Get-Process -Name 'powershell' | Where-Object { `$_.MainWindowTitle -like '*FPCA*' } | Stop-Process -Force; Start-Sleep -Seconds 2; Remove-Item -Path '$PSScriptRoot' -Recurse -Force`"" -WindowStyle Hidden
+            }
+        }
         Break
     }
 

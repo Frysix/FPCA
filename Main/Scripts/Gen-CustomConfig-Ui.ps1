@@ -59,7 +59,7 @@ foreach ($taskType in $sortedTaskTypes) {
     $groupLabel.Text = "${taskType}:"
     $groupLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
     $groupLabel.Location = New-Object System.Drawing.Point($xPosition, $yPosition)
-    $groupLabel.Size = New-Object System.Drawing.Size(100, 20)
+    $groupLabel.Size = New-Object System.Drawing.Size(170, 20)
     $groupLabel.ForeColor = [System.Drawing.Color]::DarkBlue
     
     # Store the group label

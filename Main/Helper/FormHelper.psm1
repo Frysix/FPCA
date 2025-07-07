@@ -12,8 +12,16 @@ function Show-TopMostMessageBox {
         [Parameter(Mandatory=$false)]
         [ValidateSet('Information', 'Warning', 'Error', 'Question')][string]$Icon = 'Information',
         [Parameter(Mandatory=$false)]
-        [System.Windows.Forms.IWin32Window]$Owner = $null
+        [System.Windows.Forms.IWin32Window]$Owner = $null,
+        [Parameter(Mandatory=$false)]
+        $Buttons
     )
+    if (-not $Buttons) {
+        $Buttons = [System.Windows.Forms.MessageBoxButtons]::OK
+    } elseif ($Buttons -is [string]) {
+        # Convert string to MessageBoxButtons enum if a string is provided
+        $Buttons = [System.Windows.Forms.MessageBoxButtons]::Parse([System.Windows.Forms.MessageBoxButtons], $Buttons)
+    }
     # Check for the presence of the an Owner window for the message box.
     if ($Owner -ne $null) {
         # If an owner is provided, show the message box with the owner window.
@@ -21,7 +29,7 @@ function Show-TopMostMessageBox {
         $Owner.TopMost = $true
         $Owner.Activate()
         $Owner.Focus()
-        [System.Windows.Forms.MessageBox]::Show($Owner, $Message, $Title, [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Parse([System.Windows.Forms.MessageBoxIcon], $Icon))
+        [System.Windows.Forms.MessageBox]::Show($Owner, $Message, $Title, $Buttons, [System.Windows.Forms.MessageBoxIcon]::Parse([System.Windows.Forms.MessageBoxIcon], $Icon))
     } else {
         # fallback to old behavior if no owner is provided
         $TopFormTemp = New-Object System.Windows.Forms.Form
@@ -30,7 +38,7 @@ function Show-TopMostMessageBox {
         $TopFormTemp.Size = '0,0'
         $TopFormTemp.Show()
         $TopFormTemp.Hide()
-        [System.Windows.Forms.MessageBox]::Show($TopFormTemp, $Message, $Title, [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Parse([System.Windows.Forms.MessageBoxIcon], $Icon))
+        [System.Windows.Forms.MessageBox]::Show($TopFormTemp, $Message, $Title, $Buttons, [System.Windows.Forms.MessageBoxIcon]::Parse([System.Windows.Forms.MessageBoxIcon], $Icon))
         $TopFormTemp.Close()
         $TopFormTemp.Dispose()
     }
