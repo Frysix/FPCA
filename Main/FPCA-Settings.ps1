@@ -7,6 +7,8 @@ Import-Module -Name "$PSScriptroot\Helper\ParsingHelper.psm1" -Force
 $Global:UiHash = [hashtable]::Synchronized(@{})
 # Define default values for the UiHash
 $Global:UiHash.PSScriptRoot = $PSScriptroot
+$Global:UiHash.SettingsUiLoaded = $false
+$Global:UiHash.ClosedFor = $null
 
 # Create a runspace for the Settings UI
 $UiRunspace = [runspacefactory]::CreateRunspace()
@@ -39,6 +41,15 @@ $Null = $UiPowershell.AddScript({
     $SAVE_SETTINGS_BUTTON.Add_Click({
         . "$($Global:UiHash['PSScriptroot'])\Scripts\Save-Settings.ps1" -UiHash $Global:UiHash
     })
+    $CANCEL_SETTINGS_BUTTON.Add_Click({
+        # Set the ClosedFor flag to "Cancel" when the Cancel button is clicked.
+        $Global:UiHash.ClosedFor = "Cancel"
+        $SETTINGS_FORM.Close()
+    })
+    $RESET_SETTINGS_BUTTON.Add_Click({
+        # Set the ClosedFor flag to "Reset" when the Reset button is clicked.
+        . "$($Global:UiHash['PSScriptroot'])\Scripts\Reset-Settings.ps1" -UiHash $Global:UiHash -ConfirmReset
+    })
 
     $SETTINGS_FORM.Add_Load({
         # Set the SettingsUiLoaded flag to true when the form is loaded.
@@ -47,11 +58,8 @@ $Null = $UiPowershell.AddScript({
 
     $SETTINGS_FORM.ShowDialog()
 
-    if ($Global:UiHash.ClosedFor -eq "Cancel") {
+    $Global:UiHash.ClosedByUser = $true
 
-    } else {
-        $Global:UiHash.ClosedByUser = $true
-    }
 })
 # Register the event handler for the UI runspace
 $Null = Register-ObjectEvent -InputObject $UiPowershell -EventName InvocationStateChanged -Action {
@@ -68,9 +76,11 @@ While ($UiHash.SettingsUiLoaded -eq $false) {
     Start-Sleep -Milliseconds 100
 }
 
+
 While ($true) {
     Start-Sleep -Milliseconds 500
     if ($Global:UiHash.ClosedByUser) {
+        Start-Process -FilePath "$PSScriptroot\Start.bat" -WindowStyle Hidden -WorkingDirectory $PSScriptroot
         Break
     }
 }

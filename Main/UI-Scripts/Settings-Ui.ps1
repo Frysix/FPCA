@@ -62,6 +62,7 @@ $SETTINGS_FORM.Controls.Add($CANCEL_SETTINGS_BUTTON)
 $SETTINGS_FORM.Controls.Add($SETTINGS_TABCONTROL)
 $SETTINGS_FORM.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
 $SETTINGS_FORM.MaximizeBox = $false
+$SETTINGS_FORM.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterParent
 $SETTINGS_FORM.Text = [System.String]'Settings - FPCA'
 $SETTINGS_FORM.TopMost = $true
 $SETTINGS_FORM.ResumeLayout($false)
