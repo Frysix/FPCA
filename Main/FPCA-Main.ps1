@@ -291,7 +291,7 @@ $Null = $UiPowershell.AddScript({
             }
         } elseif ($Global:UiHash.UIClosedFor -eq "Settings") {
             # If the UI is closed for settings
-            
+            Exit
         } else {
             # This variable is changed to indicate that the UI has been closed.
             $Global:UiHash.UIClosedByUser = $true
@@ -482,11 +482,12 @@ While ($Global:MainHash.MainListener) {
         # Check if the SETTINGS_BUTTON_CLICKED flag is set to true in the UiHash.
         # If it is set, it means that the user has clicked the settings button.
         if ($Global:UiHash.SETTINGS_BUTTON_CLICKED) {
+            # Set the UIClosedFor variable to "Settings" to indicate that the UI is being closed for settings.
+            $Global:UiHash.UIClosedFor = "Settings"
             # Close the main form to prevent further interaction.
             $Global:UiHash.MainForm.Close()
-
-            # CHANGE THIS TO OPEN THE SETTINGS UI WHEN IMPLEMENTED.
-            Show-TopMostMessageBox -Message "CODE NOT IMPLEMENTED YET: SETTINGS UI" -Title "FPCA - Error" -Icon "Error"
+            
+            Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\FPCA-Settings.ps1`""
 
             # Break the loop to prevent further processing in this iteration.
             Break

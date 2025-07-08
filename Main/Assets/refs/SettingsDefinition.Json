@@ -1,0 +1,81 @@
+{
+  "General": {
+    "Language": {
+      "Type": "ComboBox",
+      "Options": ["EN", "FR"],
+      "Default": "EN",
+      "Description": "Application language"
+    },
+    "DeleteOnExit": {
+      "Type": "ComboBox",
+      "Options": ["true", "false", "prompt"],
+      "Default": "prompt",
+      "Description": "What to do when exiting the application"
+    },
+    "Theme": {
+      "Type": "ComboBox",
+      "Options": ["Dark", "Light", "System"],
+      "Default": "Dark",
+      "Description": "Application theme"
+    },
+    "DefaultAutoRefreshConfig": {
+      "Type": "CheckBox",
+      "Default": "false",
+      "Description": "Enable automatic refresh of configuration tab"
+    },
+    "DefaultAutoRefreshApp": {
+      "Type": "CheckBox",
+      "Default": "true",
+      "Description": "Enable automatic refresh of application tab"
+    }
+ },
+  "Advanced": {
+    "MainLoopRefreshRate": {
+      "Type": "TextBox",
+      "Default": "50",
+      "Description": "Main loop refresh rate in milliseconds"
+    },
+    "ConfigLinkUpdateCounter": {
+      "Type": "TextBox",
+      "Default": "40",
+      "Description": "Counter for config link updates"
+    },
+    "ConfigPanelUpdateCounter": {
+      "Type": "TextBox",
+      "Default": "150",
+      "Description": "Counter for config panel updates"
+    },
+    "InternetCheckUpdateCounter": {
+      "Type": "TextBox",
+      "Default": "100",
+      "Description": "Counter for internet check updates"
+    },
+    "RefreshAppLoopCounter": {
+      "Type": "TextBox",
+      "Default": "250",
+      "Description": "Counter for application refresh loop"
+    },
+    "MainUiTimerInterval": {
+      "Type": "TextBox",
+      "Default": "1000",
+      "Description": "Main UI timer interval in milliseconds"
+    },
+    "MainFormLoadLoopCounter": {
+      "Type": "TextBox",
+      "Default": "500",
+      "Description": "Counter for main form load loop"
+    }
+  },
+    "Startup" : {
+        "IntegrityCheckup" : {
+            "Type" : "CheckBox",
+            "Default" : "true",
+            "Description" : "Enable integrity check on startup"
+        },
+        "CheckForUpdates" : {
+            "Type" : "CheckBox",
+            "Default" : "true",
+            "Description" : "Check for updates on startup"
+        }
+    }
+}
