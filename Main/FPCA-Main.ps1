@@ -42,10 +42,9 @@ $Global:UiHash.LinkLabelClicked = $false
 $Global:UiHash.AppButtonClicked = $false
 $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $false
 $Global:UiHash.SETTINGS_BUTTON_CLICKED = $false
-$Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED = $false
 $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
 $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
-$Global:UiHash.REFRESH_CONFIG_PANEL = $false
+$Global:UiHash.REFRESH_CONFIG_PANEL = $true
 $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $false
 # Initialize hashtable to store CheckBox states.
 $Global:UiHash.ConfigCheckBoxStates = @{}
@@ -53,14 +52,12 @@ $Global:UiHash.ConfigCheckBoxStates = @{}
 $Global:MainHash.AutoRefreshApp = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshApp
 $Global:MainHash.AutoRefreshConfig = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshConfig
 [int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainLoopRefreshRate -Default 50
-[int32]$ConfigLinkUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigLinkUpdateCounter -Default 40
 [int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.InternetCheckUpdateCounter -Default 100
-[int32]$RefreshAppLoopCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.RefreshAppLoopCounter -Default 250
+[int32]$RefreshAppLoopCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.RefreshAppLoopCounter -Default 150
 [int32]$MainUiTimerInterval = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainUiTimerInterval -Default 1000
 [int32]$ConfigPanelUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigPanelUpdateCounter -Default 150
 [int32]$MainFormLoadLoopCounter_Max = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainFormLoadLoopCounter -Default 500
 [int32]$ConfigPanelUpdateCounter_Max = [int32]$ConfigPanelUpdateCounter
-[int32]$ConfigLinkUpdateCounter_Max = [int32]$ConfigLinkUpdateCounter
 [int32]$InternetCheckUpdateCounter_Max = [int32]$InternetCheckUpdateCounter
 [int32]$RefreshAppLoopCounter_Max = [int32]$RefreshAppLoopCounter
 $Global:UiHash.MainUiTimerInterval = [int32]$MainUiTimerInterval
@@ -91,7 +88,7 @@ $Null = $UiPowershell.AddScript({
         Import-Module -Name "$($Global:UiHash['PSScriptroot'])\Helper\FormHelper.psm1" -Force
 
         # Add the main form to the runspace.
-        . (Join-Path $Global:UiHash.PSScriptroot '\UI-Scripts\Main-Ui.ps1')
+        . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\UI-Scripts\Main-Ui.ps1')
 
         # Define actions made by the buttons in the main form.
         $CONFIG_START_BUTTON.Add_Click({
@@ -110,9 +107,6 @@ $Null = $UiPowershell.AddScript({
             if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED -eq $false) {
                 $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $true
             }
-        })
-        $CONFIG_RESETCOMBOBOX_BUTTON.Add_Click({
-            $CONFIGFILE_COMBOBOX.SelectedItem = $null
         })
         #Add Button's control to the UiHash for later access.
         $Global:UiHash.CONFIG_START_BUTTON = $CONFIG_START_BUTTON
@@ -143,15 +137,9 @@ $Null = $UiPowershell.AddScript({
                 $Global:UiHash.PermanentButtonClicked = $true
             }
         })
-        $CONFIGFILEPATH_LINK_LABEL.Add_Click({
-            if ($Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED -eq $false) {
-                $Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED = $true
-                $Global:UiHash.ConfigButtonClicked = $true
-            }
-        })
+    
         # Add Labels to the UiHash for later access.
         $Global:UiHash.SYSTEMINFO_LINK_LABEL = $SYSTEMINFO_LINK_LABEL
-        $Global:UiHash.CONFIGFILEPATH_LINK_LABEL = $CONFIGFILEPATH_LINK_LABEL
 
         # Add label controls to the UiHash for later access.
         $Global:UiHash.CONNECTION_TITLE_LABEL = $CONNECTION_TITLE_LABEL
@@ -161,23 +149,9 @@ $Null = $UiPowershell.AddScript({
         $Global:UiHash.PC_GPU_MODEL_LABEL = $PC_GPU_MODEL_LABEL
         $Global:UiHash.PC_RAM_GBCOUNT_LABEL = $PC_RAM_GBCOUNT_LABEL
         $Global:UiHash.PC_RAM_FREQUENCY_LABEL = $PC_RAM_FREQUENCY_LABEL
-        $Global:UiHash.FOUNDCONFIG_STATUS_LABEL = $FOUNDCONFIG_STATUS_LABEL
-
-        # Add picture box controls to the UiHash for later access.
-        $Global:UiHash.CONNECTION_STATUS_PICTUREBOX = $CONNECTION_STATUS_PICTUREBOX
 
         # Add tab controls to the UiHash for later access.
         $Global:UiHash.MAIN_TAB_CONTROL = $MAIN_TAB_CONTROL
-
-        # Add combobox controls to the UiHash for later access.
-        $Global:UiHash.CONFIGFILE_COMBOBOX = $CONFIGFILE_COMBOBOX
-        $CONFIGFILE_COMBOBOX.Add_SelectedIndexChanged({
-            if ($Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL -eq $false) {
-                $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $true
-            }
-        })
-
-        # Add the modular app panel to the UiHash for later access.
 
         $Timer = New-Object System.Windows.Forms.Timer
         $Timer.Interval = $Global:UiHash.MainUiTimerInterval # Set the timer interval to the value defined in the settings.
@@ -187,19 +161,16 @@ $Null = $UiPowershell.AddScript({
 
                 ### CONFIG TAB HANDLING ###
                 if ($Global:UiHash.REFRESH_CONFIG_PANEL) {
-                    # Clear the CONFIG_PANEL controls to remove old UI elements.
-                    $DEFAULT_CONFIG_PANEL.Controls.Clear()
                     # Generate the default config UI elements.
-                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Gen-DefaultConfig-Ui.ps1') -UiHash $Global:UiHash
-                    
-                    # Add group labels first
-                    foreach ($taskType in $Global:UiHash.DefaultConfigGroupLabels.Keys) {
-                        $DEFAULT_CONFIG_PANEL.Controls.Add($Global:UiHash.DefaultConfigGroupLabels[$taskType])
-                    }
-                    
-                    # Add checkboxes
-                    foreach ($section in $Global:UiHash.DefaultConfigUiObjects.Keys) {
-                        $DEFAULT_CONFIG_PANEL.Controls.Add($Global:UiHash.DefaultConfigUiObjects[$section].CheckBox)
+                    # Generate the configuration UI controls
+                    . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-DefaultConfiguration-Ui.ps1" -UiHash $Global:UiHash
+
+                    # Clear panel
+                    $DEFAULT_CONFIG_PANEL.Controls.Clear()
+
+                    # Add all controls to your panel in order
+                    foreach ($control in $Global:UiHash.ConfigurationControlsOrdered) {
+                        $DEFAULT_CONFIG_PANEL.Controls.Add($control)
                     }
                     
                     $Global:UiHash.REFRESH_CONFIG_PANEL = $false
@@ -208,7 +179,7 @@ $Null = $UiPowershell.AddScript({
                     # Clear the CUSTOM_CONFIG_PANEL controls to remove old UI elements.
                     $CUSTOM_CONFIG_PANEL.Controls.Clear()
                     # Generate the custom config UI elements.
-                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Gen-CustomConfig-Ui.ps1') -UiHash $Global:UiHash
+                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Ui-Scripts\Gen\Gen-CustomConfig-Ui.ps1') -UiHash $Global:UiHash
                     
                     # Add group labels first
                     foreach ($taskType in $Global:UiHash.CustomConfigGroupLabels.Keys) {
@@ -230,7 +201,7 @@ $Null = $UiPowershell.AddScript({
                     $Global:UiHash.NewAppUiObjects = @{}
                     # Clear the MODULAR_APP_PANEL controls to remove old UI elements.
                     $MODULAR_APP_PANEL.Controls.Clear()
-                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Gen-App-Ui.ps1') -UiHash $Global:UiHash
+                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Ui-Scripts\Gen\Gen-App-Ui.ps1') -UiHash $Global:UiHash
                     foreach ($section in $Global:UiHash.NewAppUiObjects.Keys) {
                         $Global:UiHash.NewAppUiObjects[$section].Clicked = $false
                         $Global:UiHash.ActiveSection = $section
@@ -501,52 +472,7 @@ While ($Global:MainHash.MainListener) {
     #                                                                                                                         #
     ###########################################################################################################################
 
-
-    # Checks only if the user is on the Config tab.
-    # This is done to avoid unnecessary processing when the user is on other tabs.
     if ($Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name -eq "CONFIG_TAB") {
-        # Check if the ConfigLinkUpdateCounter has reached 40 iterations.
-        # This counter is used to periodically check for updates in the config files.
-        if ($ConfigLinkUpdateCounter -gt $ConfigLinkUpdateCounter_Max) {
-            # Reset the ConfigLinkUpdateCounter to 0.
-            [int32]$ConfigLinkUpdateCounter = 0
-            # Check if the config files exist in the Config folder.
-            # If they do, update the ConfigFiles property in the MainHash with the list of config files.
-            # Change the ImportButtonMode based on the number of config files found.
-            # Asynchronously update the UI label with the path to the config files.
-            if (Test-Path -Path "$PSScriptRoot\Assets\config\*.config") {
-                $ConfigFiles = Get-ChildItem -Path "$PSScriptRoot\Assets\config" -Filter '*.config' | Where-Object { $_.Name -ne 'Default.config' }
-                if ($ConfigFiles.Count -ne 0) {
-                    # Store the currently selected item (by value)
-                    $selected = $Global:UiHash.CONFIGFILE_COMBOBOX.SelectedItem
-
-                    # Clear and repopulate
-                    $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Clear()
-                    foreach ($file in $ConfigFiles) {
-                        $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Add($file.Name)
-                    }
-
-                    # Restore selection if it still exists
-                    if ($selected -and $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Contains($selected)) {
-                        $Global:UiHash.CONFIGFILE_COMBOBOX.SelectedItem = $selected
-                    }
-
-                    # Set the ImportButtonMode to "Config" to indicate that config files are available for import.
-                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Green
-                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.Text = "Found!"
-                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Green
-                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.Text = "$PSScriptRoot\Assets\config"
-                } else {
-                    if ($Global:UiHash.CONFIGFILE_COMBOBOX.SelectedItem -ne $null) {
-                        $Global:UiHash.CONFIGFILE_COMBOBOX.Items.Clear()
-                    }
-                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Red
-                    $Global:UiHash.FOUNDCONFIG_STATUS_LABEL.Text = "Not Found!"
-                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Red
-                    $Global:UiHash.CONFIGFILEPATH_LINK_LABEL.Text = "No config files found! Click to open folder."
-                }
-            }
-        }
 
         # Check if the ConfigPanelUpdateCounter has reached the defined iterations by settings.
         if ($Global:MainHash.AutoRefreshConfig -eq "true") {
@@ -585,15 +511,6 @@ While ($Global:MainHash.MainListener) {
         if ($Global:UiHash.ConfigButtonClicked) {
             # Reset the ButtonClicked flag to false.
             $Global:UiHash.ConfigButtonClicked = $false
-
-            # Check if the CONFIGFILEPATH_LINK_LABEL_CLICKED flag is set to true in the UiHash.
-            if ($Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED) {
-                # If it is set, open the Config folder in File Explorer.
-                Start-Process -FilePath "explorer.exe" -ArgumentList "$PSScriptRoot\Assets\config"
-                # Reset the CONFIGFILEPATH_LINK_LABEL_CLICKED flag to false after processing the link label click.
-                $Global:UiHash.CONFIGFILEPATH_LINK_LABEL_CLICKED = $false
-            }
-
             # Check if the CONFIG_START_BUTTON_CLICKED flag is set to true in the UiHash.
             # If it is set, it means that the user has clicked the Start Config button.
             if ($Global:UiHash.CONFIG_START_BUTTON_CLICKED) {
@@ -632,7 +549,6 @@ While ($Global:MainHash.MainListener) {
 
     # Check if the user is on the Application tab.
     if ($Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name -eq "APP_TAB") {
-
 
         if ($Global:MainHash.AutoRefreshApp){
             $RefreshAppLoopCounter++

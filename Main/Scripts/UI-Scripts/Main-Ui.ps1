@@ -16,14 +16,12 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Button]$SETTINGS_BUTTON = $null
 [System.Windows.Forms.TabControl]$MAIN_TAB_CONTROL = $null
 [System.Windows.Forms.TabPage]$CONFIG_TAB = $null
+[System.Windows.Forms.Panel]$CUSTOMCONFIG_CONTROL_PANEL = $null
+[System.Windows.Forms.CheckBox]$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = $null
+[System.Windows.Forms.Panel]$PROFILECONFIG_PANEL = $null
 [System.Windows.Forms.Panel]$CUSTOM_CONFIG_PANEL = $null
 [System.Windows.Forms.Panel]$DEFAULT_CONFIG_PANEL = $null
-[System.Windows.Forms.CheckBox]$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = $null
-[System.Windows.Forms.Panel]$CONFIGFILEPATH_LINK_SCROLL_PANEL = $null
-[System.Windows.Forms.Button]$CONFIG_RESETCOMBOBOX_BUTTON = $null
-[System.Windows.Forms.Label]$FOUNDCONFIG_STATUS_LABEL = $null
-[System.Windows.Forms.ComboBox]$CONFIGFILE_COMBOBOX = $null
-[System.Windows.Forms.LinkLabel]$CONFIGFILEPATH_LINK_LABEL = $null
+[System.Windows.Forms.Panel]$DEFAULTCONFIG_CONTROL_PANEL = $null
 [System.Windows.Forms.Button]$CONFIG_START_BUTTON = $null
 [System.Windows.Forms.TabPage]$APP_TAB = $null
 [System.Windows.Forms.RichTextBox]$APP_LOG_TEXTBOX = $null
@@ -32,6 +30,7 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Button]$REFRESH_APP_BUTTON = $null
 [System.Windows.Forms.Panel]$MODULAR_APP_PANEL = $null
 [System.Windows.Forms.TabPage]$TOOLS_TAB = $null
+[System.Windows.Forms.TabPage]$INFO_TAB = $null
 [System.Windows.Forms.Label]$VERSION_LABEL = $null
 [System.Windows.Forms.Label]$VERSION_NUMBER_LABEL = $null
 function InitializeComponent
@@ -56,11 +55,7 @@ $CONFIG_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $CUSTOM_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $DEFAULT_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$CONFIGFILEPATH_LINK_SCROLL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$CONFIG_RESETCOMBOBOX_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
-$FOUNDCONFIG_STATUS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$CONFIGFILE_COMBOBOX = (New-Object -TypeName System.Windows.Forms.ComboBox)
-$CONFIGFILEPATH_LINK_LABEL = (New-Object -TypeName System.Windows.Forms.LinkLabel)
+$DEFAULTCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $CONFIG_START_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $APP_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $APP_LOG_TEXTBOX = (New-Object -TypeName System.Windows.Forms.RichTextBox)
@@ -69,13 +64,16 @@ $USECUSTOM_APP_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $REFRESH_APP_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MODULAR_APP_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $TOOLS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$INFO_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$PROFILECONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$CUSTOMCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.SuspendLayout()
 $APP_TAB.SuspendLayout()
+$CUSTOMCONFIG_CONTROL_PANEL.SuspendLayout()
 $MAIN_FORM.SuspendLayout()
 #
 #SIDE_PANNEL
@@ -97,7 +95,7 @@ $SIDE_PANNEL.Controls.Add($SYSTEMINFO_LINK_LABEL)
 $SIDE_PANNEL.Controls.Add($SETTINGS_BUTTON)
 $SIDE_PANNEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]12,[System.Int32]12))
 $SIDE_PANNEL.Name = [System.String]'SIDE_PANNEL'
-$SIDE_PANNEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]92,[System.Int32]341))
+$SIDE_PANNEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]92,[System.Int32]467))
 $SIDE_PANNEL.TabIndex = [System.Int32]1
 #
 #INTERNET_TITLE_LABEL
@@ -240,7 +238,7 @@ $SETTINGS_BUTTON.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::Fro
 
 $SETTINGS_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
 $SETTINGS_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
-$SETTINGS_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]312))
+$SETTINGS_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]437))
 $SETTINGS_BUTTON.Name = [System.String]'SETTINGS_BUTTON'
 $SETTINGS_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]86,[System.Int32]26))
 $SETTINGS_BUTTON.TabIndex = [System.Int32]0
@@ -253,28 +251,30 @@ $SETTINGS_BUTTON.add_Click($Button1_Click)
 $MAIN_TAB_CONTROL.Controls.Add($CONFIG_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($APP_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($TOOLS_TAB)
+$MAIN_TAB_CONTROL.Controls.Add($INFO_TAB)
 $MAIN_TAB_CONTROL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
 $MAIN_TAB_CONTROL.HotTrack = $true
 $MAIN_TAB_CONTROL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]110,[System.Int32]12))
 $MAIN_TAB_CONTROL.Name = [System.String]'MAIN_TAB_CONTROL'
 $MAIN_TAB_CONTROL.SelectedIndex = [System.Int32]0
-$MAIN_TAB_CONTROL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]544,[System.Int32]341))
+$MAIN_TAB_CONTROL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]641,[System.Int32]467))
 $MAIN_TAB_CONTROL.SizeMode = [System.Windows.Forms.TabSizeMode]::Fixed
 $MAIN_TAB_CONTROL.TabIndex = [System.Int32]3
 #
 #CONFIG_TAB
 #
 $CONFIG_TAB.BackColor = [System.Drawing.Color]::Gray
+$CONFIG_TAB.Controls.Add($CUSTOMCONFIG_CONTROL_PANEL)
+$CONFIG_TAB.Controls.Add($PROFILECONFIG_PANEL)
 $CONFIG_TAB.Controls.Add($CUSTOM_CONFIG_PANEL)
 $CONFIG_TAB.Controls.Add($DEFAULT_CONFIG_PANEL)
-$CONFIG_TAB.Controls.Add($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX)
-$CONFIG_TAB.Controls.Add($CONFIGFILEPATH_LINK_SCROLL_PANEL)
+$CONFIG_TAB.Controls.Add($DEFAULTCONFIG_CONTROL_PANEL)
 $CONFIG_TAB.Controls.Add($CONFIG_START_BUTTON)
 $CONFIG_TAB.ForeColor = [System.Drawing.SystemColors]::ControlText
 $CONFIG_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $CONFIG_TAB.Name = [System.String]'CONFIG_TAB'
 $CONFIG_TAB.Padding = (New-Object -TypeName System.Windows.Forms.Padding -ArgumentList @([System.Int32]3))
-$CONFIG_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]536,[System.Int32]313))
+$CONFIG_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $CONFIG_TAB.TabIndex = [System.Int32]0
 $CONFIG_TAB.Text = [System.String]'Configuration'
 #
@@ -283,9 +283,9 @@ $CONFIG_TAB.Text = [System.String]'Configuration'
 $CUSTOM_CONFIG_PANEL.AutoScroll = $true
 $CUSTOM_CONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
 $CUSTOM_CONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$CUSTOM_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]225,[System.Int32]6))
+$CUSTOM_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]262,[System.Int32]6))
 $CUSTOM_CONFIG_PANEL.Name = [System.String]'CUSTOM_CONFIG_PANEL'
-$CUSTOM_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]212,[System.Int32]271))
+$CUSTOM_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]394))
 $CUSTOM_CONFIG_PANEL.TabIndex = [System.Int32]29
 #
 #DEFAULT_CONFIG_PANEL
@@ -295,91 +295,41 @@ $DEFAULT_CONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
 $DEFAULT_CONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
 $DEFAULT_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]6))
 $DEFAULT_CONFIG_PANEL.Name = [System.String]'DEFAULT_CONFIG_PANEL'
-$DEFAULT_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]212,[System.Int32]271))
+$DEFAULT_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]394))
 $DEFAULT_CONFIG_PANEL.TabIndex = [System.Int32]28
 #
 #AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
 #
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]443,[System.Int32]256))
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]165,[System.Int32]3))
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Name = [System.String]'AUTOREFRESH_CUSTOMCONFIG_CHECKBOX'
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]87,[System.Int32]21))
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]80,[System.Int32]21))
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.TabIndex = [System.Int32]26
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Text = [System.String]'Auto Refresh'
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.UseVisualStyleBackColor = $true
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.add_CheckedChanged($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX_CheckedChanged)
 #
-#CONFIGFILEPATH_LINK_SCROLL_PANEL
+#DEFAULTCONFIG_CONTROL_PANEL
 #
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.Controls.Add($CONFIG_RESETCOMBOBOX_BUTTON)
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.Controls.Add($FOUNDCONFIG_STATUS_LABEL)
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.Controls.Add($CONFIGFILE_COMBOBOX)
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.Controls.Add($CONFIGFILEPATH_LINK_LABEL)
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]283))
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.Name = [System.String]'CONFIGFILEPATH_LINK_SCROLL_PANEL'
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]431,[System.Int32]27))
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.TabIndex = [System.Int32]24
-#
-#CONFIG_RESETCOMBOBOX_BUTTON
-#
-$CONFIG_RESETCOMBOBOX_BUTTON.BackColor = [System.Drawing.Color]::Silver
-$CONFIG_RESETCOMBOBOX_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
-$CONFIG_RESETCOMBOBOX_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7))
-$CONFIG_RESETCOMBOBOX_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]390,[System.Int32]3))
-$CONFIG_RESETCOMBOBOX_BUTTON.Name = [System.String]'CONFIG_RESETCOMBOBOX_BUTTON'
-$CONFIG_RESETCOMBOBOX_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]36,[System.Int32]19))
-$CONFIG_RESETCOMBOBOX_BUTTON.TabIndex = [System.Int32]30
-$CONFIG_RESETCOMBOBOX_BUTTON.Text = [System.String]'Reset'
-$CONFIG_RESETCOMBOBOX_BUTTON.UseVisualStyleBackColor = $false
-$CONFIG_RESETCOMBOBOX_BUTTON.add_Click($Button1_Click)
-#
-#FOUNDCONFIG_STATUS_LABEL
-#
-$FOUNDCONFIG_STATUS_LABEL.BackColor = [System.Drawing.Color]::Transparent
-$FOUNDCONFIG_STATUS_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]8))
-$FOUNDCONFIG_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Red
-$FOUNDCONFIG_STATUS_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]209,[System.Int32]6))
-$FOUNDCONFIG_STATUS_LABEL.Name = [System.String]'FOUNDCONFIG_STATUS_LABEL'
-$FOUNDCONFIG_STATUS_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]63,[System.Int32]15))
-$FOUNDCONFIG_STATUS_LABEL.TabIndex = [System.Int32]18
-$FOUNDCONFIG_STATUS_LABEL.Text = [System.String]'Not Found'
-#
-#CONFIGFILE_COMBOBOX
-#
-$CONFIGFILE_COMBOBOX.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
-$CONFIGFILE_COMBOBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7))
-$CONFIGFILE_COMBOBOX.FormattingEnabled = $true
-$CONFIGFILE_COMBOBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]278,[System.Int32]3))
-$CONFIGFILE_COMBOBOX.Name = [System.String]'CONFIGFILE_COMBOBOX'
-$CONFIGFILE_COMBOBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]106,[System.Int32]20))
-$CONFIGFILE_COMBOBOX.TabIndex = [System.Int32]17
-#
-#CONFIGFILEPATH_LINK_LABEL
-#
-$CONFIGFILEPATH_LINK_LABEL.ActiveLinkColor = [System.Drawing.Color]::White
-$CONFIGFILEPATH_LINK_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]8))
-$CONFIGFILEPATH_LINK_LABEL.LinkColor = [System.Drawing.Color]::Red
-$CONFIGFILEPATH_LINK_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]6))
-$CONFIGFILEPATH_LINK_LABEL.Name = [System.String]'CONFIGFILEPATH_LINK_LABEL'
-$CONFIGFILEPATH_LINK_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]208,[System.Int32]15))
-$CONFIGFILEPATH_LINK_LABEL.TabIndex = [System.Int32]16
-$CONFIGFILEPATH_LINK_LABEL.TabStop = $true
-$CONFIGFILEPATH_LINK_LABEL.Text = [System.String]'PATH TO CONFIG FILE LOCATION'
-$CONFIGFILEPATH_LINK_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$DEFAULTCONFIG_CONTROL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$DEFAULTCONFIG_CONTROL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$DEFAULTCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]406))
+$DEFAULTCONFIG_CONTROL_PANEL.Name = [System.String]'DEFAULTCONFIG_CONTROL_PANEL'
+$DEFAULTCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
+$DEFAULTCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]24
 #
 #CONFIG_START_BUTTON
 #
 $CONFIG_START_BUTTON.BackColor = [System.Drawing.Color]::Silver
 $CONFIG_START_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
 $CONFIG_START_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75,[System.Drawing.FontStyle]::Bold,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
-$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]443,[System.Int32]283))
+$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]518,[System.Int32]406))
 $CONFIG_START_BUTTON.Name = [System.String]'CONFIG_START_BUTTON'
-$CONFIG_START_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]27))
+$CONFIG_START_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]109,[System.Int32]27))
 $CONFIG_START_BUTTON.TabIndex = [System.Int32]0
 $CONFIG_START_BUTTON.Text = [System.String]'Start'
 $CONFIG_START_BUTTON.UseVisualStyleBackColor = $false
+$CONFIG_START_BUTTON.add_Click($CONFIG_START_BUTTON_Click)
 #
 #APP_TAB
 #
@@ -392,7 +342,7 @@ $APP_TAB.Controls.Add($MODULAR_APP_PANEL)
 $APP_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $APP_TAB.Name = [System.String]'APP_TAB'
 $APP_TAB.Padding = (New-Object -TypeName System.Windows.Forms.Padding -ArgumentList @([System.Int32]3))
-$APP_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]536,[System.Int32]313))
+$APP_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $APP_TAB.TabIndex = [System.Int32]1
 $APP_TAB.Text = [System.String]'App'
 #
@@ -400,7 +350,7 @@ $APP_TAB.Text = [System.String]'App'
 #
 $APP_LOG_TEXTBOX.BackColor = [System.Drawing.Color]::DarkGray
 $APP_LOG_TEXTBOX.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$APP_LOG_TEXTBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]354,[System.Int32]3))
+$APP_LOG_TEXTBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]448,[System.Int32]6))
 $APP_LOG_TEXTBOX.Name = [System.String]'APP_LOG_TEXTBOX'
 $APP_LOG_TEXTBOX.ReadOnly = $true
 $APP_LOG_TEXTBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]179,[System.Int32]231))
@@ -410,7 +360,7 @@ $APP_LOG_TEXTBOX.Text = [System.String]''
 #AUTOREFRESH_APP_CHECKBOX
 #
 $AUTOREFRESH_APP_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$AUTOREFRESH_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]446,[System.Int32]265))
+$AUTOREFRESH_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]537,[System.Int32]385))
 $AUTOREFRESH_APP_CHECKBOX.Name = [System.String]'AUTOREFRESH_APP_CHECKBOX'
 $AUTOREFRESH_APP_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]16))
 $AUTOREFRESH_APP_CHECKBOX.TabIndex = [System.Int32]3
@@ -420,7 +370,7 @@ $AUTOREFRESH_APP_CHECKBOX.UseVisualStyleBackColor = $true
 #USECUSTOM_APP_CHECKBOX
 #
 $USECUSTOM_APP_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$USECUSTOM_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]446,[System.Int32]243))
+$USECUSTOM_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]537,[System.Int32]363))
 $USECUSTOM_APP_CHECKBOX.Name = [System.String]'USECUSTOM_APP_CHECKBOX'
 $USECUSTOM_APP_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]16))
 $USECUSTOM_APP_CHECKBOX.TabIndex = [System.Int32]2
@@ -433,7 +383,7 @@ $USECUSTOM_APP_CHECKBOX.add_CheckedChanged($USECUSTOM_APP_CHECKBOX_CheckedChange
 $REFRESH_APP_BUTTON.BackColor = [System.Drawing.Color]::Silver
 $REFRESH_APP_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
 $REFRESH_APP_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
-$REFRESH_APP_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]443,[System.Int32]284))
+$REFRESH_APP_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]537,[System.Int32]407))
 $REFRESH_APP_BUTTON.Name = [System.String]'REFRESH_APP_BUTTON'
 $REFRESH_APP_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]26))
 $REFRESH_APP_BUTTON.TabIndex = [System.Int32]1
@@ -448,7 +398,7 @@ $MODULAR_APP_PANEL.BackColor = [System.Drawing.Color]::DarkGray
 $MODULAR_APP_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
 $MODULAR_APP_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]3))
 $MODULAR_APP_PANEL.Name = [System.String]'MODULAR_APP_PANEL'
-$MODULAR_APP_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]345,[System.Int32]307))
+$MODULAR_APP_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]345,[System.Int32]433))
 $MODULAR_APP_PANEL.TabIndex = [System.Int32]0
 #
 #TOOLS_TAB
@@ -456,15 +406,24 @@ $MODULAR_APP_PANEL.TabIndex = [System.Int32]0
 $TOOLS_TAB.BackColor = [System.Drawing.Color]::Gray
 $TOOLS_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $TOOLS_TAB.Name = [System.String]'TOOLS_TAB'
-$TOOLS_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]536,[System.Int32]313))
+$TOOLS_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $TOOLS_TAB.TabIndex = [System.Int32]2
 $TOOLS_TAB.Text = [System.String]'Tools'
+#
+#INFO_TAB
+#
+$INFO_TAB.BackColor = [System.Drawing.Color]::Gray
+$INFO_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
+$INFO_TAB.Name = [System.String]'INFO_TAB'
+$INFO_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]536,[System.Int32]313))
+$INFO_TAB.TabIndex = [System.Int32]3
+$INFO_TAB.Text = [System.String]'Info'
 #
 #VERSION_LABEL
 #
 $VERSION_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
 $VERSION_LABEL.ForeColor = [System.Drawing.Color]::White
-$VERSION_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]576,[System.Int32]5))
+$VERSION_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]673,[System.Int32]8))
 $VERSION_LABEL.Name = [System.String]'VERSION_LABEL'
 $VERSION_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]57,[System.Int32]25))
 $VERSION_LABEL.TabIndex = [System.Int32]3
@@ -476,12 +435,33 @@ $VERSION_LABEL.add_Click($VERSION_LABEL_Click)
 #
 $VERSION_NUMBER_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
 $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::White
-$VERSION_NUMBER_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]625,[System.Int32]5))
+$VERSION_NUMBER_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]722,[System.Int32]8))
 $VERSION_NUMBER_LABEL.Name = [System.String]'VERSION_NUMBER_LABEL'
 $VERSION_NUMBER_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]29,[System.Int32]25))
 $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
 $VERSION_NUMBER_LABEL.Text = [System.String]'0.0'
 $VERSION_NUMBER_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+#
+#PROFILECONFIG_PANEL
+#
+$PROFILECONFIG_PANEL.AutoScroll = $true
+$PROFILECONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$PROFILECONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$PROFILECONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]518,[System.Int32]6))
+$PROFILECONFIG_PANEL.Name = [System.String]'PROFILECONFIG_PANEL'
+$PROFILECONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]109,[System.Int32]394))
+$PROFILECONFIG_PANEL.TabIndex = [System.Int32]30
+#
+#CUSTOMCONFIG_CONTROL_PANEL
+#
+$CUSTOMCONFIG_CONTROL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$CUSTOMCONFIG_CONTROL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$CUSTOMCONFIG_CONTROL_PANEL.Controls.Add($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX)
+$CUSTOMCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]262,[System.Int32]406))
+$CUSTOMCONFIG_CONTROL_PANEL.Name = [System.String]'CUSTOMCONFIG_CONTROL_PANEL'
+$CUSTOMCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
+$CUSTOMCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]31
+$CUSTOMCONFIG_CONTROL_PANEL.add_Paint($CUSTOMCONFIG_CONTROL_PANEL_Paint)
 #
 #MAIN_FORM
 #
@@ -489,7 +469,7 @@ $MAIN_FORM.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
 $MAIN_FORM.AutoValidate = [System.Windows.Forms.AutoValidate]::EnablePreventFocusChange
 $MAIN_FORM.BackColor = [System.Drawing.Color]::FromArgb(([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)),([System.Int32]([System.Byte][System.Byte]64)))
 
-$MAIN_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]666,[System.Int32]365))
+$MAIN_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]763,[System.Int32]491))
 $MAIN_FORM.Controls.Add($VERSION_NUMBER_LABEL)
 $MAIN_FORM.Controls.Add($VERSION_LABEL)
 $MAIN_FORM.Controls.Add($MAIN_TAB_CONTROL)
@@ -503,8 +483,8 @@ $MAIN_FORM.TopMost = $true
 $SIDE_PANNEL.ResumeLayout($false)
 $MAIN_TAB_CONTROL.ResumeLayout($false)
 $CONFIG_TAB.ResumeLayout($false)
-$CONFIGFILEPATH_LINK_SCROLL_PANEL.ResumeLayout($false)
 $APP_TAB.ResumeLayout($false)
+$CUSTOMCONFIG_CONTROL_PANEL.ResumeLayout($false)
 $MAIN_FORM.ResumeLayout($false)
 Add-Member -InputObject $MAIN_FORM -Name SIDE_PANNEL -Value $SIDE_PANNEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name INTERNET_TITLE_LABEL -Value $INTERNET_TITLE_LABEL -MemberType NoteProperty
@@ -523,14 +503,12 @@ Add-Member -InputObject $MAIN_FORM -Name SYSTEMINFO_LINK_LABEL -Value $SYSTEMINF
 Add-Member -InputObject $MAIN_FORM -Name SETTINGS_BUTTON -Value $SETTINGS_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name MAIN_TAB_CONTROL -Value $MAIN_TAB_CONTROL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_TAB -Value $CONFIG_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name CUSTOMCONFIG_CONTROL_PANEL -Value $CUSTOMCONFIG_CONTROL_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -Value $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name PROFILECONFIG_PANEL -Value $PROFILECONFIG_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CUSTOM_CONFIG_PANEL -Value $CUSTOM_CONFIG_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name DEFAULT_CONFIG_PANEL -Value $DEFAULT_CONFIG_PANEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -Value $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CONFIGFILEPATH_LINK_SCROLL_PANEL -Value $CONFIGFILEPATH_LINK_SCROLL_PANEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CONFIG_RESETCOMBOBOX_BUTTON -Value $CONFIG_RESETCOMBOBOX_BUTTON -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name FOUNDCONFIG_STATUS_LABEL -Value $FOUNDCONFIG_STATUS_LABEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CONFIGFILE_COMBOBOX -Value $CONFIGFILE_COMBOBOX -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CONFIGFILEPATH_LINK_LABEL -Value $CONFIGFILEPATH_LINK_LABEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name DEFAULTCONFIG_CONTROL_PANEL -Value $DEFAULTCONFIG_CONTROL_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_START_BUTTON -Value $CONFIG_START_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name APP_TAB -Value $APP_TAB -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name APP_LOG_TEXTBOX -Value $APP_LOG_TEXTBOX -MemberType NoteProperty
@@ -539,6 +517,7 @@ Add-Member -InputObject $MAIN_FORM -Name USECUSTOM_APP_CHECKBOX -Value $USECUSTO
 Add-Member -InputObject $MAIN_FORM -Name REFRESH_APP_BUTTON -Value $REFRESH_APP_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name MODULAR_APP_PANEL -Value $MODULAR_APP_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name TOOLS_TAB -Value $TOOLS_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name INFO_TAB -Value $INFO_TAB -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_LABEL -Value $VERSION_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_NUMBER_LABEL -Value $VERSION_NUMBER_LABEL -MemberType NoteProperty
 }

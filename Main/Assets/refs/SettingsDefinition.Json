@@ -1,81 +1,83 @@
 {
   "General": {
-    "Language": {
-      "Type": "ComboBox",
-      "Options": ["EN", "FR"],
-      "Default": "EN",
-      "Description": "Application language"
-    },
     "DeleteOnExit": {
       "Type": "ComboBox",
       "Options": ["true", "false", "prompt"],
       "Default": "prompt",
-      "Description": "What to do when exiting the application"
-    },
-    "Theme": {
-      "Type": "ComboBox",
-      "Options": ["Dark", "Light", "System"],
-      "Default": "Dark",
-      "Description": "Application theme"
+      "Description": "Delete the application on exit"
     },
     "DefaultAutoRefreshConfig": {
       "Type": "CheckBox",
       "Default": "false",
-      "Description": "Enable automatic refresh of configuration tab"
+      "Description": "Auto Refresh Config is Checked by default"
     },
     "DefaultAutoRefreshApp": {
       "Type": "CheckBox",
       "Default": "true",
-      "Description": "Enable automatic refresh of application tab"
+      "Description": "Auto Refresh App is Checked by default"
     }
  },
   "Advanced": {
     "MainLoopRefreshRate": {
-      "Type": "TextBox",
+      "Type": "IntegerTextBox",
       "Default": "50",
       "Description": "Main loop refresh rate in milliseconds"
     },
     "ConfigLinkUpdateCounter": {
-      "Type": "TextBox",
+      "Type": "IntegerTextBox",
       "Default": "40",
-      "Description": "Counter for config link updates"
+      "Description": "Check for config link trigger every X Count"
     },
     "ConfigPanelUpdateCounter": {
-      "Type": "TextBox",
+      "Type": "IntegerTextBox",
       "Default": "150",
-      "Description": "Counter for config panel updates"
+      "Description": "Check for Config Panel refresh trigger every X Count"
     },
     "InternetCheckUpdateCounter": {
-      "Type": "TextBox",
+      "Type": "IntegerTextBox",
       "Default": "100",
-      "Description": "Counter for internet check updates"
+      "Description": "Check for internet connection every X Count"
     },
     "RefreshAppLoopCounter": {
-      "Type": "TextBox",
-      "Default": "250",
-      "Description": "Counter for application refresh loop"
+      "Type": "IntegerTextBox",
+      "Default": "150",
+      "Description": "Check for App panel refresh trigger every X Count"
     },
     "MainUiTimerInterval": {
-      "Type": "TextBox",
+      "Type": "IntegerTextBox",
       "Default": "1000",
       "Description": "Main UI timer interval in milliseconds"
     },
     "MainFormLoadLoopCounter": {
-      "Type": "TextBox",
+      "Type": "IntegerTextBox",
       "Default": "500",
-      "Description": "Counter for main form load loop"
+      "Description": "Number of loops allowed before timout during the main form's load"
     }
   },
     "Startup" : {
         "IntegrityCheckup" : {
             "Type" : "CheckBox",
             "Default" : "true",
-            "Description" : "Enable integrity check on startup"
+            "Description" : "Enable file integrity check on startup"
         },
         "CheckForUpdates" : {
             "Type" : "CheckBox",
             "Default" : "true",
-            "Description" : "Check for updates on startup"
+            "Description" : "Check for new FPCA updates on startup"
         }
+  },
+    "Appearance" : {
+      "Theme" : {
+        "Type" : "ComboBox",
+        "Options" : ["Dark", "Light", "System"],
+        "Default" : "Dark",
+        "Description" : "The Application's theme"
+      },
+      "Language": {
+      "Type": "ComboBox",
+      "Options": ["EN", "FR"],
+      "Default": "EN",
+      "Description": "The Application's display language"
     }
+  }
 }

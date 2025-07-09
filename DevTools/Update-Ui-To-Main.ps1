@@ -3,7 +3,7 @@
 $ParentFolder = Split-Path -Parent $PSScriptRoot
 
 # Set paths
-$UiScriptPath = "$ParentFolder\Main\Ui-Scripts"
+$UiScriptPath = "$ParentFolder\Main\Scripts\Ui-Scripts"
 $UiEditorPath = "$ParentFolder\UI_Editor"
 
 

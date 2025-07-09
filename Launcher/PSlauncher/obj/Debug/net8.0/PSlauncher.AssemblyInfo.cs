@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FPCA Installer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+01612dbeb1e2122e2842f2caed6f4b4e0efea42c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+af193ada8935f7c3c8ad87b6e8c2863ec65ac3c6")]
 [assembly: System.Reflection.AssemblyProductAttribute("FPCA Installer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FPCA Installer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

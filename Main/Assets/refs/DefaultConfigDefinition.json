@@ -1,0 +1,225 @@
+{
+    "Information": {
+        "Name": "Default Configuration",
+        "Description": "This is the default configuration definition file for FPCA.",
+        "Version": "0.1",
+        "Author": "Frysix"
+    },
+    "Configuration": {
+        "Install": {
+            "CHROME": {
+                "DisplayName": "Google Chrome",
+                "Description": "Install Google Chrome browser",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "Install-Chrome.ps1"
+            },
+            "FIREFOX": {
+                "DisplayName": "Mozilla Firefox",
+                "Description": "Install Mozilla Firefox browser",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-Firefox.ps1"
+            },
+            "ACROBAT": {
+                "DisplayName": "Adobe Acrobat Reader",
+                "Description": "Install Adobe Acrobat Reader",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "Install-Acrobat.ps1"
+            },
+            "WINRAR": {
+                "DisplayName": "WinRAR",
+                "Description": "Install WinRAR archiver",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-WinRAR.ps1"
+            },
+            "7ZIP": {
+                "DisplayName": "7-Zip",
+                "Description": "Install 7-Zip file archiver",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-7Zip.ps1"
+            },
+            "MACRIUM": {
+                "DisplayName": "Macrium Reflect",
+                "Description": "Install Macrium Reflect backup software",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-Macrium.ps1"
+            },
+            "DISCORD": {
+                "DisplayName": "Discord",
+                "Description": "Install Discord app",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-Discord.ps1"
+            },
+            "STEAM": {
+                "DisplayName": "Steam",
+                "Description": "Install Steam app",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-Steam.ps1"
+            },
+            "ZOOM": {
+                "DisplayName": "Zoom",
+                "Description": "Install Zoom app",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-Zoom.ps1"
+            },
+            "VLC": {
+                "DisplayName": "VLC Media Player",
+                "Description": "Install VLC Media Player",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-VLC.ps1"
+            },
+            "OFFICE": {
+                "DisplayName": "Microsoft Office",
+                "Description": "Install Microsoft Office suite",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-Office.ps1",
+                "PreConfigScript": "PreConfig-Office.ps1"
+            }
+        },
+        "Settings": {
+            "UPDATEWIN": {
+                "DisplayName": "Update Windows",
+                "Description": "Start windows update process",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "UpdateWindows.ps1"
+            },
+            "UPDATEMSS": {
+                "DisplayName": "Update Microsoft Store",
+                "Description": "Start Microsoft Store update process",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "UpdateMicrosoftStore.ps1"
+            },
+            "CONFIGEXP": {
+                "DisplayName": "Configure File Explorer",
+                "Description": "Configure FIle Explorer settings",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "ConfigureExplorer.ps1"
+            },
+            "DISABLEPWEXP": {
+                "DisplayName": "Disable Password Expiration",
+                "Description": "Disable password expiration for the user account",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "DisablePasswordExpiration.ps1"
+            },
+            "RENAMEDISK": {
+                "DisplayName": "Rename Disk",
+                "Description": "Rename the primary disk to chosen name",
+                "DefaultState": "OS",
+                "Type": "TextBox",
+                "Script": "RenameDisk.ps1"
+            }
+        },
+        "Drivers": {
+            "NVIDIA": {
+                "DisplayName": "Install NVIDIA App",
+                "Description": "Install NVIDIA graphics drivers and software",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-Nvidia.ps1"
+            },
+            "AMD": {
+                "DisplayName": "Install AMD Adrenalin",
+                "Description": "Install AMD graphics drivers and software",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-AMD.ps1"
+            },
+            "ASUSDRVHUB": {
+                "DisplayName": "Install ASUS Driver Hub",
+                "Description": "Install ASUS Driver Hub for ASUS devices",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-ASUS.ps1"
+            },
+            "MYASUS": {
+                "DisplayName": "Install MyASUS",
+                "Description": "Install MyASUS application for ASUS devices",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-MyASUS.ps1"
+            },
+            "MSICENTER": {
+                "DisplayName": "Install MSI Center",
+                "Description": "Install MSI Center application for MSI devices",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-MSICenter.ps1"
+            },
+            "LENOVOVANTAGE": {
+                "DisplayName": "Install Lenovo Vantage",
+                "Description": "Install Lenovo Vantage application for Lenovo devices",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-LenovoVantage.ps1"
+            },
+            "HPSUPPORTASSIST": {
+                "DisplayName": "Install HP Support Assistant",
+                "Description": "Install HP Support Assistant application for HP devices",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-HPSupportAssistant.ps1"
+            }
+        },
+        "Miscellaneous": {
+            "CHECKSECBOOT": {
+                "DisplayName": "Check Secure Boot",
+                "Description": "Check if Secure Boot is enabled",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "CheckSecureBoot.ps1"
+            },
+            "CHECKTPM": {
+                "DisplayName": "Check TPM",
+                "Description": "Check if TPM is enabled",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "CheckTPM.ps1"
+            },
+            "QUICKASSISTTODESKTOP": {
+                "DisplayName": "Quick Assist to Desktop",
+                "Description": "Pin Quick Assist to desktop for easy access",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "QuickAssistToDesktop.ps1"
+            },
+            "CHECKWINACTSTATUS": {
+                "DisplayName": "Check Windows Activation Status",
+                "Description": "Check if Windows is activated",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "CheckWindowsActivationStatus.ps1"
+            }            
+        },
+        "Finishing": {
+            "RESTARTOPTION": {
+                "DisplayName": "Restart Option",
+                "Description": "Choose an option on how to restart after Configuration",
+                "DefaultState": "prompt",
+                "Type": "ComboBox",
+                "Options": ["restart", "disabled", "prompt", "shutdown", "bios"],
+                "Script": "RestartOption.ps1"
+            },
+            "DEFAULTAPPREMINDER": {
+                "DisplayName": "Default App Reminder",
+                "Description": "Open Settings to set default apps after configuration",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "DefaultAppReminder.ps1"
+            }
+        }
+    }
+}

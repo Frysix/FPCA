@@ -28,10 +28,10 @@ $Null = $UiPowershell.AddScript({
     Import-Module -Name "$($Global:UiHash['PSScriptroot'])\Helper\FormHelper.psm1" -Force
 
     # Import the UI script for the settings
-    . (Join-Path $Global:UiHash.PSScriptroot '\UI-Scripts\Settings-Ui.ps1')
+    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\UI-Scripts\Settings-Ui.ps1')
 
     # Generate the settings UI
-    . "$($Global:UiHash['PSScriptroot'])\Scripts\Gen-Settings-Ui.ps1" -UiHash $Global:UiHash
+    . "$($Global:UiHash['PSScriptroot'])\Scripts\UI-Scripts\Gen\Gen-Settings-Ui.ps1" -UiHash $Global:UiHash
 
     foreach ($sectionName in $Global:UiHash.SettingsTabPages.Keys) {
         $tabPage = $Global:UiHash.SettingsTabPages[$sectionName]
@@ -39,16 +39,15 @@ $Null = $UiPowershell.AddScript({
     }
 
     $SAVE_SETTINGS_BUTTON.Add_Click({
-        . "$($Global:UiHash['PSScriptroot'])\Scripts\Save-Settings.ps1" -UiHash $Global:UiHash
+        . "$($Global:UiHash['PSScriptroot'])\Scripts\Settings-Scripts\Save-Settings.ps1" -UiHash $Global:UiHash
     })
-    $CANCEL_SETTINGS_BUTTON.Add_Click({
-        # Set the ClosedFor flag to "Cancel" when the Cancel button is clicked.
-        $Global:UiHash.ClosedFor = "Cancel"
+    $BACK_SETTINGS_BUTTON.Add_Click({
         $SETTINGS_FORM.Close()
     })
     $RESET_SETTINGS_BUTTON.Add_Click({
         # Set the ClosedFor flag to "Reset" when the Reset button is clicked.
-        . "$($Global:UiHash['PSScriptroot'])\Scripts\Reset-Settings.ps1" -UiHash $Global:UiHash -ConfirmReset
+        . "$($Global:UiHash['PSScriptroot'])\Scripts\Settings-Scripts\Reset-Settings.ps1" -UiHash $Global:UiHash -ConfirmReset
+        . "$($Global:UiHash['PSScriptroot'])\Scripts\Settings-Scripts\Gen\Gen-Settings-Ui.ps1" -UiHash $Global:UiHash
     })
 
     $SETTINGS_FORM.Add_Load({
