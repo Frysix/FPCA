@@ -1,0 +1,11 @@
+{
+    "Information": {
+        "Name": "Default Tools",
+        "Description": "This is the default Tools manager definition file for FPCA.",
+        "Version": "0.1",
+        "Author": "Frysix"
+    },
+    "Tools": {
+
+    }
+}

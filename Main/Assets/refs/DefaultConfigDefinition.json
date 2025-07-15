@@ -12,70 +12,80 @@
                 "Description": "Install Google Chrome browser",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "Install-Chrome.ps1"
+                "Script": "Install-Chrome.ps1",
+                "RequireInternet": "true"
             },
             "FIREFOX": {
                 "DisplayName": "Mozilla Firefox",
                 "Description": "Install Mozilla Firefox browser",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-Firefox.ps1"
+                "Script": "Install-Firefox.ps1",
+                "RequireInternet": "true"
             },
             "ACROBAT": {
                 "DisplayName": "Adobe Acrobat Reader",
                 "Description": "Install Adobe Acrobat Reader",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "Install-Acrobat.ps1"
+                "Script": "Install-Acrobat.ps1",
+                "RequireInternet": "true"
             },
             "WINRAR": {
                 "DisplayName": "WinRAR",
                 "Description": "Install WinRAR archiver",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-WinRAR.ps1"
+                "Script": "Install-WinRAR.ps1",
+                "RequireInternet": "true"
             },
             "7ZIP": {
                 "DisplayName": "7-Zip",
                 "Description": "Install 7-Zip file archiver",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-7Zip.ps1"
+                "Script": "Install-7Zip.ps1",
+                "RequireInternet": "true"
             },
             "MACRIUM": {
                 "DisplayName": "Macrium Reflect",
                 "Description": "Install Macrium Reflect backup software",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-Macrium.ps1"
+                "Script": "Install-Macrium.ps1",
+                "RequireInternet": "true"
             },
             "DISCORD": {
                 "DisplayName": "Discord",
                 "Description": "Install Discord app",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-Discord.ps1"
+                "Script": "Install-Discord.ps1",
+                "RequireInternet": "true"
             },
             "STEAM": {
                 "DisplayName": "Steam",
                 "Description": "Install Steam app",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-Steam.ps1"
+                "Script": "Install-Steam.ps1",
+                "RequireInternet": "true"
             },
             "ZOOM": {
                 "DisplayName": "Zoom",
                 "Description": "Install Zoom app",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-Zoom.ps1"
+                "Script": "Install-Zoom.ps1",
+                "RequireInternet": "true"
             },
             "VLC": {
                 "DisplayName": "VLC Media Player",
                 "Description": "Install VLC Media Player",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-VLC.ps1"
+                "Script": "Install-VLC.ps1",
+                "RequireInternet": "true"
             },
             "OFFICE": {
                 "DisplayName": "Microsoft Office",
@@ -83,6 +93,7 @@
                 "DefaultState": "false",
                 "Type": "CheckBox",
                 "Script": "Install-Office.ps1",
+                "RequireInternet": "true",
                 "PreConfigScript": "PreConfig-Office.ps1"
             }
         },
@@ -92,35 +103,40 @@
                 "Description": "Start windows update process",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "UpdateWindows.ps1"
+                "Script": "UpdateWindows.ps1",
+                "RequireInternet": "true"
             },
             "UPDATEMSS": {
                 "DisplayName": "Update Microsoft Store",
                 "Description": "Start Microsoft Store update process",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "UpdateMicrosoftStore.ps1"
+                "Script": "UpdateMicrosoftStore.ps1",
+                "RequireInternet": "true"
             },
             "CONFIGEXP": {
                 "DisplayName": "Configure File Explorer",
                 "Description": "Configure FIle Explorer settings",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "ConfigureExplorer.ps1"
+                "Script": "ConfigureExplorer.ps1",
+                "RequireInternet": "false"
             },
             "DISABLEPWEXP": {
                 "DisplayName": "Disable Password Expiration",
                 "Description": "Disable password expiration for the user account",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "DisablePasswordExpiration.ps1"
+                "Script": "DisablePasswordExpiration.ps1",
+                "RequireInternet": "false"
             },
             "RENAMEDISK": {
                 "DisplayName": "Rename Disk",
                 "Description": "Rename the primary disk to chosen name",
                 "DefaultState": "OS",
                 "Type": "TextBox",
-                "Script": "RenameDisk.ps1"
+                "Script": "RenameDisk.ps1",
+                "RequireInternet": "false"
             }
         },
         "Drivers": {
@@ -129,49 +145,64 @@
                 "Description": "Install NVIDIA graphics drivers and software",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-Nvidia.ps1"
+                "Script": "InstallDriver-Nvidia.ps1",
+                "RequireInternet": "true"
             },
             "AMD": {
                 "DisplayName": "Install AMD Adrenalin",
                 "Description": "Install AMD graphics drivers and software",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-AMD.ps1"
+                "Script": "InstallDriver-AMD.ps1",
+                "RequireInternet": "true"
             },
             "ASUSDRVHUB": {
                 "DisplayName": "Install ASUS Driver Hub",
                 "Description": "Install ASUS Driver Hub for ASUS devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-ASUS.ps1"
+                "Script": "InstallDriver-ASUS.ps1",
+                "RequireInternet": "true"
             },
             "MYASUS": {
                 "DisplayName": "Install MyASUS",
                 "Description": "Install MyASUS application for ASUS devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-MyASUS.ps1"
+                "Script": "InstallDriver-MyASUS.ps1",
+                "RequireInternet": "true"
             },
             "MSICENTER": {
                 "DisplayName": "Install MSI Center",
                 "Description": "Install MSI Center application for MSI devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-MSICenter.ps1"
+                "Script": "InstallDriver-MSICenter.ps1",
+                "RequireInternet": "true"
             },
             "LENOVOVANTAGE": {
                 "DisplayName": "Install Lenovo Vantage",
                 "Description": "Install Lenovo Vantage application for Lenovo devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-LenovoVantage.ps1"
+                "Script": "InstallDriver-LenovoVantage.ps1",
+                "RequireInternet": "true"
             },
             "HPSUPPORTASSIST": {
                 "DisplayName": "Install HP Support Assistant",
                 "Description": "Install HP Support Assistant application for HP devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-HPSupportAssistant.ps1"
+                "Script": "InstallDriver-HPSupportAssistant.ps1",
+                "RequireInternet": "true"
+            },
+            "ASROCKDRVINST": {
+                "DisplayName": "Install ASRock Auto Driver Installer",
+                "Description": "Install ASRock Auto Driver Installer for ASRock motherboards",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "InstallDriver-ASRock.ps1",
+                "RequireInternet": "true"
             }
         },
         "Miscellaneous": {
@@ -180,28 +211,32 @@
                 "Description": "Check if Secure Boot is enabled",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "CheckSecureBoot.ps1"
+                "Script": "CheckSecureBoot.ps1",
+                "RequireInternet": "false"
             },
             "CHECKTPM": {
                 "DisplayName": "Check TPM",
                 "Description": "Check if TPM is enabled",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "CheckTPM.ps1"
+                "Script": "CheckTPM.ps1",
+                "RequireInternet": "false"
             },
             "QUICKASSISTTODESKTOP": {
                 "DisplayName": "Quick Assist to Desktop",
                 "Description": "Pin Quick Assist to desktop for easy access",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "QuickAssistToDesktop.ps1"
+                "Script": "QuickAssistToDesktop.ps1",
+                "RequireInternet": "false"
             },
             "CHECKWINACTSTATUS": {
                 "DisplayName": "Check Windows Activation Status",
                 "Description": "Check if Windows is activated",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "CheckWindowsActivationStatus.ps1"
+                "Script": "CheckWindowsActivationStatus.ps1",
+                "RequireInternet": "false"
             }            
         },
         "Finishing": {
@@ -211,14 +246,16 @@
                 "DefaultState": "prompt",
                 "Type": "ComboBox",
                 "Options": ["restart", "disabled", "prompt", "shutdown", "bios"],
-                "Script": "RestartOption.ps1"
+                "Script": "RestartOption.ps1",
+                "RequireInternet": "false"
             },
             "DEFAULTAPPREMINDER": {
                 "DisplayName": "Default App Reminder",
                 "Description": "Open Settings to set default apps after configuration",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "DefaultAppReminder.ps1"
+                "Script": "DefaultAppReminder.ps1",
+                "RequireInternet": "false"
             }
         }
     }

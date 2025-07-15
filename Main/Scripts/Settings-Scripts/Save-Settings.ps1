@@ -24,6 +24,15 @@ foreach ($sectionName in $UiHash.SettingsControls.Keys) {
             "TextBox" {
                 $newSettings[$sectionName][$settingName] = $control.Text
             }
+            "IntegerTextBox" {
+                # Ensure the value is an integer
+                if ([int]::TryParse($control.Text, [ref]$null)) {
+                    $newSettings[$sectionName][$settingName] = $control.Text
+                } else {
+                    Write-Host "Invalid integer value for $($sectionName[$settingName]): $($control.Text)"
+                    $newSettings[$sectionName][$settingName] = "0"  
+                }
+            }
         }
     }
 }

@@ -1,0 +1,130 @@
+{
+    "Information": {
+        "Name": "Default Applications",
+        "Description": "This is the default Applications manager definition file for FPCA.",
+        "Version": "0.1",
+        "Author": "Frysix"
+    },
+    "Applications": {
+        "Malware Removal": {
+            "SuperAntiSpyware": {
+                "DisplayName": "SuperAntiSpyware Portable",
+                "Description": "Install SuperAntiSpyware portable for malware scanning",
+                "AppType": "Portable",
+                "Script": "Install-SuperAntiSpyware.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/qip0nrxugkolbvbvpxtnpg/SUPERAntiSpyware%20Portable.zip"
+                },
+                "Files": {
+                    "Zip": "SUPERAntiSpywarePortable.zip",
+                    "Executable": "SUPERAntiSpyware.exe",
+                    "Folder": "SUPERAntiSpywarePortable"
+                }
+            }
+        },
+        "System Utilities": {
+            "TreeSizeFree": {
+                "DisplayName": "TreeSize Portable Free",
+                "Description": "Install TreeSize Portable Free disk space analyzer",
+                "AppType": "Portable",
+                "Script": "Install-TreeSizeFree.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/7sx6w-goqkcbli8rvrkalw/TreeSizeFreePortable.zip"
+                },
+                "Files": {
+                    "Zip": "TreeSizeFreePortable.zip",
+                    "Executable": "TreeSizeFreePortable.exe",
+                    "Folder": "TreeSizeFreePortable"
+                }
+            },
+            "HDSentinelProPortable": {
+                "DisplayName": "HDSentinel Pro Portable",
+                "Description": "Install HDSentinel Pro portable for hard drive monitoring",
+                "AppType": "Portable",
+                "Script": "Install-HDSentinelPro.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/3tg8s6laikgru1key4oblq/HDSentinelPro_Portable.zip"
+                },
+                "Files": {
+                    "Zip": "HDSentinelPro_Portable.zip",
+                    "Executable": "HDSentinel.exe",
+                    "Folder": "HDSentinelProPortable"
+                }
+            }
+        },
+        "Debugging": {
+            "WinDBG": {
+                "DisplayName": "WinDBG Portable",
+                "Description": "Install WinDBG portable for debugging",
+                "AppType": "Portable",
+                "Script": "Install-WinDBG.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/bwdmhnwfueoxw661jtgszg/WinDBG_1.2502.zip"
+                },
+                "Files": {
+                    "Zip": "WinDBG_1.2502.zip",
+                    "Executable": "DbgX.Shell.exe",
+                    "Folder": "WinDBG_1.2502"
+                }
+            }
+        },
+        "Stress Testing": {
+            "Prime95": {
+                "DisplayName": "Prime95",
+                "Description": "Install Prime95 for CPU stress testing",
+                "AppType": "Portable",
+                "Script": "Install-Prime95.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/9zlfjmzq80y5tdcysim85g/Prime95.zip"
+                },
+                "Files": {
+                    "Zip": "Prime95.zip",
+                    "Executable": "Prime95.exe",
+                    "Folder": "Prime95"
+                }
+            },
+            "ThrottleStop": {
+                "DisplayName": "ThrottleStop",
+                "Description": "Install ThrottleStop for CPU performance monitoring and tuning",
+                "AppType": "Portable",
+                "Script": "Install-ThrottleStop.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/i6_gkvqweec-qsprzadnhg/ThrottleStop_9.6.zip"
+                },
+                "Files": {
+                    "Zip": "ThrottleStop_9.6.zip",
+                    "Executable": "ThrottleStop.exe",
+                    "Folder": "ThrottleStop_9.6"
+                }
+            },
+            "FurMarkV2": {
+                "DisplayName": "FurMark V2",
+                "Description": "Install FurMark V2 for GPU stress testing",
+                "AppType": "Portable",
+                "Script": "Install-FurMarkV2.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/c_wodnrm2kyzx5w--x4cwg/FurMark%20V2%20Portable.zip"
+                },
+                "Files": {
+                    "Zip": "FurMarkV2.zip",
+                    "Executable": "FurMark_GUI.exe",
+                    "Folder": "FurMark_win64"
+                }
+            },
+            "HWiNFO": {
+                "DisplayName": "HWiNFO Portable",
+                "Description": "Install HWiNFO portable for hardware monitoring",
+                "AppType": "Portable",
+                "Script": "Install-HWiNFO.ps1",
+                "DownloadLinks": {
+                    "1": "https://ftp.frysix.com/public/file/blfotb81yeu82kq5lutjva/HWiNFO.zip"
+                },
+                "Files": {
+                    "Zip": "HWiNFO.zip",
+                    "Executable": "HWiNFO64.exe",
+                    "Folder": "HWiNFO"
+                }
+            }
+        }
+    }
+}

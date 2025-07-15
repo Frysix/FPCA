@@ -47,7 +47,7 @@ $Null = $UiPowershell.AddScript({
     $RESET_SETTINGS_BUTTON.Add_Click({
         # Set the ClosedFor flag to "Reset" when the Reset button is clicked.
         . "$($Global:UiHash['PSScriptroot'])\Scripts\Settings-Scripts\Reset-Settings.ps1" -UiHash $Global:UiHash -ConfirmReset
-        . "$($Global:UiHash['PSScriptroot'])\Scripts\Settings-Scripts\Gen\Gen-Settings-Ui.ps1" -UiHash $Global:UiHash
+        . "$($Global:UiHash['PSScriptroot'])\Scripts\UI-Scripts\Gen\Gen-Settings-Ui.ps1" -UiHash $Global:UiHash
     })
 
     $SETTINGS_FORM.Add_Load({

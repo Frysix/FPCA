@@ -1,0 +1,1 @@
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0\DevTools\Test-Config.ps1" -verb runas

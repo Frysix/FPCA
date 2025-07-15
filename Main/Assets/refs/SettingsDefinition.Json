@@ -23,11 +23,6 @@
       "Default": "50",
       "Description": "Main loop refresh rate in milliseconds"
     },
-    "ConfigLinkUpdateCounter": {
-      "Type": "IntegerTextBox",
-      "Default": "40",
-      "Description": "Check for config link trigger every X Count"
-    },
     "ConfigPanelUpdateCounter": {
       "Type": "IntegerTextBox",
       "Default": "150",

@@ -178,21 +178,7 @@ $Null = $UiPowershell.AddScript({
                 } elseif ($Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL) {
                     # Clear the CUSTOM_CONFIG_PANEL controls to remove old UI elements.
                     $CUSTOM_CONFIG_PANEL.Controls.Clear()
-                    # Generate the custom config UI elements.
-                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Ui-Scripts\Gen\Gen-CustomConfig-Ui.ps1') -UiHash $Global:UiHash
                     
-                    # Add group labels first
-                    foreach ($taskType in $Global:UiHash.CustomConfigGroupLabels.Keys) {
-                        $CUSTOM_CONFIG_PANEL.Controls.Add($Global:UiHash.CustomConfigGroupLabels[$taskType])
-                    }
-                    
-                    # Add checkboxes
-                    foreach ($section in $Global:UiHash.CustomConfigUiObjects.Keys) {
-                        $CUSTOM_CONFIG_PANEL.Controls.Add($Global:UiHash.CustomConfigUiObjects[$section].CheckBox)
-                    }
-                    
-                    $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $false
-
                 }
 
             } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "APP_TAB") {
@@ -256,10 +242,7 @@ $Null = $UiPowershell.AddScript({
         # Handle for conditional closing of the UI.
         if ($Global:UiHash.UIClosedFor -eq "StartConfig") {
             # Check for last actions before closing the UI and runspace before launching the configuration script.
-            While ($Global:UiHash.StartConfigClosingRunning) {
-                # Sleep for a short duration to prevent high CPU usage while waiting for the UI to close.
-                Start-Sleep -Milliseconds 100
-            }
+            Exit
         } elseif ($Global:UiHash.UIClosedFor -eq "Settings") {
             # If the UI is closed for settings
             Exit
@@ -514,7 +497,28 @@ While ($Global:MainHash.MainListener) {
             # Check if the CONFIG_START_BUTTON_CLICKED flag is set to true in the UiHash.
             # If it is set, it means that the user has clicked the Start Config button.
             if ($Global:UiHash.CONFIG_START_BUTTON_CLICKED) {
-                
+                # Set the StartConfigClosingRunning flag to true to indicate that the configuration process is starting
+                $selectedTasks = @()
+                foreach ($key in $Global:UiHash.ConfigurationControls.Keys) {
+                    $control = $Global:UiHash.ConfigurationControls[$key]
+                    if ($control.Tag.Type -eq "CheckBox" -and $control.Checked) {
+                        $selectedTasks += $key
+                    }
+                }
+                # If the selectedTasks array is not empty, launch the task launcher script with the selected tasks.
+                if ($selectedTasks.Count -gt 0) {
+                    # Set the UIClosedFor variable to "StartConfig" to indicate that the UI is being closed for configuration.
+                    $Global:UiHash.UIClosedFor = "StartConfig"
+                    # Close the main form to prevent further interaction.
+                    $Global:UiHash.MainForm.Close()
+                    # Launch the configuration script with the selected tasks.
+                    . "$PSScriptRoot\FPCA-Config.ps1" -SelectedTasks $selectedTasks
+                    Break
+                } else {
+                    # If no tasks are selected, display a message box to inform the user.
+                    Show-TopMostMessageBox -Message "No tasks selected. Please select at least one task to start." -Title "FPCA - No Tasks Selected" -Owner $Global:UiHash.MainForm -Icon "Warning"
+                    $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
+                }
             }
 
         }

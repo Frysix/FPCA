@@ -86,7 +86,7 @@ foreach ($sectionName in $configSections) {
                 $descHeight = Get-TextHeight -text $item.Description -font $descLabel.Font -width 170
                 $descLabel.Size = New-Object System.Drawing.Size(170, $descHeight)
                 
-                $descLabel.Name = "${sectionName}_${itemName}_DESC"
+                $descLabel.Name = "${itemName}_DESC"
                 $UiHash.ConfigurationControlsOrdered.Add($descLabel)
                 
                 $yPosition += $descHeight + 10
@@ -99,7 +99,7 @@ foreach ($sectionName in $configSections) {
                 $titleLabel.Size = New-Object System.Drawing.Size(140, 20)
                 $titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
                 $titleLabel.BackColor = [System.Drawing.Color]::Transparent
-                $titleLabel.Name = "${sectionName}_${itemName}_TITLE"
+                $titleLabel.Name = "${itemName}_TITLE"
                 $UiHash.ConfigurationControlsOrdered.Add($titleLabel)
                 
                 $yPosition += 25
@@ -138,7 +138,7 @@ foreach ($sectionName in $configSections) {
                 $descHeight = Get-TextHeight -text $item.Description -font $descLabel.Font -width 140
                 $descLabel.Size = New-Object System.Drawing.Size(140, $descHeight)
                 
-                $descLabel.Name = "${sectionName}_${itemName}_DESC"
+                $descLabel.Name = "${itemName}_DESC"
                 $UiHash.ConfigurationControlsOrdered.Add($descLabel)
                 
                 $yPosition += $descHeight + 10
@@ -151,7 +151,7 @@ foreach ($sectionName in $configSections) {
                 $titleLabel.Size = New-Object System.Drawing.Size(140, 20)
                 $titleLabel.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
                 $titleLabel.BackColor = [System.Drawing.Color]::Transparent
-                $titleLabel.Name = "${sectionName}_${itemName}_TITLE"
+                $titleLabel.Name = "${itemName}_TITLE"
                 $UiHash.ConfigurationControlsOrdered.Add($titleLabel)
                 
                 $yPosition += 25
@@ -178,7 +178,7 @@ foreach ($sectionName in $configSections) {
                 $descHeight = Get-TextHeight -text $item.Description -font $descLabel.Font -width 140
                 $descLabel.Size = New-Object System.Drawing.Size(140, $descHeight)
                 
-                $descLabel.Name = "${sectionName}_${itemName}_DESC"
+                $descLabel.Name = "${itemName}_DESC"
                 $UiHash.ConfigurationControlsOrdered.Add($descLabel)
                 
                 $yPosition += $descHeight + 10
@@ -186,7 +186,8 @@ foreach ($sectionName in $configSections) {
         }
         
         if ($control) {
-            $control.Name = "${sectionName}_${itemName}"
+            # Use only the itemName without the section prefix
+            $control.Name = $itemName
             $control.Tag = @{
                 Section = $sectionName
                 Item = $itemName
@@ -219,9 +220,8 @@ foreach ($sectionName in $configSections) {
             # Add control to ordered list
             $UiHash.ConfigurationControlsOrdered.Add($control)
             
-            # Store control in single hashtable using unique key
-            $uniqueKey = "${sectionName}_${itemName}"
-            $UiHash.ConfigurationControls[$uniqueKey] = $control
+            # Store control using only the itemName as key
+            $UiHash.ConfigurationControls[$itemName] = $control
         }
         
         # Add spacing between items

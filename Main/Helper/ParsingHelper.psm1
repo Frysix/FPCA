@@ -92,18 +92,43 @@ function Get-FromConfigFile {
     return $result
 }
 
-# Convert PSCustomObject to Hashtable
-function ConvertTo-Hashtable($obj) {
-    if ($obj -is [System.Collections.IDictionary]) {
-        $hash = @{}
-        foreach ($key in $obj.Keys) {
-            $hash[$key] = ConvertTo-Hashtable $obj[$key]
-        }
-        return $hash
-    } elseif ($obj -is [System.Collections.IEnumerable] -and
-              -not ($obj -is [string])) {
-        return @($obj | ForEach-Object { ConvertTo-Hashtable $_ })
-    } else {
-        return $obj
+# Function to parse a JSON file and return its content as a hashtable
+function Convert-JsonToHashtable {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$FilePath
+    )
+
+    if (-not (Test-Path $FilePath)) {
+        throw "File not found: $FilePath"
     }
+
+    # Read & parse JSON
+    $json = Get-Content -Path $FilePath -Raw | ConvertFrom-Json
+
+    $toHash = {
+        param($node)
+
+        # Check if the node is null or empty
+        if ($node -is [System.Management.Automation.PSCustomObject] -or $node -is [System.Collections.IDictionary]) {
+            $ht = @{}
+            foreach ($prop in $node.PSObject.Properties) {
+                $ht[$prop.Name] = & $toHash $prop.Value
+            }
+            return $ht
+        }
+
+        # Check if the node is an array or collection
+        if ($node -is [System.Collections.IEnumerable] -and
+            -not ($node -is [string])) {
+
+            return @($node | ForEach-Object { & $toHash $_ })
+        }
+
+        # If the node is a primitive type, return it directly
+        return $node
+    }
+    # Start the conversion process
+    & $toHash $json
 }
