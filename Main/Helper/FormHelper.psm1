@@ -1,6 +1,7 @@
 # Module for handling form-related operations in PowerShell
 # Importing necessary assemblies for Windows Forms functionality.
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing, PresentationFramework, PresentationCore
+[System.Windows.Forms.Application]::EnableVisualStyles()
 
 # This module provides functions to create and manage forms, including showing message boxes.
 function Show-TopMostMessageBox {
@@ -44,3 +45,34 @@ function Show-TopMostMessageBox {
     }
 }
 
+
+# Function to initialize the configuration UI panel.
+# This function generates UI elements for the configuration window.
+function Initialize-ConfigUiPanel {
+    Param(
+        [Parameter(Mandatory=$true)]
+        [hashtable]$UiHash,
+        [Parameter(Mandatory=$true)]
+        [System.Windows.Forms.Panel]$MainPanel
+    )
+    Try {
+        # This function generates UI elements for the configuration window.
+        # It creates labels, progress bars, and other controls based on the provided UiHash.
+        $Global:UiHash.GENERATE_CONFIGUI_ELEMENTS = $false
+        # If the UI elements need to be generated, clear the main task panel and regenerate the UI.
+        $MainPanel.Controls.Clear()
+        # Call the UI script to generate the OS configuration window with the current UiHash.
+        . "$($UiHash['PSScriptroot'])\Scripts\UI-Scripts\Gen\Gen-OSConfigWindow-Ui.ps1" -UiHash $UiHash
+
+        foreach ($task in $UiHash.ActiveTasks.Keys) {
+            $MainPanel.Controls.Add($UiHash.TaskControls[$task].TaskNameLabel)
+            $MainPanel.Controls.Add($UiHash.TaskControls[$task].ProgressBar)
+            $MainPanel.Controls.Add($UiHash.TaskControls[$task].StatusLabel)
+        }
+        # Refresh the main task panel to ensure all controls are displayed correctly.
+        $MainPanel.Refresh()
+        $UiHash.TaskPanelInitialized = $true
+    } Catch {
+        $UiHash.TaskPanelInitialized = $false
+    }
+}

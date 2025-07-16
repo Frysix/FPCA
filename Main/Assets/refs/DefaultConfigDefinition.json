@@ -3,7 +3,8 @@
         "Name": "Default Configuration",
         "Description": "This is the default configuration definition file for FPCA.",
         "Version": "0.1",
-        "Author": "Frysix"
+        "Author": "Frysix",
+        "ScriptFolderPath": "Scripts\\Config-Scripts\\"
     },
     "Configuration": {
         "Install": {

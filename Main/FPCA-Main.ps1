@@ -513,7 +513,27 @@ While ($Global:MainHash.MainListener) {
                     $Global:UiHash.MainForm.Close()
                     # Launch the configuration script with the selected tasks.
                     . "$PSScriptRoot\FPCA-Config.ps1" -SelectedTasks $selectedTasks
-                    Break
+
+                    if ($ExitCode -eq 0) {
+                        # Exit according to settings if the exit code is 0.
+                        Break
+                    } elseif ($ExitCode -eq 1) {
+                        # If the exit code is 1, it means that the user has cancelled the configuration process.
+                        # Display a message box to inform the user that the configuration process has been cancelled.
+                        Show-TopMostMessageBox -Message "Configuration process has been cancelled. Exitting..." -Title "FPCA - Configuration Cancelled" -Icon "Information"
+                        Break
+                    } elseif ($ExitCode -eq 2) {
+                        # If the exit code is 2, it means that the configuration process has completed successfully.
+                        Show-TopMostMessageBox -Message "Configuration process completed successfully." -Title "FPCA - Configuration Completed" -Icon "Information"
+                        Break
+                    } elseif ($ExitCode -eq 3) {
+                        # If the exit code is 3, it means that the configuration process has failed.
+                        Show-TopMostMessageBox -Message "The computer will attempt to restart in bios" -Title "FPCA - Configuration Completed" -Icon "Information"
+                        Break
+                    } else {
+                        Break
+                    }
+
                 } else {
                     # If no tasks are selected, display a message box to inform the user.
                     Show-TopMostMessageBox -Message "No tasks selected. Please select at least one task to start." -Title "FPCA - No Tasks Selected" -Owner $Global:UiHash.MainForm -Icon "Warning"
