@@ -116,6 +116,7 @@ try {
     if (Test-Path $ShortcutPath) {
         Write-Host "Quick Assist shortcut successfully created on desktop: $ShortcutPath"
         $Coms.Status = "Completed"
+        $Coms.Comment = "Quick Assist shortcut created successfully."
         $Coms.Progress = 100
         $Coms.EndTime = Get-Date
     } else {

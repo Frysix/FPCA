@@ -29,7 +29,7 @@ $MAIN_TASK_PANEL.BackgroundImageLayout = [System.Windows.Forms.ImageLayout]::Non
 $MAIN_TASK_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
 $MAIN_TASK_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]12,[System.Int32]51))
 $MAIN_TASK_PANEL.Name = [System.String]'MAIN_TASK_PANEL'
-$MAIN_TASK_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]487,[System.Int32]334))
+$MAIN_TASK_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]487,[System.Int32]524))
 $MAIN_TASK_PANEL.TabIndex = [System.Int32]0
 #
 #MAIN_TASK_LABEL_PANEL
@@ -95,7 +95,7 @@ $MAIN_TASK_ELAPSEDTIMETITLE_LABEL.Text = [System.String]'Time Elapsed:'
 #
 #MAIN_TOTALPROGRESS_PROGRESSBAR
 #
-$MAIN_TOTALPROGRESS_PROGRESSBAR.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]12,[System.Int32]391))
+$MAIN_TOTALPROGRESS_PROGRESSBAR.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]12,[System.Int32]581))
 $MAIN_TOTALPROGRESS_PROGRESSBAR.Name = [System.String]'MAIN_TOTALPROGRESS_PROGRESSBAR'
 $MAIN_TOTALPROGRESS_PROGRESSBAR.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]487,[System.Int32]35))
 $MAIN_TOTALPROGRESS_PROGRESSBAR.TabIndex = [System.Int32]4
@@ -103,7 +103,7 @@ $MAIN_TOTALPROGRESS_PROGRESSBAR.TabIndex = [System.Int32]4
 #TASK_FORM
 #
 $TASK_FORM.BackColor = [System.Drawing.Color]::DimGray
-$TASK_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]511,[System.Int32]438))
+$TASK_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]511,[System.Int32]628))
 $TASK_FORM.Controls.Add($MAIN_TOTALPROGRESS_PROGRESSBAR)
 $TASK_FORM.Controls.Add($MAIN_TASK_ELAPSEDTIME_PANEL)
 $TASK_FORM.Controls.Add($MAIN_TASK_LABEL_PANEL)

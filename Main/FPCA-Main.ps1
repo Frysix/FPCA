@@ -526,8 +526,12 @@ While ($Global:MainHash.MainListener) {
                         Show-TopMostMessageBox -Message "Configuration process completed successfully." -Title "FPCA - Configuration Completed" -Icon "Information"
                         Break
                     } elseif ($ExitCode -eq 3) {
-                        # If the exit code is 3, it means that the configuration process has failed.
-                        Show-TopMostMessageBox -Message "The computer will attempt to restart in bios" -Title "FPCA - Configuration Completed" -Icon "Information"
+                        # If the exit code is 3, it means that the configuration process requires a Bios Restart.
+                        Try {
+                            shutdown /r /fw /t 5
+                        } Catch {
+                            Show-TopMostMessageBox -Message "Failed to initiate BIOS restart. Please restart the computer manually." -Title "FPCA - BIOS Restart Failed" -Icon "Error"
+                        }
                         Break
                     } else {
                         Break

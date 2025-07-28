@@ -22,6 +22,7 @@ foreach ($activetask in $UiHash.ActiveTasks.Keys) {
 # Base positions
 $yPosition = 10
 $ypPosition = 35
+$ysPosition = 60
 $UiHash.TaskControls = @{}
 
 foreach ($task in $TaskList) {
@@ -40,7 +41,7 @@ foreach ($task in $TaskList) {
     $ProgressBar.Minimum = 0
     $ProgressBar.Maximum = 100
     $ProgressBar.Value = 0
-    $ProgressBar.Size = New-Object System.Drawing.Size(200, 20)
+    $ProgressBar.Size = New-Object System.Drawing.Size(300, 20)
     $ProgressBar.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
     $ProgressBar.ForeColor = [System.Drawing.Color]::Green
     $ProgressBar.MarqueeAnimationSpeed = 0
@@ -52,11 +53,12 @@ foreach ($task in $TaskList) {
     # Status label
     $StatusLabel = New-Object System.Windows.Forms.Label
     $StatusLabel.Text = "Initializing..."
-    $StatusLabel.Size = New-Object System.Drawing.Size(100, 20)
+    $StatusLabel.Size = New-Object System.Drawing.Size(350, 20)
     $StatusLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10)
     $StatusLabel.ForeColor = [System.Drawing.Color]::Gray
-    $StatusLabel.AutoSize = $false
-    $StatusLabel.Location = New-Object System.Drawing.Point(220, $ypPosition)
+    $StatusLabel.AutoSize = $true
+    $StatusLabel.MaximumSize = New-Object System.Drawing.Size(350, 0)
+    $StatusLabel.Location = New-Object System.Drawing.Point(10, $ysPosition)
 
     # Store controls in UiHash
     $UiHash.TaskControls[$task] = @{
@@ -66,6 +68,7 @@ foreach ($task in $TaskList) {
     }
 
     # Increment yPosition for next task
-    $yPosition += 60
-    $ypPosition += 60
+    $yPosition += 110
+    $ypPosition += 110
+    $ysPosition += 110
 }

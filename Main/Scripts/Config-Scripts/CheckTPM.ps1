@@ -54,7 +54,7 @@ try {
             } catch {
                 Write-Host "All TPM detection methods failed. TPM may not be present or accessible."
                 $Coms.Progress = 100
-                $Coms.Status = "Completed"
+                $Coms.Status = "Warning"
                 $Coms.Comment = "TPM status could not be determined."
                 return
             }
@@ -74,41 +74,19 @@ try {
             $Coms.Comment = "TPM is enabled and activated."
             $Coms.Status = "Completed"
         } else {
-            Write-Host "TPM is present but not fully configured."
-            $Coms.Progress = 75
-            $Coms.Comment = "TPM needs to be enabled in BIOS."
-            
-            # Set FinalScript to handle BIOS restart prompt
-            $Coms.FinalScript = {
-                Param(
-                    [Hashtable]$TaskHash
-                )
-                
-                # Import the FormHelper module for the message box
-                Import-Module "$($TaskHash.PSScriptRoot)\Helper\FormHelper.psm1" -Force
-                
-                # Show message box asking if user wants to restart to BIOS
-                $result = Show-TopMostMessageBox -Message "TPM is present but not enabled. Do you want to restart the system to BIOS now?" -Title "TPM Check" -Icon "Question" -Buttons "YesNo"
-                
-                if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-                    # Set exit type to BIOS restart
-                    $TaskHash.ExitType = "BIOS"
-                    Write-Host "User chose to restart to BIOS. Setting exit type to BIOS."
-                } else {
-                    # Keep default exit type
-                    $TaskHash.ExitType = "Default"
-                    Write-Host "User chose not to restart to BIOS. Keeping default exit type."
-                }
-            }
-            
-            $Coms.Status = "Completed"
             $Coms.Progress = 100
+            $Coms.Comment = "TPM needs to be enabled in BIOS."
+            $Coms.Status = "Warning"
+            $Coms.CustomExit = @{
+                Type = "BIOS"
+                Message = "TPM is present but not enabled or activated."
+            }
         }
     } else {
         Write-Host "TPM is not present on this system."
         $Coms.Progress = 100
         $Coms.Comment = "TPM is not present on this system."
-        $Coms.Status = "Completed"
+        $Coms.Status = "Warning"
     }
     
 } catch {

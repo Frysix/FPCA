@@ -292,7 +292,10 @@ $Null = $UiPowershell.AddScript({
     $UiTimer = New-Object System.Windows.Forms.Timer
     $UiTimer.Interval = 500 # Set the timer interval to 500 milliseconds (0.5 seconds).
     $UiTimer.Add_Tick({
-
+        if ($MAIN_TASKACTIVECOUNT_LABEL.Text -ne $Global:UiHash.ActiveTasks.Count.ToString()) {
+            # Update the active task count label if it has changed.
+            $MAIN_TASKACTIVECOUNT_LABEL.Text = $Global:UiHash.ActiveTasks.Count.ToString()
+        }
     })
     $ElapsedTimer = New-Object System.Windows.Forms.Timer
     $ElapsedTimer.Interval = 1000 # 1 second
@@ -317,6 +320,8 @@ $Null = $UiPowershell.AddScript({
         $UiTimer.Start()
         $ElapsedTimer.Start()
     })
+    $Global:UiHash.UiTimer = $UiTimer
+    $Global:UiHash.ElapsedTimer = $ElapsedTimer
 
     # Assign the TaskForm to the global UiHash variable for later access.
     $Global:UiHash.TaskForm = $TASK_FORM
@@ -326,6 +331,7 @@ $Null = $UiPowershell.AddScript({
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Minimum = 0
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Maximum = $UiHash.ActiveTasks.Count
     $MAIN_TASKACTIVECOUNT_LABEL.Text = $UiHash.ActiveTasks.Count.ToString()
+    $Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR = $MAIN_TOTALPROGRESS_PROGRESSBAR
 
     # Show the task form dialog.
     $TASK_FORM.ShowDialog()
@@ -397,7 +403,7 @@ While ($Global:TaskHash.TaskListener) {
                 }
             } elseif ($TaskStatus.Status -eq "Completed") {
                 $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = 100
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Completed"
+                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Completed: $($TaskStatus.Comment)"
                 $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Green
                 $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             } elseif ($TaskStatus.Status -eq "Failed" -or $TaskStatus.Status -eq "Error") {
@@ -407,7 +413,7 @@ While ($Global:TaskHash.TaskListener) {
                 $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             } elseif ($TaskStatus.Status -eq "Warning") {
                 $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = 100
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Warning! - $($TaskStatus.Comment)"
+                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Warning: $($TaskStatus.Comment)"
                 $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Orange
                 $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             }
@@ -420,6 +426,11 @@ While ($Global:TaskHash.TaskListener) {
         if ($Global:UiHash.ActiveTasks.ContainsKey($taskName)) {
             $Global:UiHash.ActiveTasks.Remove($taskName)
         }
+    }
+    # Update the total progress bar
+    if ($Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value -ne $Global:TaskHash.CompletedTasks.Count) {
+        $Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value = $Global:TaskHash.CompletedTasks.Count
+        Write-Host "Updated total progress bar to $($Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value) out of $($Global:UiHash.ActiveTasks.Count)"
     }
     
     if ($Global:UiHash.ClosedByUser) {
@@ -446,6 +457,9 @@ While ($Global:TaskHash.TaskListener) {
         Write-Host "All tasks have been completed. Stopping task listener."
         # Clean up task runspaces
         Stop-AllTaskRunspaces
+        $Global:UiHash.UiTimer.Stop()
+        $Global:UiHash.ElapsedTimer.Stop()
+        $Global:TaskHash.ExitMessages = @()
         # Verify for end of Configuration scripts
         foreach ($taskName in $Global:TaskHash.CompletedTasks.Keys) {
             $TaskStatus = $Global:TaskHash.CompletedTasks[$taskName]
@@ -454,17 +468,15 @@ While ($Global:TaskHash.TaskListener) {
             } else {
                 Write-Host "Task '$taskName' completed successfully."
             }
-            if ($TaskStatus.ContainsKey('FinalScript')) {
-                $FinalScriptBlock = $TaskStatus.FinalScript
-                if ($FinalScriptBlock -and $FinalScriptBlock -is [scriptblock]) {
-                    # Run the final script block
-                    Write-Host "Running final script block for task '$taskName'."
-                    $FinalScriptBlock.Invoke($Global:TaskHash)
-                }
+            if ($TaskStatus.ContainsKey('CustomExit')) {
+                $Global:TaskHash.ExitType = $TaskStatus.CustomExit.Type
+                $Global:TaskHash.ExitMessages += $TaskStatus.CustomExit.Message
+                Write-Host "Custom exit type detected: $($Global:TaskHash.ExitType)"
+            } else {
+                Write-Host "No custom exit type defined for task '$taskName'. Using default exit type."
             }
         }
-        # Add some time for user to see the results
-        Start-Sleep -Seconds 3
+        Show-TopMostMessageBox -Message "The Configuration has ended." -Title "FPCA - Configuration" -Icon "Information"
         if ($Global:TaskHash.ExitType -eq "Default") {
             # Clean up the UI runspace
             $Global:UiHash.TaskForm.Close()
@@ -475,13 +487,20 @@ While ($Global:TaskHash.TaskListener) {
             Write-Host "All tasks completed successfully. Exiting with code $ExitCode - Default Exit."
             Break
         } elseif ($Global:TaskHash.ExitType -eq "BIOS") {
+            $result = Show-TopMostMessageBox -Message "Do you want to restart in BIOS? Reason(s): $($Global:TaskHash.ExitMessages)" -Title "FPCA - Configuration" -Icon "Question" -Buttons "YesNo"
+            if ($result -eq "Yes") {
+                Write-Host "User chose to restart in BIOS."
+                $ExitCode = 3
+            } else {
+                Write-Host "User chose not to restart in BIOS. Exiting with code $ExitCode - BIOS Exit."
+                $ExitCode = 0
+            }
             Write-Host "All tasks completed successfully. Exiting with code $ExitCode - BIOS Exit."
             # Clean up the UI runspace
             $Global:UiHash.TaskForm.Close()
             $UiPowershell.EndInvoke($UiHandle)
             $UiPowershell.Runspace.Dispose()
             $Global:TaskHash.TaskListener = $false
-            $ExitCode = 3
             Break
         } elseif ($Global:TaskHash.ExitType -eq "Override") {
             Write-Host "All tasks completed successfully. Exiting with code $ExitCode - Override Exit."
