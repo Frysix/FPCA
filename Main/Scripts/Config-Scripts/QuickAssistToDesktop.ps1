@@ -1,6 +1,10 @@
 Param(
-    $Coms,
-    $TaskName
+    [Parameter(Mandatory=$true)]
+    [hashtable]$Coms,
+    [Parameter(Mandatory=$true)]
+    [string]$TaskName,
+    [Parameter(Mandatory=$true)]
+    [string]$ScriptRoot
 )
 
 $Coms.Status = "Running"

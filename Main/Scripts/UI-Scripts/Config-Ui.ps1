@@ -113,7 +113,6 @@ $TASK_FORM.MaximizeBox = $false
 $TASK_FORM.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $TASK_FORM.Text = [System.String]'Configuration - FPCA - (Frysix''s Powershell Configurator App)'
 $TASK_FORM.TopMost = $true
-$MAIN_TASK_PANEL.ResumeLayout($false)
 $MAIN_TASK_LABEL_PANEL.ResumeLayout($false)
 $MAIN_TASK_ELAPSEDTIME_PANEL.ResumeLayout($false)
 $TASK_FORM.ResumeLayout($false)

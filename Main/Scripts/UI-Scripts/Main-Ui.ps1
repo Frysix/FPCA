@@ -17,11 +17,13 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.TabControl]$MAIN_TAB_CONTROL = $null
 [System.Windows.Forms.TabPage]$CONFIG_TAB = $null
 [System.Windows.Forms.Panel]$CUSTOMCONFIG_CONTROL_PANEL = $null
+[System.Windows.Forms.CheckBox]$CUSTOM_CHECKALL_CHECKBOX = $null
 [System.Windows.Forms.CheckBox]$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = $null
 [System.Windows.Forms.Panel]$PROFILECONFIG_PANEL = $null
 [System.Windows.Forms.Panel]$CUSTOM_CONFIG_PANEL = $null
 [System.Windows.Forms.Panel]$DEFAULT_CONFIG_PANEL = $null
 [System.Windows.Forms.Panel]$DEFAULTCONFIG_CONTROL_PANEL = $null
+[System.Windows.Forms.CheckBox]$DEFAULT_CHECKALL_CHECKBOX = $null
 [System.Windows.Forms.Button]$CONFIG_START_BUTTON = $null
 [System.Windows.Forms.TabPage]$APP_TAB = $null
 [System.Windows.Forms.RichTextBox]$APP_LOG_TEXTBOX = $null
@@ -52,9 +54,11 @@ $SYSTEMINFO_LINK_LABEL = (New-Object -TypeName System.Windows.Forms.LinkLabel)
 $SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MAIN_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $CONFIG_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$CUSTOMCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$PROFILECONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $CUSTOM_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $DEFAULT_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $DEFAULTCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $CONFIG_START_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $APP_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
@@ -67,13 +71,14 @@ $TOOLS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $INFO_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$PROFILECONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$CUSTOMCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$DEFAULT_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$CUSTOM_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
-$APP_TAB.SuspendLayout()
 $CUSTOMCONFIG_CONTROL_PANEL.SuspendLayout()
+$DEFAULTCONFIG_CONTROL_PANEL.SuspendLayout()
+$APP_TAB.SuspendLayout()
 $MAIN_FORM.SuspendLayout()
 #
 #SIDE_PANNEL
@@ -278,6 +283,39 @@ $CONFIG_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([Sy
 $CONFIG_TAB.TabIndex = [System.Int32]0
 $CONFIG_TAB.Text = [System.String]'Configuration'
 #
+#CUSTOMCONFIG_CONTROL_PANEL
+#
+$CUSTOMCONFIG_CONTROL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$CUSTOMCONFIG_CONTROL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$CUSTOMCONFIG_CONTROL_PANEL.Controls.Add($CUSTOM_CHECKALL_CHECKBOX)
+$CUSTOMCONFIG_CONTROL_PANEL.Controls.Add($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX)
+$CUSTOMCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]262,[System.Int32]406))
+$CUSTOMCONFIG_CONTROL_PANEL.Name = [System.String]'CUSTOMCONFIG_CONTROL_PANEL'
+$CUSTOMCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
+$CUSTOMCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]31
+$CUSTOMCONFIG_CONTROL_PANEL.add_Paint($CUSTOMCONFIG_CONTROL_PANEL_Paint)
+#
+#AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
+#
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]157,[System.Int32]3))
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Name = [System.String]'AUTOREFRESH_CUSTOMCONFIG_CHECKBOX'
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]88,[System.Int32]21))
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.TabIndex = [System.Int32]26
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Text = [System.String]'Auto Refresh'
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.UseVisualStyleBackColor = $true
+$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.add_CheckedChanged($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX_CheckedChanged)
+#
+#PROFILECONFIG_PANEL
+#
+$PROFILECONFIG_PANEL.AutoScroll = $true
+$PROFILECONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$PROFILECONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$PROFILECONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]518,[System.Int32]6))
+$PROFILECONFIG_PANEL.Name = [System.String]'PROFILECONFIG_PANEL'
+$PROFILECONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]109,[System.Int32]394))
+$PROFILECONFIG_PANEL.TabIndex = [System.Int32]30
+#
 #CUSTOM_CONFIG_PANEL
 #
 $CUSTOM_CONFIG_PANEL.AutoScroll = $true
@@ -298,21 +336,11 @@ $DEFAULT_CONFIG_PANEL.Name = [System.String]'DEFAULT_CONFIG_PANEL'
 $DEFAULT_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]394))
 $DEFAULT_CONFIG_PANEL.TabIndex = [System.Int32]28
 #
-#AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
-#
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]165,[System.Int32]3))
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Name = [System.String]'AUTOREFRESH_CUSTOMCONFIG_CHECKBOX'
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]80,[System.Int32]21))
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.TabIndex = [System.Int32]26
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Text = [System.String]'Auto Refresh'
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.UseVisualStyleBackColor = $true
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.add_CheckedChanged($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX_CheckedChanged)
-#
 #DEFAULTCONFIG_CONTROL_PANEL
 #
 $DEFAULTCONFIG_CONTROL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
 $DEFAULTCONFIG_CONTROL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$DEFAULTCONFIG_CONTROL_PANEL.Controls.Add($DEFAULT_CHECKALL_CHECKBOX)
 $DEFAULTCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]406))
 $DEFAULTCONFIG_CONTROL_PANEL.Name = [System.String]'DEFAULTCONFIG_CONTROL_PANEL'
 $DEFAULTCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
@@ -415,7 +443,7 @@ $TOOLS_TAB.Text = [System.String]'Tools'
 $INFO_TAB.BackColor = [System.Drawing.Color]::Gray
 $INFO_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $INFO_TAB.Name = [System.String]'INFO_TAB'
-$INFO_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]536,[System.Int32]313))
+$INFO_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $INFO_TAB.TabIndex = [System.Int32]3
 $INFO_TAB.Text = [System.String]'Info'
 #
@@ -442,26 +470,25 @@ $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
 $VERSION_NUMBER_LABEL.Text = [System.String]'0.0'
 $VERSION_NUMBER_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
 #
-#PROFILECONFIG_PANEL
+#DEFAULT_CHECKALL_CHECKBOX
 #
-$PROFILECONFIG_PANEL.AutoScroll = $true
-$PROFILECONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$PROFILECONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$PROFILECONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]518,[System.Int32]6))
-$PROFILECONFIG_PANEL.Name = [System.String]'PROFILECONFIG_PANEL'
-$PROFILECONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]109,[System.Int32]394))
-$PROFILECONFIG_PANEL.TabIndex = [System.Int32]30
+$DEFAULT_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$DEFAULT_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
+$DEFAULT_CHECKALL_CHECKBOX.Name = [System.String]'DEFAULT_CHECKALL_CHECKBOX'
+$DEFAULT_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
+$DEFAULT_CHECKALL_CHECKBOX.TabIndex = [System.Int32]0
+$DEFAULT_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
+$DEFAULT_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
 #
-#CUSTOMCONFIG_CONTROL_PANEL
+#CUSTOM_CHECKALL_CHECKBOX
 #
-$CUSTOMCONFIG_CONTROL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$CUSTOMCONFIG_CONTROL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$CUSTOMCONFIG_CONTROL_PANEL.Controls.Add($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX)
-$CUSTOMCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]262,[System.Int32]406))
-$CUSTOMCONFIG_CONTROL_PANEL.Name = [System.String]'CUSTOMCONFIG_CONTROL_PANEL'
-$CUSTOMCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
-$CUSTOMCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]31
-$CUSTOMCONFIG_CONTROL_PANEL.add_Paint($CUSTOMCONFIG_CONTROL_PANEL_Paint)
+$CUSTOM_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$CUSTOM_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
+$CUSTOM_CHECKALL_CHECKBOX.Name = [System.String]'CUSTOM_CHECKALL_CHECKBOX'
+$CUSTOM_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
+$CUSTOM_CHECKALL_CHECKBOX.TabIndex = [System.Int32]27
+$CUSTOM_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
+$CUSTOM_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
 #
 #MAIN_FORM
 #
@@ -483,8 +510,9 @@ $MAIN_FORM.TopMost = $true
 $SIDE_PANNEL.ResumeLayout($false)
 $MAIN_TAB_CONTROL.ResumeLayout($false)
 $CONFIG_TAB.ResumeLayout($false)
-$APP_TAB.ResumeLayout($false)
 $CUSTOMCONFIG_CONTROL_PANEL.ResumeLayout($false)
+$DEFAULTCONFIG_CONTROL_PANEL.ResumeLayout($false)
+$APP_TAB.ResumeLayout($false)
 $MAIN_FORM.ResumeLayout($false)
 Add-Member -InputObject $MAIN_FORM -Name SIDE_PANNEL -Value $SIDE_PANNEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name INTERNET_TITLE_LABEL -Value $INTERNET_TITLE_LABEL -MemberType NoteProperty
@@ -504,11 +532,13 @@ Add-Member -InputObject $MAIN_FORM -Name SETTINGS_BUTTON -Value $SETTINGS_BUTTON
 Add-Member -InputObject $MAIN_FORM -Name MAIN_TAB_CONTROL -Value $MAIN_TAB_CONTROL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_TAB -Value $CONFIG_TAB -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CUSTOMCONFIG_CONTROL_PANEL -Value $CUSTOMCONFIG_CONTROL_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name CUSTOM_CHECKALL_CHECKBOX -Value $CUSTOM_CHECKALL_CHECKBOX -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -Value $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name PROFILECONFIG_PANEL -Value $PROFILECONFIG_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CUSTOM_CONFIG_PANEL -Value $CUSTOM_CONFIG_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name DEFAULT_CONFIG_PANEL -Value $DEFAULT_CONFIG_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name DEFAULTCONFIG_CONTROL_PANEL -Value $DEFAULTCONFIG_CONTROL_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name DEFAULT_CHECKALL_CHECKBOX -Value $DEFAULT_CHECKALL_CHECKBOX -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_START_BUTTON -Value $CONFIG_START_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name APP_TAB -Value $APP_TAB -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name APP_LOG_TEXTBOX -Value $APP_LOG_TEXTBOX -MemberType NoteProperty

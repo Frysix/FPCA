@@ -161,24 +161,40 @@ $Null = $UiPowershell.AddScript({
 
                 ### CONFIG TAB HANDLING ###
                 if ($Global:UiHash.REFRESH_CONFIG_PANEL) {
-                    # Generate the default config UI elements.
-                    # Generate the configuration UI controls
-                    . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-DefaultConfiguration-Ui.ps1" -UiHash $Global:UiHash
+                    try {
+                        # Save current scroll position before refresh
+                        $savedScrollX = 0
+                        $savedScrollY = 0
+                        
+                        if ($DEFAULT_CONFIG_PANEL.AutoScrollPosition) {
+                            $savedScrollX = [Math]::Abs($DEFAULT_CONFIG_PANEL.AutoScrollPosition.X)
+                            $savedScrollY = [Math]::Abs($DEFAULT_CONFIG_PANEL.AutoScrollPosition.Y)
+                        }
+                        
+                        # Generate the configuration UI controls
+                        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-DefaultConfiguration-Ui.ps1" -UiHash $Global:UiHash
 
-                    # Clear panel
-                    $DEFAULT_CONFIG_PANEL.Controls.Clear()
+                        # Clear panel
+                        $DEFAULT_CONFIG_PANEL.Controls.Clear()
 
-                    # Add all controls to your panel in order
-                    foreach ($control in $Global:UiHash.ConfigurationControlsOrdered) {
-                        $DEFAULT_CONFIG_PANEL.Controls.Add($control)
+                        # Add all controls to your panel in order
+                        if ($Global:UiHash.ConfigurationControlsOrdered) {
+                            foreach ($control in $Global:UiHash.ConfigurationControlsOrdered) {
+                                if ($control) {
+                                    $DEFAULT_CONFIG_PANEL.Controls.Add($control)
+                                }
+                            }
+                        }
+
+                        if ($savedScrollX -gt 0 -or $savedScrollY -gt 0) {
+                            $DEFAULT_CONFIG_PANEL.AutoScrollPosition = New-Object System.Drawing.Point($savedScrollX, $savedScrollY)
+                        }
+                        
+                    } catch {
+                        Write-Host "Error in CONFIG_TAB refresh: $($_.Exception.Message)"
+                    } finally {
+                        $Global:UiHash.REFRESH_CONFIG_PANEL = $false
                     }
-                    
-                    $Global:UiHash.REFRESH_CONFIG_PANEL = $false
-
-                } elseif ($Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL) {
-                    # Clear the CUSTOM_CONFIG_PANEL controls to remove old UI elements.
-                    $CUSTOM_CONFIG_PANEL.Controls.Clear()
-                    
                 }
 
             } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "APP_TAB") {
@@ -472,23 +488,6 @@ While ($Global:MainHash.MainListener) {
             }
         }
 
-        if ($Global:UiHash.ConfigCheckBoxChanged) {
-            # Reset the ConfigCheckBoxChanged flag to false.
-            $Global:UiHash.ConfigCheckBoxChanged = $false
-
-            # Check the state of each checkbox and update the ConfigCheckBoxStates hashtable accordingly.
-            foreach ($section in $Global:UiHash.DefaultConfigUiObjects.Keys) {
-                $Global:UiHash.ConfigCheckBoxStates[$section] = $Global:UiHash.DefaultConfigUiObjects[$section].CheckBox.Checked
-                if ($Global:UiHash.ConfigCheckBoxStates[$section]) {
-                    # If the checkbox is checked, set the ForeColor to Green.
-                    $Global:UiHash.DefaultConfigUiObjects[$section].CheckBox.ForeColor = [System.Drawing.Color]::Green
-                } else {
-                    # If the checkbox is unchecked, set the ForeColor to Black.
-                    $Global:UiHash.DefaultConfigUiObjects[$section].CheckBox.ForeColor = [System.Drawing.Color]::Black
-                }
-            }
-        }
-
         # UI interaction and event handling.
         # Check if the ButtonClicked flag is set to true in the UiHash.
         if ($Global:UiHash.ConfigButtonClicked) {
@@ -539,23 +538,6 @@ While ($Global:MainHash.MainListener) {
                     Show-TopMostMessageBox -Message "No tasks selected. Please select at least one task to start." -Title "FPCA - No Tasks Selected" -Owner $Global:UiHash.MainForm -Icon "Warning"
                     $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
                 }
-            }
-
-        }
-
-        # Check if the CheckBoxChanged flag is set to true in the UiHash.
-        # If it is set, it means that one or more checkboxes have been changed by the user.
-        if ($Global:UiHash.CheckBoxChanged) {
-            # Reset the CheckBoxChanged flag to false.
-            $Global:UiHash.CheckBoxChanged = $false
-            if ($Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Checked) {
-                # If the Auto Refresh Config checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.AutoRefreshConfig = $true
-            } else {
-                # If the Auto Refresh Config checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.AutoRefreshConfig = $false
             }
 
         }

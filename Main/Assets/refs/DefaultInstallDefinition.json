@@ -1,0 +1,20 @@
+{
+    "Information": {
+        "Name": "Default Install Definition",
+        "Description": "This is the default Install definition file for FPCA.",
+        "Version": "0.1",
+        "Author": "Frysix"
+    },
+    "Installations": {
+        "NVIDIA": {
+            "Links": {
+                "1": "https://us.download.nvidia.com/nvapp/client/11.0.4.526/NVIDIA_app_v11.0.4.526.exe"
+            },
+            "Files": {
+                "AppPath": "C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\CEF",
+                "DownloadFolder": "\\Downloads\\NVIDIA_APP",
+                "DownloadedFile": "NVIDIA_app_v11.0.4.526.exe"
+            }
+        }
+    }
+}

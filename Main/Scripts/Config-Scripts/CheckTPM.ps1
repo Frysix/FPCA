@@ -3,7 +3,9 @@ Param(
     [Parameter(Mandatory=$true)]
     [Hashtable]$Coms,
     [Parameter(Mandatory=$true)]
-    [string]$TaskName
+    [string]$TaskName,
+    [Parameter(Mandatory=$true)]
+    [string]$ScriptRoot
 )
 
 $Coms.Status = "Running"

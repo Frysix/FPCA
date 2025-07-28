@@ -106,7 +106,7 @@ function Start-TaskExecution {
             Try {
                 # Initialize communication channel for this task
                 $TaskHash.CommunicationChannel[$TaskName] = [hashtable]::Synchronized(@{
-                    Status = "Running"
+                    Status = "Initializing"
                     Progress = 0
                     StartTime = Get-Date
                 })
@@ -149,14 +149,10 @@ function Start-TaskExecution {
                     throw "Script file not found: $ScriptPath"
                 }
                 
-                # Update progress
-                $TaskHash.CommunicationChannel[$TaskName].Progress = 10
-                $TaskHash.CommunicationChannel[$TaskName].Status = "Executing script..."
-                
                 # Execute the script
                 if ($ScriptFileName -like "*.ps1") {
                     Write-Host "Executing PowerShell script: $ScriptPath"
-                    . $ScriptPath -Coms $TaskHash.CommunicationChannel[$TaskName] -TaskName $TaskName
+                    . $ScriptPath -Coms $TaskHash.CommunicationChannel[$TaskName] -TaskName $TaskName -ScriptRoot $TaskHash.PSScriptRoot
                 } elseif ($ScriptFileName -like "*.exe") {
                     Write-Host "Executing executable: $ScriptPath"
                     Start-Process -FilePath $ScriptPath -Wait
@@ -396,7 +392,7 @@ While ($Global:TaskHash.TaskListener) {
                     $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = $TaskStatus.Progress
                 }
                 if ($TaskStatus.Comment -ne $Global:UiHash.TaskControls[$taskName].StatusLabel.Text) {
-                    $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Running: $($TaskStatus.Comment)"
+                    $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "$($TaskStatus.Comment)"
                     $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
                 }
             } elseif ($TaskStatus.Status -eq "Completed") {
@@ -409,11 +405,11 @@ While ($Global:TaskHash.TaskListener) {
                 $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Failed: $($TaskStatus.ErrorMessage)"
                 $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Red
                 $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
-                
-                # Debug: Show error message
-                if ($TaskStatus.ErrorMessage) {
-                    Write-Host "Error for task '$taskName': $($TaskStatus.ErrorMessage)" -ForegroundColor Red
-                }
+            } elseif ($TaskStatus.Status -eq "Warning") {
+                $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = 100
+                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Warning! - $($TaskStatus.Comment)"
+                $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Orange
+                $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             }
         } else {
             Write-Host "Task '$taskName' not found in communication channel" -ForegroundColor Red
