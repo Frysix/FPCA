@@ -1,4 +1,4 @@
-# Multi-threaded file downloader with progress tracking
+# Multi-threaded file downloader with progress tracking and redirect support
 # Downloads a file in chunks using parallel runspaces
 Param(
     [Parameter(Mandatory=$true)]
@@ -40,7 +40,63 @@ try {
     }
     
     $Coms.Progress = 5
-    $Coms.Comment = "Checking file size..."
+    $Coms.Comment = "Resolving redirects and checking file size..."
+    
+    # Function to resolve redirects and get final URL
+    function Resolve-RedirectUrl {
+        param([string]$Url, [int]$MaxRedirects = 10)
+        
+        $currentUrl = $Url
+        $redirectCount = 0
+        
+        while ($redirectCount -lt $MaxRedirects) {
+            try {
+                # Create HttpClient with redirect handling disabled
+                $handler = New-Object System.Net.Http.HttpClientHandler
+                $handler.AllowAutoRedirect = $false
+                $client = New-Object System.Net.Http.HttpClient($handler)
+                
+                # Send HEAD request to check for redirects
+                $response = $client.SendAsync((New-Object System.Net.Http.HttpRequestMessage([System.Net.Http.HttpMethod]::Head, $currentUrl))).Result
+                
+                if ($response.StatusCode -in @([System.Net.HttpStatusCode]::MovedPermanently, [System.Net.HttpStatusCode]::Found, [System.Net.HttpStatusCode]::SeeOther, [System.Net.HttpStatusCode]::TemporaryRedirect, [System.Net.HttpStatusCode]::PermanentRedirect, 308)) {
+                    $location = $response.Headers.Location
+                    if ($location) {
+                        if ($location.IsAbsoluteUri) {
+                            $currentUrl = $location.ToString()
+                        } else {
+                            # Handle relative redirects
+                            $baseUri = New-Object System.Uri($currentUrl)
+                            $currentUrl = (New-Object System.Uri($baseUri, $location)).ToString()
+                        }
+                        Write-Host "Redirect $($redirectCount + 1): $currentUrl"
+                        $redirectCount++
+                    } else {
+                        break
+                    }
+                } else {
+                    # No more redirects
+                    break
+                }
+                
+                $client.Dispose()
+                
+            } catch {
+                Write-Host "Error resolving redirect: $($_.Exception.Message)"
+                break
+            }
+        }
+        
+        if ($redirectCount -ge $MaxRedirects) {
+            throw "Too many redirects (>$MaxRedirects)"
+        }
+        
+        return $currentUrl
+    }
+    
+    # Resolve the final URL after all redirects
+    $FinalUrl = Resolve-RedirectUrl -Url $Url
+    Write-Host "Final URL after redirects: $FinalUrl"
     
     # Import InternetHelper module
     $InternetHelperPaths = @(
@@ -66,8 +122,8 @@ try {
         Import-Module "$env:TEMP\InternetHelper.psm1" -Force
     }
     
-    # Get file length
-    $FileLength = Get-HttpFileLength -Url $Url
+    # Get file length using the final URL
+    $FileLength = Get-HttpFileLength -Url $FinalUrl
     if (-not $FileLength -or $FileLength -le 0) {
         throw "Could not determine file size or file is empty"
     }
@@ -83,8 +139,8 @@ try {
         $FileExtension = $OutputFile.Substring($OutputFile.LastIndexOf('.'))
         $OutputFileBase = $OutputFile.Substring(0, $OutputFile.LastIndexOf('.'))
     } else {
-        # Try to determine extension from URL
-        $UrlPath = [System.Uri]::new($Url).LocalPath
+        # Try to determine extension from final URL
+        $UrlPath = [System.Uri]::new($FinalUrl).LocalPath
         if ($UrlPath.Contains('.')) {
             $FileExtension = $UrlPath.Substring($UrlPath.LastIndexOf('.'))
         } else {
@@ -150,12 +206,27 @@ try {
                 $totalBytes = $End - $Start + 1
                 
                 Add-Type -AssemblyName System.Net.Http
-                $client = [System.Net.Http.HttpClient]::new()
+                
+                # Create HttpClient with redirect handling enabled
+                $handler = New-Object System.Net.Http.HttpClientHandler
+                $handler.AllowAutoRedirect = $true
+                $client = New-Object System.Net.Http.HttpClient($handler)
+                
+                # Set timeout to 30 minutes for large chunks
+                $client.Timeout = [TimeSpan]::FromMinutes(30)
+                
                 $request = New-Object System.Net.Http.HttpRequestMessage
                 $request.Method = [System.Net.Http.HttpMethod]::Get
                 $request.RequestUri = [Uri]$Url
                 $request.Headers.Range = New-Object System.Net.Http.Headers.RangeHeaderValue($Start, $End)
+                
                 $response = $client.SendAsync($request, [System.Net.Http.HttpCompletionOption]::ResponseHeadersRead).Result
+                
+                # Check if the response is successful
+                if (-not $response.IsSuccessStatusCode) {
+                    throw "HTTP error: $($response.StatusCode) - $($response.ReasonPhrase)"
+                }
+                
                 $Stream = $response.Content.ReadAsStreamAsync().Result
                 
                 $BufferSize = 1048576 # 1MB
@@ -172,6 +243,7 @@ try {
                 
                 $fileStream.Close()
                 $stream.Close()
+                $response.Dispose()
                 $client.Dispose()
                 $ProgressTable.FinishedCount++
                 
@@ -179,7 +251,7 @@ try {
                 Write-Host "Error in chunk $Chunk`: $($_.Exception.Message)"
                 $ProgressTable["Error$Chunk"] = $_.Exception.Message
             }
-        }).AddArgument($Url).AddArgument($OutputFileBase).AddArgument($FileExtension).AddArgument($Chunk).AddArgument($ChunkRegistry).AddArgument($ProgressTable)
+        }).AddArgument($FinalUrl).AddArgument($OutputFileBase).AddArgument($FileExtension).AddArgument($Chunk).AddArgument($ChunkRegistry).AddArgument($ProgressTable)
         
         $Jobs += $PowerShell.BeginInvoke()
     }

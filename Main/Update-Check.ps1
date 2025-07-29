@@ -8,37 +8,47 @@ $DownloadSites = @{
 }
 $ModuleStatus = $false
 $WasDownloaded = $false
+$DownloadResult = "Failed"
 
 Try {
+    # Check for InternetHelper module
     if (Test-Path -Path "$PSScriptRoot\Helper\InternetHelper.psm1") {
         Import-Module "$PSScriptRoot\Helper\InternetHelper.psm1" -Force
         $ModuleStatus = $true
     } else {
         $ModuleStatus = $false
     }
+    
+    # Basic internet connectivity check
     if (-not (Test-Connection 8.8.8.8 -Count 1 -Quiet)) {
         Throw "No Internet Connection / Unstable Connection."
     }
-    Try {
-        if (-not (Test-Path -path "$env:TEMP\FPCA_Temp")) {
-            New-Item -Path "$env:TEMP\FPCA_Temp" -ItemType Directory -Force | Out-Null
-        }
-        If ($ModuleStatus) {
+    
+    # Create temp directory
+    if (-not (Test-Path -path "$env:TEMP\FPCA_Temp")) {
+        New-Item -Path "$env:TEMP\FPCA_Temp" -ItemType Directory -Force | Out-Null
+    }
+    
+    # Try Method 1: FTP Server with Threaded Installer (if module is available)
+    if ($ModuleStatus) {
+        Try {
             $DownloadSites.FrysixFTPStatus = Get-HttpWebSiteStatus -Url "https://ftp.frysix.com"
             if ($DownloadSites.FrysixFTPStatus) {
                 if (Test-Path -Path "$PSScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1") {
                     $Coms = [hashtable]::Synchronized(@{})
-                    ."$PSScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Coms $Coms -Url "https://fpca-updater.frysix.com" -OutputFile "$env:TEMP\FPCA_Temp\UpdaterPackage.zip" -ChunkNumber 1
-                    if ($Coms.Status -eq "Failed") {
-                        Throw "Download failed"
-                    }
-                    if (Test-Path -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip") {
-                        Expand-Archive -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip" -DestinationPath "$env:TEMP\FPCA_Temp" -Force
-                        if (Test-Path -Path "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat") {
-                            $WasDownloaded = $true
+                    . "$PSScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Coms $Coms -Url "https://fpca-updater.frysix.com" -OutputFile "$env:TEMP\FPCA_Temp\UpdaterPackage" -ChunkNumber 1
+                    
+                    if ($Coms.Status -eq "Completed") {
+                        if (Test-Path -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip") {
+                            Expand-Archive -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip" -DestinationPath "$env:TEMP\FPCA_Temp" -Force
+                            if (Test-Path -Path "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat") {
+                                $WasDownloaded = $true
+                            }
+                        } else {
+                            Throw "Downloaded file not found"
                         }
                     } else {
-                        Throw "Downloaded file not found"
+                        Throw "FTP Download failed"
                     }
                 } else {
                     Throw "Threaded-InstallerV2.ps1 not found"
@@ -46,32 +56,48 @@ Try {
             } else {
                 Throw "FTP Server is not reachable"
             }
-        } else {
-            Throw "Module Not Found"
+        } Catch {
+            # FTP method failed, continue to GitHub fallback
+            Write-Host "FTP method failed: $($_.Exception.Message)"
         }
-    } Catch {
+    }
+    
+    # Method 2: GitHub Fallback (if FTP failed or module not available)
+    if (-not $WasDownloaded) {
         $DownloadSites.GitHubStatus = Test-Connection github.com -Count 1 -Quiet
         if (-not $DownloadSites.GitHubStatus) {
             Throw "GitHub is not reachable"
         }
-        Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/main/UpdaterPackage.zip" -OutFile "$env:TEMP\FPCA_Temp\UpdaterPackager.zip"
+        Write-Host "Downloading updater package from GitHub..."
+        Invoke-WebRequest -Uri "https://github.com/Frysix/FPCA/raw/refs/heads/main/UpdaterPackage.zip" -OutFile "$env:TEMP\FPCA_Temp\UpdaterPackage.zip"
         if (Test-Path -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip") {
             Expand-Archive -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip" -DestinationPath "$env:TEMP\FPCA_Temp" -Force
             if (Test-Path -Path "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat") {
+                Write-Host "Updater package downloaded and extracted successfully."
                 $WasDownloaded = $true
             }
         } else {
             Throw "Downloaded file not found"
         }
-    } Finally {
-        if ($WasDownloaded) {
-            Start-Process -FilePath "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat" -WindowStyle Hidden -Verb RunAs
-            $DownloadResult = "Success"
-        } else {
-            $DownloadResult = "Failed"
-            Throw "The updater could not be downloaded."
-        }
     }
+    
+    # Process results
+    if ($WasDownloaded) {
+        if (Test-Path -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip") {
+            Remove-Item -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip" -Force
+        }
+        
+        # Write to a txt file in the TEMP folder to give relevant information about the active installation and settings.
+        $infoContent = "$PSScriptRoot"
+        $infoContent | Out-File -FilePath "$env:TEMP\FPCA_Temp\OldInstall.txt" -Encoding UTF8 -Force
+        
+        Start-Process -FilePath "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat" -WindowStyle Hidden -Verb RunAs
+        $DownloadResult = "Success"
+    } else {
+        $DownloadResult = "Failed"
+        Throw "The updater could not be downloaded."
+    }
+    
 } Catch {
     $DownloadResult = "Failed"
     Write-Host "Error during update check: $($_.Exception.Message)"

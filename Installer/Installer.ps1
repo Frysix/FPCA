@@ -171,20 +171,21 @@ While ($PathNull) {
 
 Write-Host "Downloading new installation from: $($OnlineInfo['General']['Link'])" -ForegroundColor Cyan
 # Download Threaded-Installer.ps1 from the online repository
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Threaded-Installer.ps1" -OutFile "$env:TEMP\Threaded-Installer.ps1"
-if (-not (Test-Path -Path "$env:TEMP\Threaded-Installer.ps1")) {
-    Write-Host "Failed to download Threaded-Installer.ps1. Exiting installation." -ForegroundColor Red
+Invoke-WebRequest -Uri "https://github.com/Frysix/FPCA/raw/refs/heads/main/Main/Scripts/Install-Scripts/Threaded-InstallerV2.ps1" -OutFile "$env:TEMP\Threaded-InstallerV2.ps1"
+if (-not (Test-Path -Path "$env:TEMP\Threaded-InstallerV2.ps1")) {
+    Write-Host "Failed to download Threaded-InstallerV2.ps1. Exiting installation." -ForegroundColor Red
     Exit
 }
 
 # Start the Threaded-Installer script to download the files
-Write-Host "Starting Threaded-Installer script..." -ForegroundColor Cyan
+Write-Host "Starting Threaded-InstallerV2 script..." -ForegroundColor Cyan
 $loops = 0
 $NotInstalled = $true
 While ($NotInstalled) {
     if ($loops -lt 3) {
         # Launch the Threaded-Installer script with the required parameters
-        & "$env:TEMP\Threaded-Installer.ps1" -Url $OnlineInfo.General.link -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
+        $Coms = [hashtable]::Synchronized(@{})
+        & "$env:TEMP\Threaded-InstallerV2.ps1" -Coms $Coms -Url "https://fpca-app.frysix.com" -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
         # Check if the Threaded-Installer script was successful
         if (test-path -path "$InstallPath\FPCA.zip") {
             Write-Host "Installation completed successfully. Extracting..." -ForegroundColor Green
@@ -249,7 +250,7 @@ foreach ($line in Get-Content "$InstallPath\FPCA\fpca.info") {
 # This segment creates a log file in the TEMP directory with the paths of the files used during the installation.
 # This later helps Start-Check.ps1 delete the temporary files after the installation is complete.
 $LogContent = @(
-    "$env:TEMP\Threaded-Installer.ps1",
+    "$env:TEMP\Threaded-InstallerV2.ps1",
     "$env:TEMP\InternetHelper.psm1",
     "$env:TEMP\Installer.ps1",
     "$env:TEMP\FPCAinstaller.bat"
