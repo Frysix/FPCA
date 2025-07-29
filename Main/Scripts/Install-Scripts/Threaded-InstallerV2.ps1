@@ -3,7 +3,7 @@
 Param(
     [Parameter(Mandatory=$true)]
     [hashtable]$Coms,
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [string]$TaskName,
     [Parameter(Mandatory=$true)]
     [string]$Url,
