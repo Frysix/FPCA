@@ -14,10 +14,8 @@ if (-not (test-path -path "$Psscriptroot\fpca.info")) {
 
 # Gather the app info from fpca.info
 # This segment reads the fpca.info file, which contains relevant information about the application.
-(Get-Content "$Psscriptroot\fpca.info") | Where-Object { $_ -notmatch "^(//)|(^\s*$)" } | ForEach-Object {
-    $key, $value = $_ -split "=", 2
-    $info[$key.Trim()] = if ($value.Trim() -eq "true") { $true } elseif ($value.Trim() -eq "false") { $false } else { $value.Trim() }
-}
+$rawinfo = Get-Content -Path "$PSScriptRoot\fpca.info" 
+$info = $rawinfo | ConvertFrom-StringData
 
 # This part only executes if the application is launched for the first time.
 # It sets the firstlaunch flag to false and records the installation date.
