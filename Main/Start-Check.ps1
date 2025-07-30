@@ -14,57 +14,51 @@ if (-not (test-path -path "$Psscriptroot\fpca.info")) {
 
 # Gather the app info from fpca.info
 # This segment reads the fpca.info file, which contains relevant information about the application.
-$info = @{}
-$section = ""
-foreach ($line in Get-Content "$Psscriptroot\fpca.info") {
-    $line = $line.Trim()
-    if ($line -match "^\s*#|^\s*;|^\s*$") {
-        continue
-    }
-    if ($line -match "^\[(.+)\]$") {
-        $section = $matches[1]
-        $info[$section] = @{}
-    } elseif ($line -match "^(.*?)=(.*)$") {
-        $key = $matches[1].Trim()
-        $value = $matches[2].Trim()
-        if ($section -ne "") {
-            $info[$section][$key] = $value
-        }
-    }
+(Get-Content "$Psscriptroot\fpca.info") | Where-Object { $_ -notmatch "^(//)|(^\s*$)" } | ForEach-Object {
+    $key, $value = $_ -split "=", 2
+    $info[$key.Trim()] = if ($value.Trim() -eq "true") { $true } elseif ($value.Trim() -eq "false") { $false } else { $value.Trim() }
 }
 
 # This part only executes if the application is launched for the first time.
 # It sets the firstlaunch flag to false and records the installation date.
 $IsFirstLaunch = $false
-if ($info['General']['firstlaunch'] -eq "true") {
-
-    $info['General']['firstlaunch'] = "false"
-    $info['General']['installDate'] = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
-
+$WasUpdated = $false
+if ($info['firstlaunch'] -eq "true") {
+    # Update the fpca.info file to set firstlaunch to false and record the installation date.
+    $info['firstlaunch'] = "false"
+    $info['installdate'] = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     $infoContent = [System.Collections.Generic.List[string]]::new()
-    $sectionCount = $info.Keys.Count
-    $sectionIndex = 0
-
-    foreach ($section in $info.Keys) {
-        $infoContent.Add("[$section]")
-        foreach ($key in $info[$section].Keys) {
-            $infoContent.Add("$key=$($info[$section][$key])")
-        }
-        $sectionIndex++
-        # Only add a blank line if not the last section
-        if ($sectionIndex -lt $sectionCount) {
-            $infoContent.Add("")
-        }
-    }
-
-    # Remove the file if it exists
-    if (Test-Path -Path "$PSScriptRoot\fpca.info") {
-        Remove-Item -Path "$PSScriptRoot\fpca.info" -Force -ErrorAction SilentlyContinue
+    foreach ($key in $info.Keys) {
+        $infoContent.Add("$key=$($info[$key])")
     }
     # Write the updated info back to fpca.info file.
-    Set-Content -Path "$PSScriptRoot\fpca.info" -Value $infoContent -Encoding UTF8
+    Set-Content -Path "$PSScriptRoot\fpca.info" -Value $infoContent -Encoding UTF8 -Force
     # Set the IsFirstLaunch flag to true for further processing.
     $IsFirstLaunch = $true
+} elseif ($info['firstlaunch'] -eq "update") {
+    # If the firstlaunch is set to "update", it means the application was updated.
+    # Set the firstlaunch flag to false and record the installation date.
+    $info['firstlaunch'] = "false"
+    $info['installdate'] = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    $infoContent = [System.Collections.Generic.List[string]]::new()
+    foreach ($key in $info.Keys) {
+        $infoContent.Add("$key=$($info[$key])")
+    }
+    # Write the updated info back to fpca.info file.
+    Set-Content -Path "$PSScriptRoot\fpca.info" -Value $infoContent -Encoding UTF8 -Force
+    $WasUpdated = $true
+}
+# Initialize the requireupdate flag to false.
+$RequiresUpdate = $false
+# This section compares the current version with the latest version available on github.
+if (test-connection 8.8.8.8 -count 1 -quiet) {
+    if (test-connection github.com -count 1 -quiet) {
+        $GitInfo = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/fpca.info" -UseBasicParsing
+        $GitInfoContent = $GitInfo.Content | ConvertFrom-StringData
+        if ($GitInfoContent['version'] -ne $info['version']) {
+            $RequiresUpdate = $true
+        }
+    }
 }
 
 # Makes the checks for temp files usually installed during setup and deletes them.
@@ -130,17 +124,26 @@ While ($SettingsNotFetched) {
     $loops++
 }
 
-# Silently update the application if the SilentUpdate setting is true.
-if ($Settings['Startup']['SilentUpdate'] -eq 'true') {
-    # INSERT CODE HERE TO CHECK FOR UPDATES AND APPLY THEM SILENTLY
-} else {
-    # INSERT CODE HERE TO CHECK FOR UPDATES AND PROMPT THE USER IF AN UPDATE IS AVAILABLE
+# This section checks if the application requires an update based on the gathered version information
+if ($RequiresUpdate) {
+    # Silently update the application if the SilentUpdate setting is true.
+    if ($Settings['Startup']['SilentUpdate'] -eq 'true') {
+        $null | Out-File "$Psscriptroot\UpdateApp.txt" -Encoding ASCII -Force
+        Exit
+    } else {
+        # If the setting is false or not set, prompt the user to update the application.
+        $result = [System.Windows.Forms.MessageBox]::Show("Application version: $($info.version), is obselete.`nDo you want to update to version: $($GitInfoContent.version)?","FPCA - (Frysix's Powershell Configurator App)",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Question)
+        if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+            $null | Out-File "$Psscriptroot\UpdateApp.txt" -Encoding ASCII -Force
+            Exit
+        }
+    }
 }
+
 # Checks the integrity of the application files if the IntegrityCheckup setting is true.
 if ($Settings['Startup']['IntegrityCheckup'] -eq 'true') {
     # INSERT CODE HERE TO CHECK THE INTEGRITY OF THE APPLICATION FILES
 }
-
 # If this is the first launch, create a file to indicate that the first launch has occurred.
 if ($IsFirstLaunch) {
     $Null | Out-File "$Psscriptroot\FirstLaunch.txt" -Encoding ASCII -Force

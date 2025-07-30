@@ -1,11 +1,3 @@
-[General]
-link=https://ftp.frysix.com/public/file/r_wb0osawembhff0ufnzia/FPCA.zip
 firstlaunch=true
-version=0.9
+version=0.9.1
 installdate=
-
-[Files]
-main=FPCA-Main.ps1
-start=Start.bat
-startcheck=Start-Check.ps1
-settings=Settings.ini

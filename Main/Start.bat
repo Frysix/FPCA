@@ -11,26 +11,66 @@ if exist "%~dp0\UserIsAdmin.txt" (goto IsAdmin) else (goto NotAdmin)
 REM User is not administrator relaunch script as administrator
 :NotAdmin
 powershell -NoProfile -Executionpolicy Bypass -Command "start-process -WindowStyle Hidden -filepath """%~dp0\Start.bat""" -verb runas"
-Exit
+goto Close
 
 REM User is administrator, proceed with the application launch
-REM Launches PowerShell script to check for updates and start the application
+REM Start App Check Script to determine launch type and update necessity
 :IsAdmin
 powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UserIsAdmin.txt""") {remove-item -path """%~dp0\UserIsAdmin.txt""" -recurse -force}"
 powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\Start-Check.ps1"
 
-REM Check if the file FirstLaunch.txt exists
-if exist "%~dp0\FirstLaunch.txt" (goto FirstLaunch) else (goto NormalLaunch)
+REM Check if the file FirstLaunch.txt exists after running to determine if this is the first launch of the application
+if exist "%~dp0\FirstLaunch.txt" (goto FirstLaunch) else (goto SecondCheck)
 
-REM If the file exists, it is the first launch of the application
+REM Check if the file UpdatedLaunch.txt exists to determine if the script was just updated
+:SecondCheck
+if exist "%~dp0\UpdatedLaunch.txt" (goto UpdatedLaunch) else (goto ThirdCheck)
+
+REM if the file does not exist test if the file UpdateApp.txt exists to determine if the application needs to be updated
+:ThirdCheck
+if exist "%~dp0\UpdateApp.txt" (goto UpdateApp) else (goto NormalLaunch)
+
+REM If the file UpdateApp.txt exists, it indicates that the application needs to be updated
+:UpdateApp
+powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UpdateApp.txt""") {remove-item -path """%~dp0\UpdateApp.txt""" -recurse -force}"
+powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\Update-Check.ps1"
+if exist "%~dp0\UpdaterInstalled.txt" (goto UpdaterInstalled) else (goto UpdateFailedCheck)
+
+REM If the file UpdaterInstalled.txt exists, it indicates that the updater was installed successfully
+REM Cleanup the UpdaterInstalled.txt file
+:UpdaterInstalled
+powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UpdaterInstalled.txt""") {remove-item -path """%~dp0\UpdaterInstalled.txt""" -recurse -force}"
+goto Close
+
+REM If the file UpdaterInstalled.txt does not exist, it indicates that the updater was not installed successfully
+REM Check if the file UpdateFailedLaunch.txt exists to determine if the user wants to launch the application anyway
+:UpdateFailedCheck
+if exist "%~dp0\UpdateFailedLaunch.txt" (goto UpdateFailedLaunch) else (goto Close)
+
+REM If the file UpdateFailedLaunch.txt exists, it indicates that the update check failed but the user wants to launch the application anyway
+:UpdateFailedLaunch
+powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UpdateFailedLaunch.txt""") {remove-item -path """%~dp0\UpdateFailedLaunch.txt""" -recurse -force}"
+powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "UpdateFailedLaunch"
+goto Close
+
+REM If the file UpdatedLaunch.txt exists, it indicates that the script was just updated
+:UpdatedLaunch
+powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UpdatedLaunch.txt""") {remove-item -path """%~dp0\UpdatedLaunch.txt""" -recurse -force}"
+powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "UpdatedLaunch"
+goto Close
+
+REM If the file firstlaunch exists, it is the first launch of the application
 REM Delete the FirstLaunch.txt file and launch the application with the correct argument
 :FirstLaunch
 powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\FirstLaunch.txt""") {remove-item -path """%~dp0\FirstLaunch.txt""" -recurse -force}"
 powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "FirstLaunch"
-Exit
+goto Close
 
 REM Normal launch of the application
 REM If the file does not exist, it is a normal launch
 :NormalLaunch
 powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "NormalLaunch"
+goto Close
+
+:Close
 Exit

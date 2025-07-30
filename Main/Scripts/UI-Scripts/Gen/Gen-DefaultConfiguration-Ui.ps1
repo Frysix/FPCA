@@ -59,20 +59,20 @@ function Restore-ControlStates {
             }
         }
         
-        # After restoring states, update visibility for ComboBox/TextBox sub-controls
+        # After restoring states, update visibility for all sub-controls
         foreach ($controlName in $UiHash.ConfigurationControls.Keys) {
             $control = $UiHash.ConfigurationControls[$controlName]
             
-            # Check if this is a sub-control (ComboBox or TextBox)
-            if ($controlName.EndsWith("_COMBO") -or $controlName.EndsWith("_TEXT")) {
+            # Check if this is a sub-control
+            if ($controlName.EndsWith("_COMBO") -or $controlName.EndsWith("_TEXT") -or $controlName.EndsWith("_INSTALLPANEL")) {
                 # Get the parent checkbox name
-                $parentCheckboxName = $controlName -replace "_COMBO|_TEXT", ""
+                $parentCheckboxName = $controlName -replace "_COMBO|_TEXT|_INSTALLPANEL", ""
                 
                 if ($UiHash.ConfigurationControls.ContainsKey($parentCheckboxName)) {
                     $parentCheckbox = $UiHash.ConfigurationControls[$parentCheckboxName]
                     $control.Visible = $parentCheckbox.Checked
                     
-                    # Handle description visibility - show when sub-control is hidden
+                    # Handle description visibility - show when sub-control is visible
                     $descLabelName = "${controlName}_DESC"
                     if ($UiHash.ConfigurationControls.ContainsKey($descLabelName)) {
                         $UiHash.ConfigurationControls[$descLabelName].Visible = $parentCheckbox.Checked
@@ -142,6 +142,59 @@ function Get-MultiLineTextHeight {
     return [Math]::Max($calculatedHeight, $minHeight)
 }
 
+# Helper function to create install panel
+function Create-InstallPanel {
+    param(
+        [string]$itemName,
+        [int]$xPosition,
+        [int]$yPosition,
+        [bool]$isVisible,
+        [hashtable]$UiHash
+    )
+    
+    # Create panel background
+    $panel = New-Object System.Windows.Forms.Panel
+    $panel.Location = New-Object System.Drawing.Point($xPosition, $yPosition)
+    $panel.Size = New-Object System.Drawing.Size(130, 80)
+    $panel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+    $panel.BackColor = [System.Drawing.Color]::FromArgb(245, 245, 245)
+    $panel.Visible = $isVisible
+    $panel.Name = "${itemName}_INSTALLPANEL"
+    
+    # Create checkboxes for install options
+    $installOptions = @(
+        @{ Name = "PinToDesktop"; Text = "Pin to Desktop"; Y = 5 },
+        @{ Name = "RemindDefault"; Text = "Remind Default"; Y = 25 },
+        @{ Name = "PinToTaskbar"; Text = "Pin to Taskbar"; Y = 45 }
+    )
+    
+    foreach ($option in $installOptions) {
+        $checkbox = New-Object System.Windows.Forms.CheckBox
+        $checkbox.Text = $option.Text
+        $checkbox.Location = New-Object System.Drawing.Point(5, $option.Y)
+        $checkbox.Size = New-Object System.Drawing.Size(120, 18)
+        $checkbox.Font = New-Object System.Drawing.Font("Segoe UI", 8)
+        $checkbox.BackColor = [System.Drawing.Color]::Transparent
+        $checkbox.Name = "${itemName}_${$option.Name}"
+        
+        # Restore preserved state if available
+        if ($UiHash.ContainsKey('PreservedControlStates') -and $UiHash.PreservedControlStates.ContainsKey($checkbox.Name)) {
+            $checkbox.Checked = $UiHash.PreservedControlStates[$checkbox.Name]
+        }
+        
+        # Add event handler
+        $checkbox.Add_CheckedChanged({
+            $Global:UiHash.ConfigurationChanged = $true
+        })
+        
+        # Add to panel and track in UiHash
+        $panel.Controls.Add($checkbox)
+        $UiHash.ConfigurationControls[$checkbox.Name] = $checkbox
+    }
+    
+    return $panel
+}
+
 # Process each section
 foreach ($sectionName in $configSections) {
     $section = $ConfigDefinition.Configuration.$sectionName
@@ -184,6 +237,9 @@ foreach ($sectionName in $configSections) {
             }
         }
         
+        # Check if this is an install section item
+        $isInstallSection = ($sectionName -eq "Install")
+        
         switch ($item.Type) {
             "CheckBox" {
                 $control = New-Object System.Windows.Forms.CheckBox
@@ -203,24 +259,54 @@ foreach ($sectionName in $configSections) {
                 
                 $yPosition += $checkboxHeight + 5
                 
-                # Add description label below CheckBox with auto-sizing
-                $descLabel = New-Object System.Windows.Forms.Label
-                $descLabel.Text = $item.Description
-                $descLabel.Location = New-Object System.Drawing.Point(20, $yPosition)
-                $descLabel.Font = New-Object System.Drawing.Font("Segoe UI", 8)
-                $descLabel.ForeColor = [System.Drawing.Color]::Gray
-                $descLabel.BackColor = [System.Drawing.Color]::Transparent
-                $descLabel.AutoSize = $false
-                $descLabel.MaximumSize = New-Object System.Drawing.Size(170, 0)
+                # Add install panel if this is in install section
+                if ($isInstallSection -and $isChecked) {
+                    $installPanel = Create-InstallPanel -itemName $itemName -xPosition 40 -yPosition $yPosition -isVisible $true -UiHash $UiHash
+                    $UiHash.ConfigurationControlsOrdered.Add($installPanel)
+                    $UiHash.ConfigurationControls["${itemName}_INSTALLPANEL"] = $installPanel
+                    $yPosition += 85
+                } elseif ($isInstallSection) {
+                    # Create placeholder description in install panel position
+                    $placeholderDesc = New-Object System.Windows.Forms.Label
+                    $placeholderDesc.Text = $item.Description
+                    $placeholderDesc.Location = New-Object System.Drawing.Point(40, $yPosition)
+                    $placeholderDesc.Font = New-Object System.Drawing.Font("Segoe UI", 8)
+                    $placeholderDesc.ForeColor = [System.Drawing.Color]::Gray
+                    $placeholderDesc.BackColor = [System.Drawing.Color]::Transparent
+                    $placeholderDesc.AutoSize = $false
+                    $placeholderDesc.MaximumSize = New-Object System.Drawing.Size(130, 0)
+                    $placeholderDesc.Visible = $true
+                    
+                    $descHeight = Get-TextHeight -text $item.Description -font $placeholderDesc.Font -width 130
+                    $placeholderDesc.Size = New-Object System.Drawing.Size(130, $descHeight)
+                    
+                    $placeholderDesc.Name = "${itemName}_PLACEHOLDER_DESC"
+                    $UiHash.ConfigurationControlsOrdered.Add($placeholderDesc)
+                    $UiHash.ConfigurationControls["${itemName}_PLACEHOLDER_DESC"] = $placeholderDesc
+                    
+                    $yPosition += $descHeight + 10
+                }
                 
-                # Calculate required height for the description
-                $descHeight = Get-TextHeight -text $item.Description -font $descLabel.Font -width 170
-                $descLabel.Size = New-Object System.Drawing.Size(170, $descHeight)
-                
-                $descLabel.Name = "${itemName}_DESC"
-                $UiHash.ConfigurationControlsOrdered.Add($descLabel)
-                
-                $yPosition += $descHeight + 10
+                # Add regular description label below CheckBox (for non-install items)
+                if (-not $isInstallSection) {
+                    $descLabel = New-Object System.Windows.Forms.Label
+                    $descLabel.Text = $item.Description
+                    $descLabel.Location = New-Object System.Drawing.Point(20, $yPosition)
+                    $descLabel.Font = New-Object System.Drawing.Font("Segoe UI", 8)
+                    $descLabel.ForeColor = [System.Drawing.Color]::Gray
+                    $descLabel.BackColor = [System.Drawing.Color]::Transparent
+                    $descLabel.AutoSize = $false
+                    $descLabel.MaximumSize = New-Object System.Drawing.Size(170, 0)
+                    
+                    # Calculate required height for the description
+                    $descHeight = Get-TextHeight -text $item.Description -font $descLabel.Font -width 170
+                    $descLabel.Size = New-Object System.Drawing.Size(170, $descHeight)
+                    
+                    $descLabel.Name = "${itemName}_DESC"
+                    $UiHash.ConfigurationControlsOrdered.Add($descLabel)
+                    
+                    $yPosition += $descHeight + 10
+                }
             }
             "ComboBox" {
                 # Create main checkbox for ComboBox with dynamic sizing
@@ -289,7 +375,15 @@ foreach ($sectionName in $configSections) {
                     
                     $yPosition += 30
                     
-                    # Add description label below ComboBox
+                    # Add install panel if this is in install section
+                    if ($isInstallSection) {
+                        $installPanel = Create-InstallPanel -itemName $itemName -xPosition 40 -yPosition $yPosition -isVisible $true -UiHash $UiHash
+                        $UiHash.ConfigurationControlsOrdered.Add($installPanel)
+                        $UiHash.ConfigurationControls["${itemName}_INSTALLPANEL"] = $installPanel
+                        $yPosition += 85
+                    }
+                    
+                    # Add description label below ComboBox/Install Panel
                     $descLabel = New-Object System.Windows.Forms.Label
                     $descLabel.Text = $item.Description
                     $descLabel.Location = New-Object System.Drawing.Point(40, $yPosition)
@@ -387,7 +481,15 @@ foreach ($sectionName in $configSections) {
                     
                     $yPosition += $textHeight + 5
                     
-                    # Add description label below TextBox
+                    # Add install panel if this is in install section
+                    if ($isInstallSection) {
+                        $installPanel = Create-InstallPanel -itemName $itemName -xPosition 40 -yPosition $yPosition -isVisible $true -UiHash $UiHash
+                        $UiHash.ConfigurationControlsOrdered.Add($installPanel)
+                        $UiHash.ConfigurationControls["${itemName}_INSTALLPANEL"] = $installPanel
+                        $yPosition += 85
+                    }
+                    
+                    # Add description label below TextBox/Install Panel
                     $descLabel = New-Object System.Windows.Forms.Label
                     $descLabel.Text = $item.Description
                     $descLabel.Location = New-Object System.Drawing.Point(40, $yPosition)
@@ -443,9 +545,16 @@ foreach ($sectionName in $configSections) {
             # Add event handlers
             switch ($item.Type) {
                 "CheckBox" {
-                    $control.Add_CheckedChanged({
-                        $Global:UiHash.ConfigurationChanged = $true
-                    })
+                    if ($isInstallSection) {
+                        # Special handling for install section - refresh panel
+                        $control.Add_CheckedChanged({
+                            $Global:UiHash.REFRESH_CONFIG_PANEL = $true
+                        })
+                    } else {
+                        $control.Add_CheckedChanged({
+                            $Global:UiHash.ConfigurationChanged = $true
+                        })
+                    }
                 }
                 "ComboBox" {
                     # Main checkbox event handler for ComboBox

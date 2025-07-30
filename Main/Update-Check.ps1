@@ -8,7 +8,7 @@ $DownloadSites = @{
 }
 $ModuleStatus = $false
 $WasDownloaded = $false
-$DownloadResult = "Failed"
+$DownloadSuccess = $false
 
 Try {
     # Check for InternetHelper module
@@ -88,19 +88,26 @@ Try {
         }
         
         # Write to a txt file in the TEMP folder to give relevant information about the active installation and settings.
-        $infoContent = "$PSScriptRoot"
-        $infoContent | Out-File -FilePath "$env:TEMP\FPCA_Temp\OldInstall.txt" -Encoding UTF8 -Force
+        $PSScriptRoot | Out-File -FilePath "$env:TEMP\FPCA_Temp\OldInstallPath.txt" -Encoding UTF8 -Force
         
         Start-Process -FilePath "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat" -WindowStyle Hidden -Verb RunAs
-        $DownloadResult = "Success"
+        $DownloadSuccess = $true
     } else {
-        $DownloadResult = "Failed"
-        Throw "The updater could not be downloaded."
+        $DownloadSuccess = $false
     }
     
 } Catch {
-    $DownloadResult = "Failed"
+    $DownloadSuccess = $false
     Write-Host "Error during update check: $($_.Exception.Message)"
+} Finally {
+    # This section handles the final steps based on the download success. This handles how the Start.bat file will continue after this script was executed.
+    if ($DownloadSuccess) {
+        New-Item -Path "$PSScriptRoot\UpdaterInstalled.txt" -ItemType File -Force | Out-Null
+    } else {
+        Add-Type -AssemblyName System.Windows.Forms
+        $result = [System.Windows.Forms.MessageBox]::Show("Update check failed. Could not install updater package. Do you want to start the Application as is?", "FPCA - Error", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Error)
+        if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+            New-Item -Path "$PSScriptRoot\UpdateFailedLaunch.txt" -ItemType File -Force | Out-Null
+        }
+    }
 }
-
-Return $DownloadResult
