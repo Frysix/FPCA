@@ -53,7 +53,7 @@ if (test-connection 8.8.8.8 -count 1 -quiet) {
     if (test-connection github.com -count 1 -quiet) {
         $GitInfo = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/fpca.info" -UseBasicParsing
         $GitInfoContent = $GitInfo.Content | ConvertFrom-StringData
-        if ($GitInfoContent['version'] -ne $info['version']) {
+        if (-not ($info.version -match $GitInfoContent.version)) {
             $RequiresUpdate = $true
         }
     }

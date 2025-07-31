@@ -168,7 +168,7 @@ While ($NotInstalled) {
 # Read the fpca.info file from the installed directory to prevent issues with version mismatches
 # and to get the start file path and version information.
 Write-Host "Reading fpca.info file from the installed directory..." -ForegroundColor Cyan
-$newrawinfo = Get-Content -Path "$InstallPath\FPCA\fpca.info" -UseBasicParsing
+$newrawinfo = Get-Content -Path "$InstallPath\FPCA\fpca.info"
 $newinfo = $newrawinfo | ConvertFrom-StringData
 
 # Writes the installation log for the files used in the installation
