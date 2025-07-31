@@ -126,7 +126,7 @@ While ($NotInstalled) {
     if ($loops -lt 3) {
         # Launch the Threaded-Installer script with the required parameters
         $Coms = [hashtable]::Synchronized(@{})
-        & "$env:TEMP\Threaded-InstallerV2.ps1" -Coms $Coms -Url "https://fpca-app.frysix.com" -OutputFile "$InstallPath\FPCA" -ChunkNumber 1 -ConnectionLimit 10
+        & "$env:TEMP\Threaded-InstallerV2.ps1" -Coms $Coms -Url "https://fpca-app.frysix.com" -OutputFile "$InstallPath\FPCA.zip" -ChunkNumber 1 -ConnectionLimit 10
         # Check if the Threaded-Installer script was successful
         if (test-path -path "$InstallPath\FPCA.zip") {
             Write-Host "Installation completed successfully. Extracting..." -ForegroundColor Green
@@ -168,7 +168,7 @@ While ($NotInstalled) {
 # Read the fpca.info file from the installed directory to prevent issues with version mismatches
 # and to get the start file path and version information.
 Write-Host "Reading fpca.info file from the installed directory..." -ForegroundColor Cyan
-$newrawinfo = Get-Content -Path "$InstallPath\FPCA\fpca.info"
+$newrawinfo = Get-Content -Path "$InstallPath\FPCA\fpca.info" -UseBasicParsing
 $newinfo = $newrawinfo | ConvertFrom-StringData
 
 # Writes the installation log for the files used in the installation
@@ -191,7 +191,24 @@ Set-Content -Path $LogFilePath -Value $LogContent -Encoding UTF8
 
 # Start the installed script
 Write-Host "Starting installed App Version: $($newinfo['version'])" -ForegroundColor Cyan
-Start-Process -WindowStyle Hidden -FilePath "$InstallPath\FPCA\Start.bat)" -WorkingDirectory "$InstallPath\FPCA" -Verb Runas
+$LaunchFailed = $false
+Try {
+    Start-Process -WindowStyle Hidden -FilePath "$InstallPath\FPCA\Start.bat" -WorkingDirectory "$InstallPath\FPCA" -Verb Runas
+} Catch {
+    Write-Host "Failed to start the FPCA App. Error: $($_.Exception.Message)" -ForegroundColor Red
+    $LaunchFailed = $true
+}
+
+if ($LaunchFailed) {
+    Try {
+        Start-Process explorer.exe -ArgumentList "$InstallPath\FPCA\" -Verb Runas
+    } Catch {
+        Write-Host "Failed to open the FPCA directory. Error: $($_.Exception.Message)" -ForegroundColor Red
+    } Finally {
+        Exit
+    }
+}
+
 # Exit the installer script
 Write-Host "FPCA App launched successfully. Closing installer script in 2 seconds..." -ForegroundColor Green
 Start-Sleep -Seconds 2
