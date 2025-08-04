@@ -292,6 +292,8 @@ While ($MainListernerLoop) {
         if ($Global:UpdaterHash.LatestLog -ne $OldLog -or $Global:UpdaterHash.LatestLog -eq @()) {
             $OldLog = $Global:UpdaterHash.LatestLog
             $Global:UiHash.LIVEINFO_TEXTBOX.AppendText($Global:UpdaterHash.LatestLog)
+            $Global:UiHash.LIVEINFO_TEXTBOX.ScrollToCaret()
+            $Global:UiHash.LIVEINFO_TEXTBOX.Refresh()
             $Global:UpdaterHash.LatestLog = @()
         }
         if ($Global:UpdaterHash.Progress -ne $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value) {
@@ -303,8 +305,7 @@ While ($MainListernerLoop) {
         }
     } elseif ($Global:UpdaterHash.State -eq "Failed") {
         Write-Host "Updater failed with error: $($Global:UpdaterHash.LatestLog)" -ForegroundColor Red
-        $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value = 0
-        $Global:UiHash.PROGRESS_NUM_LABEL.Text = "0%"
+        $Global:UiHash.PROGRESS_NUM_LABEL.Text = "$($Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value)%"
         $Global:UiHash.LIVEINFO_TEXTBOX.Text += "$($Global:UpdaterHash.LatestLog)`r`nUpdate failed.`r`n"
         $Global:UiHash.ClosedBy = "UpdateFailed"
         $Global:UiHash.TIMER.Stop()

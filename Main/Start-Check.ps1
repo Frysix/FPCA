@@ -75,6 +75,10 @@ if (Test-Path -Path $LogFilePath) {
     # After processing all entries, delete the log file itself.
     Remove-Item -Path $LogFilePath -Force -ErrorAction SilentlyContinue
 }
+# Looks for old temp folder and deletes it if it exists.
+if (Test-Path -Path "$env:TEMP\FPCA_Temp") {
+    Remove-Item -Path "$env:TEMP\FPCA_Temp" -Recurse -Force -ErrorAction SilentlyContinue
+}
 
 # This script checks for the existence of Settings.ini in the script's directory.
 # If it exists, it reads the settings; if not, it creates a default Settings.ini file.
