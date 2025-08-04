@@ -16,7 +16,7 @@ REM User is administrator, proceed with the application launch
 REM Start App Check Script to determine launch type and update necessity
 :IsAdmin
 powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UserIsAdmin.txt""") {remove-item -path """%~dp0\UserIsAdmin.txt""" -recurse -force}"
-powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\Updater-Check.ps1"
+powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Updater.ps1"
 goto Close
 
 REM If the script reaches here, it means the Updater-Check script has completed
