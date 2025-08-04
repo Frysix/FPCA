@@ -537,7 +537,7 @@ $Null = $UpdaterPowershell.AddScript({
         # Create a new fpca.info file
         $Global:UpdaterHash.LatestLog += "Creating new fpca.info file...`r`n"
         $NewInfoContent = "version=$($Global:UpdaterHash.Versions.New)`r`n"
-        $NewInfoContent += "firstlaunch=update"
+        $NewInfoContent += "firstlaunch=update`r`n"
         $NewInfoContent += "installdate=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`r`n"
         Set-Content -Path "$InstallPath\fpca.info" -Value $NewInfoContent -Force
         $Global:UpdaterHash.LatestLog += "New fpca.info file created successfully`r`n"
