@@ -237,7 +237,7 @@ $Null = $UpdaterPowershell.AddScript({
         $Global:UpdaterHash.Progress = 6
         if (Test-Path -Path "$($UpdaterHash.PSScriptRoot)\DownloadLinks.json") {
             $Global:UpdaterHash.LatestLog += "Fetching download links from DownloadLinks.json`r`n"
-            $DownloadLinks = Get-Content -Path "$PSScriptRoot\DownloadLinks.json" | ConvertFrom-Json
+            $DownloadLinks = Get-Content -Path "$($UpdaterHash.PSScriptRoot)\DownloadLinks.json" | ConvertFrom-Json
             if ($DownloadLinks.Links.Keys.Count -ne 0) {
                 $Global:UpdaterHash.LatestLog += "Download links fetched successfully`r`n"
                 $Global:UpdaterHash.Progress = 7
@@ -522,6 +522,7 @@ $Null = $UpdaterPowershell.AddScript({
         # Indicate that the update was successful
         $Global:UpdaterHash.State = "Completed"
     } Catch {
+        Start-Sleep -Seconds 3
         $Global:UpdaterHash.State = "Failed"
         $Global:UpdaterHash.LatestLog += "An error ocurred during the updating process: $($_.Exception.Message)`r`n"
         Write-Host $($_.Exception.Message) -ForegroundColor Red
