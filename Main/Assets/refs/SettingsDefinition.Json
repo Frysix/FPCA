@@ -64,15 +64,29 @@
     "Appearance" : {
       "Theme" : {
         "Type" : "ComboBox",
-        "Options" : ["Dark", "Light", "System"],
+        "Options" : ["Dark"],
         "Default" : "Dark",
         "Description" : "The Application's theme"
       },
       "Language": {
       "Type": "ComboBox",
-      "Options": ["EN", "FR"],
+      "Options": ["EN"],
       "Default": "EN",
       "Description": "The Application's display language"
     }
-  }
+  },
+    "Update": {
+      "AlwaysTryFirst": {
+        "Type": "ComboBox",
+        "Options": ["GitHub", "Frysix", "Nordicsrv", "Nyxsky", "Disabled"],
+        "Default": "Disabled",
+        "Description": "From where to always try to get updates first"
+      },
+      "TransferSettings": {
+        "Type": "CheckBox",
+        "Default": "true",
+        "Description": "Transfer settings to the new version during update"
+      }
+    }
+    
 }

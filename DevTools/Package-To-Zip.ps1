@@ -6,12 +6,15 @@ $ParentFolder = Split-Path -Parent $PSScriptRoot
 
 # Set paths
 $Source = "$ParentFolder\main"
+$SourceUpdater = "$ParentFolder\Updater"
 $TempFPCA = "$ParentFolder\FPCA"
 $ZipFile = "$ParentFolder\FPCA.zip"
+$ZipUpdater = "$ParentFolder\UpdaterPackage.zip"
 
 # Remove any existing temp FPCA folder and zip file
 Remove-Item $TempFPCA -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item $ZipFile -Force -ErrorAction SilentlyContinue
+Remove-Item $ZipUpdater -Force -ErrorAction SilentlyContinue
 
 # Create the temp FPCA folder
 New-Item -ItemType Directory -Path $TempFPCA -Force | Out-Null
@@ -21,9 +24,11 @@ Copy-Item "$Source\*" $TempFPCA -Recurse -Force
 
 # Create the zip with FPCA as the root folder
 Compress-Archive -Path $TempFPCA -DestinationPath $ZipFile
+# Create the zip with Updater as the root folder
+Compress-Archive -Path $SourceUpdater -DestinationPath $ZipUpdater
 
 # Wait for a moment to ensure the zip file is created
-Start-Sleep -Seconds 1
+Start-Sleep -Seconds 3
 
 # Clean up temp folder
 Remove-Item $TempFPCA -Recurse -Force

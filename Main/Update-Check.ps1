@@ -88,7 +88,7 @@ Try {
         }
         
         # Write to a txt file in the TEMP folder to give relevant information about the active installation and settings.
-        $PSScriptRoot | Out-File -FilePath "$env:TEMP\FPCA_Temp\OldInstallPath.txt" -Encoding UTF8 -Force
+        $PSScriptRoot | Out-File -FilePath "$env:TEMP\FPCA_Temp\OldInstall.txt" -Encoding UTF8 -Force
         
         Start-Process -FilePath "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat" -WindowStyle Hidden -Verb RunAs
         $DownloadSuccess = $true
