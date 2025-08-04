@@ -10,6 +10,7 @@ $Global:UpdaterHash.PSScriptRoot = $PSScriptRoot
 # Define Bools
 $Global:UiHash.UiLoaded = $false
 $Global:UiHash.UiClosed = $false
+$Global:UpdaterHash.MainListernerLoop = $false
 # Define Strings
 $Global:UiHash.ClosedBy = ""
 $Global:UiHash.UpdaterState = "Initializing"
@@ -133,6 +134,20 @@ $UpdaterPowershell.Runspace = $UpdaterRunspace
 # Load the main updater script
 $Null = $UpdaterPowershell.AddScript({
     ### UPDATER SCRIPT ###
+    # Wait for the UI to load before starting the updater logic
+    $TimeoutCount = 0
+    While ($Global:UpdaterHash.MainListernerLoop -eq $false) {
+        Start-Sleep -Milliseconds 300 # 0.2 seconds refresh
+        # Add a check to handle if the UI is frozen or not responding by adding a timeout
+        if ($TimeoutCount -gt 1000) {
+            $Global:UpdaterHash.State = "Failed"
+            $Global:UpdaterHash.LatestLog += "Updater UI is not responding. Exiting updater script." + "`r`n"
+            Write-Host "Updater UI is not responding. Exiting updater script." -ForegroundColor Red
+            Exit
+        } else {
+            $TimeoutCount++
+        }
+    }
     Try {
         $Global:UpdaterHash.State = "Running"
         $Global:UpdaterHash.LatestLog += "Starting updater script...`r`n"
@@ -264,9 +279,9 @@ While ($Global:UiHash.UiLoaded -eq $false) {
 }
 
 # Set the bool to indicate the main loop is running
-$MainListernerLoop = $true
+$Global:UpdaterHash.MainListernerLoop = $true
 # Main Listener loop to synchronize the UI and updater scripts
-While ($MainListernerLoop) {
+While ($Global:UpdaterHash.MainListernerLoop) {
     Start-Sleep -Milliseconds 50 # 0.05 seconds refresh
     # Check if the UI was closed
     if ($Global:UiHash.UiClosed) {
@@ -297,16 +312,13 @@ While ($MainListernerLoop) {
             $Global:UpdaterHash.LatestLog = @()
         }
         if ($Global:UpdaterHash.Progress -ne $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value) {
-            $Gap = $Global:UpdaterHash.Progress - $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value
-            for ($i = 0; $i -lt $Gap; $i++) {
-                $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value += 1
-                $Global:UiHash.PROGRESS_NUM_LABEL.Text = "$($Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value)%"
-            }
+            $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value = $Global:UpdaterHash.Progress
+            $Global:UiHash.PROGRESS_NUM_LABEL.Text = "$($Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value)%"
         }
     } elseif ($Global:UpdaterHash.State -eq "Failed") {
         Write-Host "Updater failed with error: $($Global:UpdaterHash.LatestLog)" -ForegroundColor Red
         $Global:UiHash.PROGRESS_NUM_LABEL.Text = "$($Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value)%"
-        $Global:UiHash.LIVEINFO_TEXTBOX.Text += "$($Global:UpdaterHash.LatestLog)`r`nUpdate failed.`r`n"
+        $Global:UiHash.LIVEINFO_TEXTBOX.Text += "Update failed:`r`n$($Global:UpdaterHash.LatestLog)`r`n"
         $Global:UiHash.ClosedBy = "UpdateFailed"
         $Global:UiHash.TIMER.Stop()
         [System.Windows.Forms.MessageBox]::Show("An error occurred during the update process. Please check the logs for more details.", "FPCA - Update Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
