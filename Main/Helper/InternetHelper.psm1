@@ -15,21 +15,72 @@ function Get-HttpWebSiteStatus {
     param(
         [cmdletbinding()]
         [parameter(mandatory=$true)]
-        [string]$Url
+        [string]$Url,
+        [parameter(mandatory=$false)]
+        [int]$MaxRedirects = 5,
+        [parameter(mandatory=$false)]
+        [int]$TimeoutSeconds = 30,
+        [parameter(mandatory=$false)]
+        [switch]$ReturnDetails
     )
+    
     # Validate the URL format
     if (-not $Url -or $Url -notmatch '^(http|https)://') {
         throw "Invalid URL format: $Url"
     }
-    # Create a web request to the specified URL
-    $Request = [System.Net.WebRequest]::Create($Url)
-    $Response = $Request.GetResponse()
-    $WebsiteStatus = [int]$Response.StatusCode
-    $Response.Close()
-    if ($WebsiteStatus -eq 200) {
-        return $true
+    
+    $Result = @{
+        IsReachable = $false
+        StatusCode = $null
+        FinalUrl = $null
+        RedirectCount = 0
+        ErrorMessage = $null
+    }
+    
+    try {
+        # Create a web request to the specified URL
+        $Request = [System.Net.HttpWebRequest]::Create($Url)
+        $Request.Method = "HEAD"
+        $Request.AllowAutoRedirect = $true
+        $Request.MaximumAutomaticRedirections = $MaxRedirects
+        $Request.Timeout = $TimeoutSeconds * 1000
+        $Request.UserAgent = "FPCA-Updater/1.0"
+        $Request.KeepAlive = $false
+        $Request.ServicePoint.Expect100Continue = $false
+        
+        # Get the response
+        $Response = $Request.GetResponse()
+        $Result.StatusCode = [int]$Response.StatusCode
+        $Result.FinalUrl = $Response.ResponseUri.ToString()
+        
+        # Calculate redirect count
+        if ($Result.FinalUrl -ne $Url) {
+            $Result.RedirectCount = 1  # Simplified count
+        }
+        
+        $Response.Close()
+        
+        # Determine if reachable based on status code
+        $Result.IsReachable = $Result.StatusCode -in @(200, 301, 302, 303, 307, 308)
+        
+    } catch [System.Net.WebException] {
+        $webEx = $_.Exception
+        $Result.ErrorMessage = $webEx.Message
+        
+        if ($webEx.Response) {
+            $Result.StatusCode = [int]$webEx.Response.StatusCode
+            $Result.IsReachable = $Result.StatusCode -in @(401, 403)  # Server reachable but access denied
+        }
+        
+    } catch [System.Exception] {
+        $Result.ErrorMessage = $_.Exception.Message
+    }
+    
+    # Return simple boolean or detailed object
+    if ($ReturnDetails) {
+        return $Result
     } else {
-        return $false
+        return $Result.IsReachable
     }
 }
 
