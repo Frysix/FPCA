@@ -238,11 +238,10 @@ $Null = $UpdaterPowershell.AddScript({
         if (Test-Path -Path "$($UpdaterHash.PSScriptRoot)\DownloadLinks.json") {
             $Global:UpdaterHash.LatestLog += "Fetching download links from DownloadLinks.json`r`n"
             $DownloadLinks = Get-Content -Path "$($UpdaterHash.PSScriptRoot)\DownloadLinks.json" | ConvertFrom-Json
-            if ($DownloadLinks.Links.Keys.Count -ne 0) {
+            if ($DownloadLinks -ne $null) {
                 $Global:UpdaterHash.LatestLog += "Download links fetched successfully`r`n"
-                $Global:UpdaterHash.Progress = 7
             } else {
-                Throw "DownloadLinks.json file is empty or malformed"
+                Throw "DownloadLinks.json is empty or invalid"
             }
         } else {
             Throw "DownloadLinks.json file not found in script directory"
