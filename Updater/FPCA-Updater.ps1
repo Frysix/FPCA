@@ -543,7 +543,7 @@ $Null = $UpdaterPowershell.AddScript({
         $Global:UpdaterHash.LatestLog += "New fpca.info file created successfully`r`n"
         $Global:UpdaterHash.Progress = 95
         # Give Launch Path to the main loop
-        $Global:UpdaterHash.StartPath = "$InstallPath\Start.bat"
+        $Global:UpdaterHash.StartPath = $InstallPath
         # Indicate that the update was successful
         $Global:UpdaterHash.State = "Completed"
     } Catch {
@@ -635,12 +635,13 @@ While ($Global:UpdaterHash.MainListernerLoop) {
         $Global:UiHash.PROGRESS_NUM_LABEL.Text = "100%"
         $Global:UiHash.LIVEINFO_TEXTBOX.Text += "$($Global:UpdaterHash.LatestLog)`r`nUpdate completed successfully.`r`n"
         $Global:UiHash.ClosedBy = "UpdateFinished"
+        Start-Sleep -Seconds 5
         $Global:UiHash.TIMER.Stop()
         $Global:UiHash.UPDATER_MAIN_FORM.Close()
         While ($Global:UiHash.UiClosed -eq $false) {
             Start-Sleep -Milliseconds 100 # 0.1 seconds refresh
         }
-        Start-Process -FilePath $Global:UpdaterHash.StartPath -WorkingDirectory $InstallPath -WindowStyle Hidden -Verb RunAs
+        Start-Process -FilePath "$($Global:UpdaterHash.StartPath)\Start.bat" -WorkingDirectory $Global:UpdaterHash.StartPath -WindowStyle Hidden -Verb RunAs
         Exit
     } elseif ($Global:UpdaterHash.State -eq "Downloading") {
         Write-Host "Updater is downloading files..." -ForegroundColor Cyan
