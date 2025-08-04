@@ -236,7 +236,7 @@ $Null = $UiPowershell.AddScript({
             # Check the launch type and display a welcome or update message accordingly.
             if ($Global:UiHash.LaunchType -eq 'FirstLaunch') {
                 Show-TopMostMessageBox -Message "Welcome to FPCA!`nVersion: $($Global:UiHash['FPCAInfo']['General']['Version'])`nIf you encounter any bugs, please report them!" -Title "FPCA - Welcome!" -Owner $MAIN_FORM -Icon "Information"
-            } elseif ($Global:UiHash.LaunchType -eq 'UpdateLaunch') {
+            } elseif ($Global:UiHash.LaunchType -eq 'UpdatedLaunch') {
                 Show-TopMostMessageBox -Message "FPCA has been updated to Version: $($Global:UiHash['FPCAInfo']['General']['Version'])!`nPlease check the changelog for more information." -Title "FPCA - Update" -Owner $MAIN_FORM -Icon "Information"
             } elseif ($Global:UiHash.LaunchType -eq 'OutdatedLaunch') {
                 # If the launch type is OutdatedLaunch, it means the version is outdated.

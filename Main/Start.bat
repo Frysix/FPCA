@@ -28,7 +28,11 @@ if exist "%~dp0\UpdatedLaunch.txt" (goto UpdatedLaunch) else (goto ThirdCheck)
 
 REM if the file does not exist test if the file UpdateApp.txt exists to determine if the application needs to be updated
 :ThirdCheck
-if exist "%~dp0\UpdateApp.txt" (goto UpdateApp) else (goto NormalLaunch)
+if exist "%~dp0\UpdateApp.txt" (goto UpdateApp) else (goto FourthCheck)
+
+REM if the file does not exist test if the file OutdatedLaunch.txt exists to determine if the application is outdated
+:FourthCheck
+if exist "%~dp0\OutdatedLaunch.txt" (goto UpdateFailedLaunch) else (goto NormalLaunch)
 
 REM If the file UpdateApp.txt exists, it indicates that the application needs to be updated
 :UpdateApp
@@ -49,8 +53,9 @@ if exist "%~dp0\UpdateFailedLaunch.txt" (goto UpdateFailedLaunch) else (goto Clo
 
 REM If the file UpdateFailedLaunch.txt exists, it indicates that the update check failed but the user wants to launch the application anyway
 :UpdateFailedLaunch
+powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\OutdatedLaunch.txt""") {remove-item -path """%~dp0\OutdatedLaunch.txt""" -recurse -force}"
 powershell -NoProfile -Executionpolicy Bypass -Command "if (test-path -path """%~dp0\UpdateFailedLaunch.txt""") {remove-item -path """%~dp0\UpdateFailedLaunch.txt""" -recurse -force}"
-powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "UpdateFailedLaunch"
+powershell -NoProfile -Executionpolicy Bypass -File "%~dp0\FPCA-Main.ps1" -LaunchType "OutdatedLaunch"
 goto Close
 
 REM If the file UpdatedLaunch.txt exists, it indicates that the script was just updated

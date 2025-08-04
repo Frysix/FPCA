@@ -49,18 +49,6 @@
       "Description": "Number of loops allowed before timout during the main form's load"
     }
   },
-    "Startup" : {
-        "IntegrityCheckup" : {
-            "Type" : "CheckBox",
-            "Default" : "true",
-            "Description" : "Enable file integrity check on startup"
-        },
-        "CheckForUpdates" : {
-            "Type" : "CheckBox",
-            "Default" : "true",
-            "Description" : "Check for new FPCA updates on startup"
-        }
-  },
     "Appearance" : {
       "Theme" : {
         "Type" : "ComboBox",
@@ -96,6 +84,12 @@
         "Type": "CheckBox",
         "Default": "false",
         "Description": "Transfer portable apps to the new version during update"
+      },
+      "UpdateOnStartup": {
+        "Type": "ComboBox",
+        "Options": ["Disabled", "Auto", "Prompt"],
+        "Default": "Auto",
+        "Description": "If new version is available, update on startup"
       }
     }
     

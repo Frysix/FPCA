@@ -129,10 +129,10 @@ While ($SettingsNotFetched) {
 # This section checks if the application requires an update based on the gathered version information
 if ($RequiresUpdate) {
     # Silently update the application if the SilentUpdate setting is true.
-    if ($Settings['Startup']['SilentUpdate'] -eq 'true') {
+    if ($Settings['Update']['UpdateOnStartup'] -eq 'Auto') {
         $null | Out-File "$Psscriptroot\UpdateApp.txt" -Encoding ASCII -Force
         Exit
-    } else {
+    } elseif ($Settings['Update']['UpdateOnStartup'] -eq 'Prompt') {
         # If the setting is false or not set, prompt the user to update the application.
         $result = [System.Windows.Forms.MessageBox]::Show("Application version: $($info.version), is obselete.`nDo you want to update to version: $($GitInfoContent.version)?","FPCA - (Frysix's Powershell Configurator App)",[System.Windows.Forms.MessageBoxButtons]::YesNo,[System.Windows.Forms.MessageBoxIcon]::Question)
         if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
@@ -140,6 +140,7 @@ if ($RequiresUpdate) {
             Exit
         }
     }
+    $OutdatedLaunch = $true
 }
 
 # Checks the integrity of the application files if the IntegrityCheckup setting is true.
@@ -149,9 +150,10 @@ if ($Settings['Startup']['IntegrityCheckup'] -eq 'true') {
 # If this is the first launch, create a file to indicate that the first launch has occurred.
 if ($IsFirstLaunch) {
     $Null | Out-File "$Psscriptroot\FirstLaunch.txt" -Encoding ASCII -Force
-} else {
-    # Ensure FirstLaunch.txt is deleted if not first launch
-    if (Test-Path -Path "$Psscriptroot\FirstLaunch.txt") {
-        Remove-Item -Path "$Psscriptroot\FirstLaunch.txt" -Force -ErrorAction SilentlyContinue
-    }
+} elseif ($WasUpdated) {
+    # If the application was updated, create a file to indicate that the update has occurred.
+    $Null | Out-File "$Psscriptroot\UpdatedLaunch.txt" -Encoding ASCII -Force
+} elseif ($OutdatedLaunch) {
+    # If the application is outdated, create a file to indicate that the application is outdated.
+    $Null | Out-File "$Psscriptroot\OutdatedLaunch.txt" -Encoding ASCII -Force
 }
