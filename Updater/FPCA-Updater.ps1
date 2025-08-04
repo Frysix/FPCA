@@ -69,8 +69,6 @@ $Null = $UiPowershell.AddScript({
             if ($Global:UiHash.Versions.Old -ne $CURRENTVERSION_NUM_LABEL.Text) {
                 $CURRENTVERSION_NUM_LABEL.Text = $Global:UiHash.Versions.Old
             }
-            # Scroll the live info textbox to the bottom
-            $LIVEINFO_TEXTBOX.ScrollToCaret()
         })
 
         # Assign controls to the UiHash
