@@ -233,7 +233,7 @@ $Null = $UpdaterPowershell.AddScript({
 
     } Catch {
         $Global:UpdaterHash.State = "Failed"
-        $Global:UpdaterHash.LatestLog = "An error ocurred during the updating process: $($_.Exception.Message)`r`n"
+        $Global:UpdaterHash.LatestLog += "An error ocurred during the updating process: $($_.Exception.Message)`r`n"
         Write-Host $($_.Exception.Message) -ForegroundColor Red
         Exit
     }
@@ -305,10 +305,10 @@ While ($MainListernerLoop) {
         Write-Host "Updater failed with error: $($Global:UpdaterHash.LatestLog)" -ForegroundColor Red
         $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value = 0
         $Global:UiHash.PROGRESS_NUM_LABEL.Text = "0%"
-        $Global:UiHash.LIVEINFO_TEXTBOX.Text += "$($Global:UpdaterHash.LatestLog)`r`nUpdate failed. Please check the logs for more details.`r`n"
+        $Global:UiHash.LIVEINFO_TEXTBOX.Text += "$($Global:UpdaterHash.LatestLog)`r`nUpdate failed.`r`n"
         $Global:UiHash.ClosedBy = "UpdateFailed"
         $Global:UiHash.TIMER.Stop()
-        Start-Sleep -Seconds 2
+        [System.Windows.Forms.MessageBox]::Show("An error occurred during the update process. Please check the logs for more details.", "FPCA - Update Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         $Global:UiHash.UPDATER_MAIN_FORM.Close()
         While ($Global:UiHash.UiClosed -eq $false) {
             Start-Sleep -Milliseconds 100 # 0.1 seconds refresh
