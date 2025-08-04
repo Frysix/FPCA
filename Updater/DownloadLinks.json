@@ -1,8 +1,19 @@
 {
     "Links": {
-        "Frysix": "https://fpca-app.frysix.com",
-        "Nordicsrv": "",
-        "Nyxsky": "",
-        "Github": ""
+        "Frysix" : {
+            "Url": "https://fpca-app.frysix.com",
+            "Priority": 1
+            },
+        "Nordicsrv": {
+            "Url": "https://ftp.nordicsrv.pro/public/file/9ht0ey5knuen_k83xkxmxg/FPCA.zip",
+            "Priority": 2
+        },
+        "Nyxsky": {
+            "Url": "",
+            "Priority": 4
+        },
+        "Github": {
+            "Url": "https://github.com/Frysix/FPCA/raw/refs/heads/main/FPCA.zip"
+        }
     }
 }

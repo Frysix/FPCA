@@ -86,6 +86,16 @@
         "Type": "CheckBox",
         "Default": "true",
         "Description": "Transfer settings to the new version during update"
+      },
+      "TransferMods": {
+        "Type": "CheckBox",
+        "Default": "false",
+        "Description": "Transfer mods to the new version during update"
+      },
+      "TransferPortableApps": {
+        "Type": "CheckBox",
+        "Default": "false",
+        "Description": "Transfer portable apps to the new version during update"
       }
     }
     

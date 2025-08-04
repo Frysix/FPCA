@@ -217,13 +217,22 @@ $Null = $UpdaterPowershell.AddScript({
         if ($SettingsFound) {
             $Global:UpdaterHash.LatestLog += "Applying found settings...`r`n"
             $UpdateSettings = @{
-                AlwaysGitHubFirst = $Settings['Update']['AlwaysGitHubFirst']
-                TransferSettings = $Settings['Update']['TransferSettings']
+                AlwaysTryFirst = if ($Settings['Update']['AlwaysTryFirst']) { 
+                    $Settings['Update']['AlwaysTryFirst'] 
+                } else { 
+                    "Disabled" 
+                }
+                TransferSettings = if ($Settings['Update']['TransferSettings']) { 
+                    $Settings['Update']['TransferSettings'] 
+                } else { 
+                    "false" 
+                }
             }
+            $Global:UpdaterHash.LatestLog += "User preference: $($UpdateSettings.AlwaysTryFirst)`r`n"
         } else {
             $Global:UpdaterHash.LatestLog += "No settings found, using default settings...`r`n"
             $UpdateSettings = @{
-                AlwaysGitHubFirst = "Disabled"
+                AlwaysTryFirst = "Disabled"
                 TransferSettings = "false"
             }
         }
@@ -231,7 +240,7 @@ $Null = $UpdaterPowershell.AddScript({
         if (Test-Path -Path "$($UpdaterHash.PSScriptRoot)\DownloadLinks.json") {
             $Global:UpdaterHash.LatestLog += "Fetching download links from DownloadLinks.json`r`n"
             $DownloadLinks = Get-Content -Path "$PSScriptRoot\DownloadLinks.json" | ConvertFrom-Json
-            if ($DownloadLinks.Links -ne $null) {
+            if ($DownloadLinks.Links.Keys.Count -ne 0) {
                 $Global:UpdaterHash.LatestLog += "Download links fetched successfully`r`n"
                 $Global:UpdaterHash.Progress = 7
             } else {
@@ -240,12 +249,280 @@ $Null = $UpdaterPowershell.AddScript({
         } else {
             Throw "DownloadLinks.json file not found in script directory"
         }
-        if ($UpdateSettings.AlwaysGitHubFirst -ne "disabled") {
+        # Check if the user has chosen to always try first a specific link
+        # Replace the download section (around lines 250-310) with this enhanced version:
 
-        } else {
+        $DownloadSuccessful = $false
 
+        # Check if user has a preferred download source
+        if ($UpdateSettings.AlwaysTryFirst -ne "Disabled" -and $UpdateSettings.AlwaysTryFirst -ne "GitHub") {
+            $Global:UpdaterHash.LatestLog += "User preference: Always try $($UpdateSettings.AlwaysTryFirst) first`r`n"
+            
+            # Find the user's preferred link
+            $PreferredLink = $DownloadLinks.Links.PSObject.Properties | Where-Object { $_.Name -eq $UpdateSettings.AlwaysTryFirst }
+            
+            if ($PreferredLink) {
+                $LinkName = $PreferredLink.Name
+                $LinkData = $PreferredLink.Value
+                
+                $Global:UpdaterHash.LatestLog += "Testing preferred link: $LinkName`r`n"
+                
+                # Test the preferred link first
+                $Status = Get-HttpWebSiteStatus -Url $LinkData.Url
+                if ($Status) {
+                    $Global:UpdaterHash.LatestLog += "Preferred link $LinkName is reachable, attempting download...`r`n"
+                    $Global:UpdaterHash.State = "Downloading"
+                    
+                    try {
+                        $Global:UpdaterHash.DownloadComs = [hashtable]::Synchronized(@{})
+                        . "$env:TEMP\FPCA_Temp\Threaded-InstallerV2.ps1" -Coms $Global:UpdaterHash.DownloadComs -Url $LinkData.Url -OutputFile "$env:TEMP\FPCA_Temp\FPCA.zip" -ChunkNumber 2
+                        
+                        if ($Global:UpdaterHash.DownloadComs.Status -eq "Completed") {
+                            $Global:UpdaterHash.LatestLog += "Download successful from preferred source: $LinkName`r`n"
+                            $DownloadSuccessful = $true
+                        } else {
+                            $Global:UpdaterHash.LatestLog += "Download failed from preferred source ${LinkName}: $($Global:UpdaterHash.DownloadComs.Comment)`r`n"
+                        }
+                    } catch {
+                        $Global:UpdaterHash.LatestLog += "Error downloading from preferred source ${LinkName}: $($_.Exception.Message)`r`n"
+                    }
+                    
+                    $Global:UpdaterHash.State = "Running"
+                } else {
+                    $Global:UpdaterHash.LatestLog += "Preferred link $LinkName is not reachable`r`n"
+                }
+            } else {
+                $Global:UpdaterHash.LatestLog += "Warning: Preferred source '$($UpdateSettings.AlwaysTryFirst)' not found in download links`r`n"
+            }
         }
 
+        # If preferred source failed or wasn't set, try remaining links in priority order
+        if (-not $DownloadSuccessful) {
+            $Global:UpdaterHash.LatestLog += "Trying remaining download sources in priority order...`r`n"
+            
+            $ReachableLinks = @()
+            
+            # Get all links except GitHub and the already-tried preferred link, then sort by priority
+            $LinksToTest = $DownloadLinks.Links.PSObject.Properties | Where-Object { 
+                $_.Name -ne "GitHub" -and $_.Name -ne $UpdateSettings.AlwaysTryFirst 
+            } | Sort-Object { [int]$_.Value.Priority }
+            
+            $Global:UpdaterHash.LatestLog += "Testing $($LinksToTest.Count) remaining links in priority order...`r`n"
+            
+            # Test remaining links
+            Foreach ($LinkProperty in $LinksToTest) {
+                $LinkName = $LinkProperty.Name
+                $LinkData = $LinkProperty.Value
+                
+                $Global:UpdaterHash.LatestLog += "Testing link: $LinkName (Priority: $($LinkData.Priority))`r`n"
+                
+                # Test the link URL
+                $Status = Get-HttpWebSiteStatus -Url $LinkData.Url
+                if ($Status) {
+                    $Global:UpdaterHash.LatestLog += "Link $LinkName is reachable`r`n"
+                    $ReachableLinks += [PSCustomObject]@{
+                        Name = $LinkName
+                        Url = $LinkData.Url
+                        Priority = [int]$LinkData.Priority
+                    }
+                } else {
+                    $Global:UpdaterHash.LatestLog += "Link $LinkName is not reachable`r`n"
+                }
+                
+                $Global:UpdaterHash.Progress += 1
+            }
+            
+            # Sort reachable links by priority for download order
+            $ReachableLinks = $ReachableLinks | Sort-Object Priority
+            $Global:UpdaterHash.LatestLog += "Found $($ReachableLinks.Count) additional reachable links in priority order`r`n"
+            
+            # Try downloading from each reachable link
+            if ($ReachableLinks.Count -gt 0) {
+                $Global:UpdaterHash.State = "Downloading"
+                
+                foreach ($Link in $ReachableLinks) {
+                    if (-not $DownloadSuccessful) {
+                        $Global:UpdaterHash.LatestLog += "Attempting download from: $($Link.Name) (Priority: $($Link.Priority))`r`n"
+                        
+                        try {
+                            $Global:UpdaterHash.DownloadComs = [hashtable]::Synchronized(@{})
+                            . "$env:TEMP\FPCA_Temp\Threaded-InstallerV2.ps1" -Coms $Global:UpdaterHash.DownloadComs -Url $Link.Url -OutputFile "$env:TEMP\FPCA_Temp\FPCA.zip" -ChunkNumber 2
+                            
+                            if ($Global:UpdaterHash.DownloadComs.Status -eq "Completed") {
+                                $Global:UpdaterHash.LatestLog += "Download successful from $($Link.Name)`r`n"
+                                $DownloadSuccessful = $true
+                            } else {
+                                $Global:UpdaterHash.LatestLog += "Download failed from $($Link.Name): $($Global:UpdaterHash.DownloadComs.Comment)`r`n"
+                            }
+                        } catch {
+                            $Global:UpdaterHash.LatestLog += "Error downloading from $($Link.Name): $($_.Exception.Message)`r`n"
+                        }
+                    }
+                }
+                
+                $Global:UpdaterHash.State = "Running"
+            }
+        }
+
+        # GitHub fallback (if all other sources failed)
+        if (-not $DownloadSuccessful) {
+            $Global:UpdaterHash.LatestLog += "All priority links failed, falling back to GitHub...`r`n"
+            
+            # Check if GitHub is reachable
+            $GitHubReachable = Test-Connection github.com -Count 1 -Quiet
+            if ($GitHubReachable) {
+                $Global:UpdaterHash.LatestLog += "GitHub is reachable, attempting download...`r`n"
+                $Global:UpdaterHash.State = "Downloading"
+                
+                try {
+                    # GitHub download using direct Invoke-WebRequest
+                    $GitHubUrl = $DownloadLinks.Links.GitHub.Url
+                    $OutputPath = "$env:TEMP\FPCA_Temp\FPCA.zip"
+                    
+                    $Global:UpdaterHash.LatestLog += "Downloading from GitHub: $GitHubUrl`r`n"
+                    Invoke-WebRequest -Uri $GitHubUrl -OutFile $OutputPath
+                    
+                    if (Test-Path $OutputPath) {
+                        $Global:UpdaterHash.LatestLog += "Download successful from GitHub`r`n"
+                        $DownloadSuccessful = $true
+                    } else {
+                        $Global:UpdaterHash.LatestLog += "GitHub download failed - file not found`r`n"
+                    }
+                    
+                } catch {
+                    $Global:UpdaterHash.LatestLog += "Error downloading from GitHub: $($_.Exception.Message)`r`n"
+                }
+                
+                $Global:UpdaterHash.State = "Running"
+            } else {
+                $Global:UpdaterHash.LatestLog += "GitHub is not reachable`r`n"
+            }
+        }
+
+        # Final check
+        if (-not $DownloadSuccessful) {
+            Throw "Failed to download the update from all available sources"
+        } else {
+            $Global:UpdaterHash.LatestLog += "Download phase completed successfully`r`n"
+            $Global:UpdaterHash.Progress = 50
+        }
+        # Extract the downloaded file
+        $Global:UpdaterHash.LatestLog += "Extracting downloaded file...`r`n"
+        $ExtractPath = "$env:TEMP\FPCA_Temp\"
+        if (Test-Path -Path "$env:TEMP\FPCA_Temp\FPCA.zip") {
+            Expand-Archive -Path "$env:TEMP\FPCA_Temp\FPCA.zip" -DestinationPath $ExtractPath -Force
+            $Global:UpdaterHash.LatestLog += "Extraction completed successfully`r`n"
+            $Global:UpdaterHash.Progress = 60
+        } else {
+            Throw "Downloaded file not found at $env:TEMP\FPCA_Temp\FPCA.zip"
+        }
+
+        # Check if the setting to transfer settings is enabled
+        if ($UpdateSettings.TransferSettings -eq "true") {
+            $Global:UpdaterHash.LatestLog += "Transferring settings from old installation...`r`n"
+            # Transfer settings from old installation
+            if (Test-Path -Path "$InstallPath\Settings.ini") {
+                $NewSettings = @{}
+                $section = ""
+                foreach ($line in Get-Content "$ExtractPath\FPCA\Settings.ini") {
+                    $line = $line.Trim()
+                    if ($line -match "^\s*#|^\s*;|^\s*$") {
+                        continue
+                    }
+                    if ($line -match "^\[(.+)\]$") {
+                        $section = $matches[1]
+                        $NewSettings[$section] = @{}
+                    } elseif ($line -match "^(.*?)=(.*)$") {
+                        $key = $matches[1].Trim()
+                        $value = $matches[2].Trim()
+                        if ($section -ne "") {
+                            $NewSettings[$section][$key] = $value
+                        }
+                    }
+                }
+                if ($NewSettings -ne $null) {
+                    $Global:UpdaterHash.LatestLog += "Settings transferred successfully`r`n"
+                    # Once the new settings are parsed, replace existing Entries in NewSettings with old settings and write to the new Settings.ini file
+                    foreach ($section in $NewSettings.Keys) {
+                        if ($Settings[$section]) {
+                            foreach ($key in $Settings[$section].Keys) {
+                                $NewSettings[$section][$key] = $Settings[$section][$key]
+                            }
+                        }
+                    }
+                    # Write the new settings to the new Settings.ini file
+                    $NewSettingsContent = ""
+                    foreach ($section in $NewSettings.Keys) {
+                        $NewSettingsContent += "[$section]`r`n"
+                        foreach ($key in $NewSettings[$section].Keys) {
+                            $NewSettingsContent += "$key=$($NewSettings[$section][$key])`r`n"
+                        }
+                        $NewSettingsContent += "`r`n"
+                    }
+                    Set-Content -Path "$ExtractPath\FPCA\Settings.ini" -Value $NewSettingsContent -Force
+                    $Global:UpdaterHash.LatestLog += "New Settings.ini file created successfully`r`n"
+                } else {
+                    Throw "Failed to parse new Settings.ini file"
+                }
+            } else {
+                Throw "Can't find new Settings.ini file."
+            }
+        } else {
+            $Global:UpdaterHash.LatestLog += "Transfer settings option is disabled, skipping transfer`r`n"
+        }
+        $Global:UpdaterHash.Progress = 65
+
+        # Check if the setting to transfer Mods is enabled
+        if ($UpdateSettings.TransferMods -eq "true") {
+            $Global:UpdaterHash.LatestLog += "Transferring Mods from old installation...`r`n"
+            # Transfer Mods from old installation
+        } else {
+            $Global:UpdaterHash.LatestLog += "Transfer Mods option is disabled, skipping transfer`r`n"
+        }
+        $Global:UpdaterHash.Progress = 70
+
+        # Check if the setting to transfer PortableApps is enabled
+        if ($UpdateSettings.TransferPortableApps -eq "true") {
+            $Global:UpdaterHash.LatestLog += "Transferring PortableApps from old installation...`r`n"
+            # Transfer PortableApps from old installation
+        } else {
+            $Global:UpdaterHash.LatestLog += "Transfer PortableApps option is disabled, skipping transfer`r`n"
+        }
+        $Global:UpdaterHash.Progress = 75
+
+        # Delete the old installation
+        $Global:UpdaterHash.LatestLog += "Deleting old installation...`r`n"
+        if (Test-Path -Path $InstallPath) {
+            Remove-Item -Path $InstallPath -Recurse -Force
+            $Global:UpdaterHash.LatestLog += "Old installation deleted successfully`r`n"
+        } else {
+            $Global:UpdaterHash.LatestLog += "Old installation path does not exist, skipping deletion`r`n"
+        }
+        $Global:UpdaterHash.Progress = 80
+        # Move the new installation to the old installation path
+        $Global:UpdaterHash.LatestLog += "Moving new installation to old installation path...`r`n"
+        if (Test-Path -Path "$ExtractPath\FPCA") {
+            Move-Item -Path "$ExtractPath\FPCA" -Destination $InstallPath -Force
+            $Global:UpdaterHash.LatestLog += "New installation moved successfully to $InstallPath`r`n"
+        } else {
+            Throw "New installation folder not found at $ExtractPath\FPCA"
+        }
+        $Global:UpdaterHash.Progress = 90
+        # Create a new fpca.info file
+        $Global:UpdaterHash.LatestLog += "Creating new fpca.info file...`r`n"
+        $NewInfoContent = "version=$($Global:UpdaterHash.Versions.New)`r`n"
+        $NewInfoContent += "firstlaunch=update"
+        $NewInfoContent += "installdate=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`r`n"
+        Set-Content -Path "$InstallPath\fpca.info" -Value $NewInfoContent -Force
+        $Global:UpdaterHash.LatestLog += "New fpca.info file created successfully`r`n"
+        $Global:UpdaterHash.Progress = 95
+        # Launching the new installation
+        $Global:UpdaterHash.LatestLog += "Launching the new installation...`r`n"
+        Start-Process -FilePath "$InstallPath\Start.bat" -WorkingDirectory $InstallPath -WindowStyle Hidden -Verb RunAs
+        $Global:UpdaterHash.LatestLog += "New installation launched successfully`r`n"
+        $Global:UpdaterHash.Progress = 100
+        # Indicate that the update was successful
+        $Global:UpdaterHash.State = "Completed"
     } Catch {
         $Global:UpdaterHash.State = "Failed"
         $Global:UpdaterHash.LatestLog += "An error ocurred during the updating process: $($_.Exception.Message)`r`n"
@@ -304,7 +581,7 @@ While ($Global:UpdaterHash.MainListernerLoop) {
     }
     # Update the UI with the current state of the updater
     if ($Global:UpdaterHash.State -eq "Running") {
-        if ($Global:UpdaterHash.LatestLog -ne $OldLog -or $Global:UpdaterHash.LatestLog -eq @()) {
+        if ($Global:UpdaterHash.LatestLog -ne $OldLog -or $Global:UpdaterHash.LatestLog -ne @()) {
             $OldLog = $Global:UpdaterHash.LatestLog
             $Global:UiHash.LIVEINFO_TEXTBOX.AppendText($Global:UpdaterHash.LatestLog)
             $Global:UiHash.LIVEINFO_TEXTBOX.ScrollToCaret()
@@ -317,11 +594,12 @@ While ($Global:UpdaterHash.MainListernerLoop) {
         }
     } elseif ($Global:UpdaterHash.State -eq "Failed") {
         Write-Host "Updater failed with error: $($Global:UpdaterHash.LatestLog)" -ForegroundColor Red
-        $Global:UiHash.PROGRESS_NUM_LABEL.Text = "$($Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value)%"
+        $Global:UiHash.PROGRESS_NUM_LABEL.Text = "$($Global:UpdaterHash.Progress)%"
+        $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value = 0
         $Global:UiHash.LIVEINFO_TEXTBOX.Text += "Update failed:`r`n$($Global:UpdaterHash.LatestLog)`r`n"
+        [System.Windows.Forms.MessageBox]::Show("An error occurred during the update process.", "FPCA - Update Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         $Global:UiHash.ClosedBy = "UpdateFailed"
         $Global:UiHash.TIMER.Stop()
-        [System.Windows.Forms.MessageBox]::Show("An error occurred during the update process. Please check the logs for more details.", "FPCA - Update Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         $Global:UiHash.UPDATER_MAIN_FORM.Close()
         While ($Global:UiHash.UiClosed -eq $false) {
             Start-Sleep -Milliseconds 100 # 0.1 seconds refresh
@@ -334,11 +612,25 @@ While ($Global:UpdaterHash.MainListernerLoop) {
         $Global:UiHash.LIVEINFO_TEXTBOX.Text += "$($Global:UpdaterHash.LatestLog)`r`nUpdate completed successfully.`r`n"
         $Global:UiHash.ClosedBy = "UpdateFinished"
         $Global:UiHash.TIMER.Stop()
-        Start-Sleep -Seconds 2
+        Start-Sleep -Seconds 4
         $Global:UiHash.UPDATER_MAIN_FORM.Close()
         While ($Global:UiHash.UiClosed -eq $false) {
             Start-Sleep -Milliseconds 100 # 0.1 seconds refresh
         }
         Exit
+    } elseif ($Global:UpdaterHash.State -eq "Downloading") {
+        Write-Host "Updater is downloading files..." -ForegroundColor Cyan
+        $Global:UiHash.LIVESTATUS_TEXT_LABEL.Text = "Downloading..."
+        $lines = $Global:UiHash.LIVEINFO_TEXTBOX.Text -split "`r`n"
+        $lastLineIndex = $lines.Length - 1
+        if ($lines[$lastLineIndex] -match "Downloading...") {
+            $lines[$lastLineIndex] = $($Global:UpdaterHash.DownloadComs.Comment)
+            $Global:UiHash.LIVEINFO_TEXTBOX.Text = $lines -join "`r`n"
+            $Global:UiHash.LIVEINFO_TEXTBOX.ScrollToCaret()
+        } else {
+            $Global:UiHash.LIVEINFO_TEXTBOX.Text += "`r`nDownloading..."
+        }
+    } else {
+        Write-Host "Updater is in an unknown state: $($Global:UpdaterHash.State)" -ForegroundColor Yellow
     }
 }

@@ -18,7 +18,7 @@ Import-Module -Name "$PSScriptRoot\Helper\InternetHelper.psm1" -Force
 Import-Module -Name "$PSScriptRoot\Helper\InfoHelper.psm1" -Force
 
 # Get info from the fpca.info file
-$Global:MainHash.FPCAInfo = Get-FromUTF8File -FilePath "$PSScriptRoot\fpca.info"
+$Global:MainHash.FPCAInfo = Get-Content -Path "$PSScriptRoot\fpca.info" | ConvertFrom-StringData
 # Get settings from the Settings.ini file
 $Global:MainHash.FPCASettings = Get-FromUTF8File -FilePath "$PSScriptRoot\Settings.ini"
 # Set default values in the HashTables.
@@ -230,7 +230,7 @@ $Null = $UiPowershell.AddScript({
         $MAIN_FORM.Add_Load({
             # This block is executed when the main form is loaded.
             # Set the version number label text to the version from the FPCAInfo.
-            $VERSION_NUMBER_LABEL.Text = $Global:UiHash.FPCAInfo.General.Version
+            $VERSION_NUMBER_LABEL.Text = $Global:UiHash.FPCAInfo.version
             $VERSION_LABEL.ForeColor = [System.Drawing.Color]::Green
             $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::Green
             # Check the launch type and display a welcome or update message accordingly.
