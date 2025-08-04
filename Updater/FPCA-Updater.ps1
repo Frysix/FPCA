@@ -542,11 +542,8 @@ $Null = $UpdaterPowershell.AddScript({
         Set-Content -Path "$InstallPath\fpca.info" -Value $NewInfoContent -Force
         $Global:UpdaterHash.LatestLog += "New fpca.info file created successfully`r`n"
         $Global:UpdaterHash.Progress = 95
-        # Launching the new installation
-        $Global:UpdaterHash.LatestLog += "Launching the new installation...`r`n"
-        Start-Process -FilePath "$InstallPath\Start.bat" -WorkingDirectory $InstallPath -WindowStyle Hidden -Verb RunAs
-        $Global:UpdaterHash.LatestLog += "New installation launched successfully`r`n"
-        $Global:UpdaterHash.Progress = 100
+        # Give Launch Path to the main loop
+        $Global:UpdaterHash.StartPath = "$InstallPath\Start.bat"
         # Indicate that the update was successful
         $Global:UpdaterHash.State = "Completed"
     } Catch {
@@ -639,11 +636,11 @@ While ($Global:UpdaterHash.MainListernerLoop) {
         $Global:UiHash.LIVEINFO_TEXTBOX.Text += "$($Global:UpdaterHash.LatestLog)`r`nUpdate completed successfully.`r`n"
         $Global:UiHash.ClosedBy = "UpdateFinished"
         $Global:UiHash.TIMER.Stop()
-        Start-Sleep -Seconds 4
         $Global:UiHash.UPDATER_MAIN_FORM.Close()
         While ($Global:UiHash.UiClosed -eq $false) {
             Start-Sleep -Milliseconds 100 # 0.1 seconds refresh
         }
+        Start-Process -FilePath $Global:UpdaterHash.StartPath -WorkingDirectory $InstallPath -WindowStyle Hidden -Verb RunAs
         Exit
     } elseif ($Global:UpdaterHash.State -eq "Downloading") {
         Write-Host "Updater is downloading files..." -ForegroundColor Cyan
