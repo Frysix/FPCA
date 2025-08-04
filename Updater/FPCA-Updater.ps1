@@ -98,7 +98,6 @@ $Null = $UiPowershell.AddScript({
             $Global:UiHash.UiClosed = $true
         } elseif ($Global:UiHash.ClosedBy -eq "UpdateFailed") {
             # If the update failed, show a message box
-            [System.Windows.Forms.MessageBox]::Show("Update failed. Please try again later.", "FPCA - Update Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
             $Global:UiHash.UiClosed = $true
         } else {
             # If the user cancelled the update, show a message box
@@ -246,8 +245,37 @@ $Null = $UpdaterPowershell.AddScript({
         } else {
             Throw "DownloadLinks.json file not found in script directory"
         }
-        # Check if the user has chosen to always try first a specific link
-        # Replace the download section (around lines 250-310) with this enhanced version:
+        
+        if ($UpdateSettings.AlwaysTryFirst -ne "GitHub") {
+            # Get required modules and scripts
+            $Global:UpdaterHash.LatestLog += "Checking for required modules and scripts...`r`n"
+            if (Test-Path -Path "$env:TEMP\FPCA_Temp\InternetHelper.psm1") {
+                $Global:UpdaterHash.LatestLog += "InternetHelper.psm1 found in TEMP folder`r`n"
+            } else {
+                $Global:UpdaterHash.LatestLog += "InternetHelper.psm1 not found in TEMP folder, downloading...`r`n"
+                Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Helper/InternetHelper.psm1" -OutFile "$env:TEMP\FPCA_Temp\InternetHelper.psm1"
+                if (Test-Path -Path "$env:TEMP\FPCA_Temp\InternetHelper.psm1") {
+                    $Global:UpdaterHash.LatestLog += "InternetHelper.psm1 downloaded successfully`r`n"
+                } else {
+                    $UpdateSettings.AlwaysTryFirst = "GitHub"
+                    $Global:UpdaterHash.LatestLog += "Failed to download InternetHelper.psm1, switching to GitHub fallback`r`n"
+                }
+            }
+        }
+        if ($UpdateSettings.AlwaysTryFirst -ne "GitHub") {
+            if (Test-Path -Path "$env:TEMP\FPCA_Temp\Threaded-InstallerV2.ps1") {
+                $Global:UpdaterHash.LatestLog += "Threaded-InstallerV2.ps1 found in TEMP folder`r`n"
+            } else {
+                $Global:UpdaterHash.LatestLog += "Threaded-InstallerV2.ps1 not found in TEMP folder, downloading...`r`n"
+                Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Scripts/Install-Scripts/Threaded-InstallerV2.ps1" -OutFile "$env:TEMP\FPCA_Temp\Threaded-InstallerV2.ps1"
+                if (Test-Path -Path "$env:TEMP\FPCA_Temp\Threaded-InstallerV2.ps1") {
+                    $Global:UpdaterHash.LatestLog += "Threaded-InstallerV2.ps1 downloaded successfully`r`n"
+                } else {
+                    $UpdateSettings.AlwaysTryFirst = "GitHub"
+                    $Global:UpdaterHash.LatestLog += "Failed to download Threaded-InstallerV2.ps1, switching to GitHub fallback`r`n"
+                }
+            }
+        }
 
         $DownloadSuccessful = $false
 
