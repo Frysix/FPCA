@@ -255,7 +255,8 @@ $Null = $UpdaterPowershell.AddScript({
                 $Global:UpdaterHash.LatestLog += "InternetHelper.psm1 not found in TEMP folder, downloading...`r`n"
                 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Frysix/FPCA/refs/heads/main/Main/Helper/InternetHelper.psm1" -OutFile "$env:TEMP\FPCA_Temp\InternetHelper.psm1"
                 if (Test-Path -Path "$env:TEMP\FPCA_Temp\InternetHelper.psm1") {
-                    $Global:UpdaterHash.LatestLog += "InternetHelper.psm1 downloaded successfully`r`n"
+                    Import-Module -Name "$env:TEMP\FPCA_Temp\InternetHelper.psm1" -Force
+                    $Global:UpdaterHash.LatestLog += "InternetHelper.psm1 downloaded and imported successfully`r`n"
                 } else {
                     $UpdateSettings.AlwaysTryFirst = "GitHub"
                     $Global:UpdaterHash.LatestLog += "Failed to download InternetHelper.psm1, switching to GitHub fallback`r`n"
