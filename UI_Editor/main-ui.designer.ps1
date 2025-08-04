@@ -55,11 +55,13 @@ $SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MAIN_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $CONFIG_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $CUSTOMCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$CUSTOM_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $PROFILECONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $CUSTOM_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $DEFAULT_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $DEFAULTCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$DEFAULT_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $CONFIG_START_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $APP_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $APP_LOG_TEXTBOX = (New-Object -TypeName System.Windows.Forms.RichTextBox)
@@ -71,8 +73,6 @@ $TOOLS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $INFO_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$DEFAULT_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$CUSTOM_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
@@ -295,6 +295,16 @@ $CUSTOMCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -Ar
 $CUSTOMCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]31
 $CUSTOMCONFIG_CONTROL_PANEL.add_Paint($CUSTOMCONFIG_CONTROL_PANEL_Paint)
 #
+#CUSTOM_CHECKALL_CHECKBOX
+#
+$CUSTOM_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$CUSTOM_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
+$CUSTOM_CHECKALL_CHECKBOX.Name = [System.String]'CUSTOM_CHECKALL_CHECKBOX'
+$CUSTOM_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
+$CUSTOM_CHECKALL_CHECKBOX.TabIndex = [System.Int32]27
+$CUSTOM_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
+$CUSTOM_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
+#
 #AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
 #
 $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
@@ -345,6 +355,16 @@ $DEFAULTCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Poi
 $DEFAULTCONFIG_CONTROL_PANEL.Name = [System.String]'DEFAULTCONFIG_CONTROL_PANEL'
 $DEFAULTCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
 $DEFAULTCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]24
+#
+#DEFAULT_CHECKALL_CHECKBOX
+#
+$DEFAULT_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
+$DEFAULT_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
+$DEFAULT_CHECKALL_CHECKBOX.Name = [System.String]'DEFAULT_CHECKALL_CHECKBOX'
+$DEFAULT_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
+$DEFAULT_CHECKALL_CHECKBOX.TabIndex = [System.Int32]0
+$DEFAULT_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
+$DEFAULT_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
 #
 #CONFIG_START_BUTTON
 #
@@ -465,30 +485,10 @@ $VERSION_NUMBER_LABEL.Font = (New-Object -TypeName System.Drawing.Font -Argument
 $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::White
 $VERSION_NUMBER_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]722,[System.Int32]8))
 $VERSION_NUMBER_LABEL.Name = [System.String]'VERSION_NUMBER_LABEL'
-$VERSION_NUMBER_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]29,[System.Int32]25))
+$VERSION_NUMBER_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]38,[System.Int32]25))
 $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
-$VERSION_NUMBER_LABEL.Text = [System.String]'0.0'
+$VERSION_NUMBER_LABEL.Text = [System.String]'0.0.0'
 $VERSION_NUMBER_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-#
-#DEFAULT_CHECKALL_CHECKBOX
-#
-$DEFAULT_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$DEFAULT_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
-$DEFAULT_CHECKALL_CHECKBOX.Name = [System.String]'DEFAULT_CHECKALL_CHECKBOX'
-$DEFAULT_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
-$DEFAULT_CHECKALL_CHECKBOX.TabIndex = [System.Int32]0
-$DEFAULT_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
-$DEFAULT_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
-#
-#CUSTOM_CHECKALL_CHECKBOX
-#
-$CUSTOM_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$CUSTOM_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
-$CUSTOM_CHECKALL_CHECKBOX.Name = [System.String]'CUSTOM_CHECKALL_CHECKBOX'
-$CUSTOM_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
-$CUSTOM_CHECKALL_CHECKBOX.TabIndex = [System.Int32]27
-$CUSTOM_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
-$CUSTOM_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
 #
 #MAIN_FORM
 #

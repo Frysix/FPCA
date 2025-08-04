@@ -144,9 +144,6 @@ $MAIN_UPDATE_PROGRESSBAR.Name = [System.String]'MAIN_UPDATE_PROGRESSBAR'
 $MAIN_UPDATE_PROGRESSBAR.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]430,[System.Int32]44))
 $MAIN_UPDATE_PROGRESSBAR.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
 $MAIN_UPDATE_PROGRESSBAR.TabIndex = [System.Int32]0
-$MAIN_UPDATE_PROGRESSBAR.Minimum = [System.Int32]0
-$MAIN_UPDATE_PROGRESSBAR.Maximum = [System.Int32]100
-$MAIN_UPDATE_PROGRESSBAR.Value = [System.Int32]0
 #
 #UPDATER_MAIN_FORM
 #
