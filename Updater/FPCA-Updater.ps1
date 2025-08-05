@@ -528,7 +528,8 @@ $Null = $UpdaterPowershell.AddScript({
         # Move the new installation to the old installation path
         $Global:UpdaterHash.LatestLog += "Moving new installation to old installation path...`r`n"
         if (Test-Path -Path "$ExtractPath\FPCA") {
-            Move-Item -Path "$ExtractPath\FPCA" -Destination $InstallPath -Force
+            $InstallPathParent = Split-Path -Path $InstallPath -Parent
+            Move-Item -Path "$ExtractPath\FPCA" -Destination $InstallPathParent -Force
             $Global:UpdaterHash.LatestLog += "New installation moved successfully to $InstallPath`r`n"
         } else {
             Throw "New installation folder not found at $ExtractPath\FPCA"
@@ -539,7 +540,7 @@ $Null = $UpdaterPowershell.AddScript({
         $NewInfoContent = "version=$($Global:UpdaterHash.Versions.New)`r`n"
         $NewInfoContent += "firstlaunch=update`r`n"
         $NewInfoContent += "installdate=$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`r`n"
-        Set-Content -Path "$InstallPath\fpca.info" -Value $NewInfoContent -Force
+        Set-Content -Path "$InstallPath\fpca.info" -Value $NewInfoContent -Force -Encoding UTF8
         $Global:UpdaterHash.LatestLog += "New fpca.info file created successfully`r`n"
         $Global:UpdaterHash.Progress = 95
         # Give Launch Path to the main loop
