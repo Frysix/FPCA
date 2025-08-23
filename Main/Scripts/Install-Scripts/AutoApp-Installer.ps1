@@ -11,16 +11,7 @@ Param(
 
 $Coms.Status = "Running"
 $Coms.Progress = 0
-
-# Check if the Nvidia application is already installed
-$installed = Get-Command "nvidia-smi" -ErrorAction SilentlyContinue
-
-if ($installed) {
-    Write-Host "${TaskName} application is already installed."
-    $Coms.Status = "Completed"
-    $Coms.Progress = 100
-    return
-}
+$Coms.Comment = "Starting installation for $TaskName"
 
 # Import modules for parsing definitions
 Import-Module "${ScriptRoot}\Helper\ParsingHelper.psm1" -Force

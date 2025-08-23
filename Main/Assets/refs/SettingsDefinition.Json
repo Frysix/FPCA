@@ -40,7 +40,7 @@
     },
     "MainUiTimerInterval": {
       "Type": "IntegerTextBox",
-      "Default": "1000",
+      "Default": "100",
       "Description": "Main UI timer interval in milliseconds"
     },
     "MainFormLoadLoopCounter": {

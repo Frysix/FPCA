@@ -1,3 +1,11 @@
+$MAIN_CONFIG_PANEL_Paint = {
+}
+$MAIN_CONFIGMOD_PANEL_Paint = {
+}
+$TITLE_AVAILMOD_LABEL_Click = {
+}
+$APP_TAB_Click = {
+}
 $CUSTOMCONFIG_CONTROL_PANEL_Paint = {
 }
 $CONFIG_START_BUTTON_Click = {

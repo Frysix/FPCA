@@ -13,6 +13,10 @@
                 "Description": "Install Google Chrome browser",
                 "DefaultState": "true",
                 "Type": "CheckBox",
+                "OptionsDefaults": {
+                    "CreateShortcut": "true",
+                    "RemindDefault": "true"
+                },
                 "Script": "Install-Chrome.ps1",
                 "RequireInternet": "true"
             },
@@ -29,6 +33,10 @@
                 "Description": "Install Adobe Acrobat Reader",
                 "DefaultState": "true",
                 "Type": "CheckBox",
+                "OptionsDefaults": {
+                    "CreateShortcut": "true",
+                    "RemindDefault": "true"
+                },
                 "Script": "Install-Acrobat.ps1",
                 "RequireInternet": "true"
             },
@@ -134,8 +142,9 @@
             "RENAMEDISK": {
                 "DisplayName": "Rename Disk",
                 "Description": "Rename the primary disk to chosen name",
-                "DefaultState": "OS",
+                "DefaultState": "true",
                 "Type": "TextBox",
+                "DefaultText": "OS",
                 "Script": "RenameDisk.ps1",
                 "RequireInternet": "false"
             }
@@ -244,9 +253,10 @@
             "RESTARTOPTION": {
                 "DisplayName": "Restart Option",
                 "Description": "Choose an option on how to restart after Configuration",
-                "DefaultState": "prompt",
+                "DefaultState": "true",
                 "Type": "ComboBox",
                 "Options": ["restart", "disabled", "prompt", "shutdown", "bios"],
+                "DefaultOption": "prompt",
                 "Script": "RestartOption.ps1",
                 "RequireInternet": "false"
             },

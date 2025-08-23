@@ -16,9 +16,11 @@
                     "1": "https://ftp.frysix.com/public/file/qip0nrxugkolbvbvpxtnpg/SUPERAntiSpyware%20Portable.zip"
                 },
                 "Files": {
-                    "Zip": "SUPERAntiSpywarePortable.zip",
-                    "Executable": "SUPERAntiSpyware.exe",
-                    "Folder": "SUPERAntiSpywarePortable"
+                    "Portable": {
+                        "Zip": "SUPERAntiSpywarePortable.zip",
+                        "Executable": "SUPERAntiSpyware.exe",
+                        "Folder": "SUPERAntiSpywarePortable"
+                    }
                 }
             }
         },
@@ -32,9 +34,11 @@
                     "1": "https://ftp.frysix.com/public/file/7sx6w-goqkcbli8rvrkalw/TreeSizeFreePortable.zip"
                 },
                 "Files": {
-                    "Zip": "TreeSizeFreePortable.zip",
-                    "Executable": "TreeSizeFreePortable.exe",
-                    "Folder": "TreeSizeFreePortable"
+                    "Portable": {
+                        "Zip": "TreeSizeFreePortable.zip",
+                        "Executable": "TreeSizeFreePortable.exe",
+                        "Folder": "TreeSizeFreePortable"
+                    }
                 }
             },
             "HDSentinelProPortable": {
@@ -46,9 +50,11 @@
                     "1": "https://ftp.frysix.com/public/file/3tg8s6laikgru1key4oblq/HDSentinelPro_Portable.zip"
                 },
                 "Files": {
-                    "Zip": "HDSentinelPro_Portable.zip",
-                    "Executable": "HDSentinel.exe",
-                    "Folder": "HDSentinelProPortable"
+                    "Portable": {
+                        "Zip": "HDSentinelPro_Portable.zip",
+                        "Executable": "HDSentinel.exe",
+                        "Folder": "HDSentinelProPortable"
+                    }
                 }
             }
         },
@@ -62,9 +68,11 @@
                     "1": "https://ftp.frysix.com/public/file/bwdmhnwfueoxw661jtgszg/WinDBG_1.2502.zip"
                 },
                 "Files": {
-                    "Zip": "WinDBG_1.2502.zip",
-                    "Executable": "DbgX.Shell.exe",
-                    "Folder": "WinDBG_1.2502"
+                    "Portable": {
+                        "Zip": "WinDBG_1.2502.zip",
+                        "Executable": "DbgX.Shell.exe",
+                        "Folder": "WinDBG_1.2502"
+                    }
                 }
             }
         },
@@ -78,9 +86,11 @@
                     "1": "https://ftp.frysix.com/public/file/9zlfjmzq80y5tdcysim85g/Prime95.zip"
                 },
                 "Files": {
-                    "Zip": "Prime95.zip",
-                    "Executable": "Prime95.exe",
-                    "Folder": "Prime95"
+                    "Portable": {
+                        "Zip": "Prime95.zip",
+                        "Executable": "Prime95.exe",
+                        "Folder": "Prime95"
+                    }
                 }
             },
             "ThrottleStop": {
@@ -92,9 +102,11 @@
                     "1": "https://ftp.frysix.com/public/file/i6_gkvqweec-qsprzadnhg/ThrottleStop_9.6.zip"
                 },
                 "Files": {
-                    "Zip": "ThrottleStop_9.6.zip",
-                    "Executable": "ThrottleStop.exe",
-                    "Folder": "ThrottleStop_9.6"
+                    "Portable": {
+                        "Zip": "ThrottleStop_9.6.zip",
+                        "Executable": "ThrottleStop.exe",
+                        "Folder": "ThrottleStop_9.6"
+                    }
                 }
             },
             "FurMarkV2": {
@@ -106,9 +118,11 @@
                     "1": "https://ftp.frysix.com/public/file/c_wodnrm2kyzx5w--x4cwg/FurMark%20V2%20Portable.zip"
                 },
                 "Files": {
-                    "Zip": "FurMarkV2.zip",
-                    "Executable": "FurMark_GUI.exe",
-                    "Folder": "FurMark_win64"
+                    "Portable": {
+                        "Zip": "FurMarkV2.zip",
+                        "Executable": "FurMark_GUI.exe",
+                        "Folder": "FurMark_win64"
+                    }
                 }
             },
             "HWiNFO": {
@@ -120,9 +134,11 @@
                     "1": "https://ftp.frysix.com/public/file/blfotb81yeu82kq5lutjva/HWiNFO.zip"
                 },
                 "Files": {
-                    "Zip": "HWiNFO.zip",
-                    "Executable": "HWiNFO64.exe",
-                    "Folder": "HWiNFO"
+                    "Portable": {
+                        "Zip": "HWiNFO.zip",
+                        "Executable": "HWiNFO64.exe",
+                        "Folder": "HWiNFO"
+                    }
                 }
             }
         }

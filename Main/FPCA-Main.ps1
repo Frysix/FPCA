@@ -12,10 +12,15 @@ $Global:MainHash = [hashtable]::Synchronized(@{})
 $Global:UiHash = [hashtable]::Synchronized(@{})
 
 # Import the necessary modules for the application.
-Import-Module -Name "$PSScriptRoot\Helper\ParsingHelper.psm1" -Force
-Import-Module -Name "$PSScriptRoot\Helper\FormHelper.psm1" -Force
-Import-Module -Name "$PSScriptRoot\Helper\InternetHelper.psm1" -Force
-Import-Module -Name "$PSScriptRoot\Helper\InfoHelper.psm1" -Force
+Try {
+    Import-Module -Name "$PSScriptRoot\Helper\ParsingHelper.psm1" -Force
+    Import-Module -Name "$PSScriptRoot\Helper\FormHelper.psm1" -Force
+    Import-Module -Name "$PSScriptRoot\Helper\InternetHelper.psm1" -Force
+    Import-Module -Name "$PSScriptRoot\Helper\InfoHelper.psm1" -Force
+} Catch {
+    Write-Host "Failed to import required modules. Please ensure they are present in the Helper directory."
+    Exit 1
+}
 
 # Get info from the fpca.info file
 $Global:MainHash.FPCAInfo = Get-Content -Path "$PSScriptRoot\fpca.info" | ConvertFrom-StringData
@@ -30,6 +35,8 @@ $Global:MainHash.PSScriptroot = $PSScriptRoot
 $Global:MainHash.ImportButtonMode = "None"
 $Global:MainHash.PreviousTab = $null
 $Global:UiHash.UIClosedFor = ""
+$Global:UiHash.AppButtonsFlags = @{}
+$Global:UiHash.EnabledMods = @{}
 # Initialize bool variable to initial state.
 $Global:UiHash.UIClosedByUser = $false
 $Global:UiHash.StartConfigClosingRunning = $false
@@ -40,14 +47,16 @@ $Global:UiHash.ConfigButtonClicked = $false
 $Global:UiHash.PermanentButtonClicked = $false
 $Global:UiHash.LinkLabelClicked = $false
 $Global:UiHash.AppButtonClicked = $false
-$Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $false
+$Global:UiHash.ModEnabledAppCheckBoxChanged = $false
+$Global:UiHash.ModEnabledConfigCheckBoxChanged = $false
+$Global:UiHash.REFRESH_CONFIG_MODPANEL = $false
+$Global:UiHash.REFRESH_APP_PANEL = $false
+$Global:UiHash.REFRESH_APP_MODPANEL = $false
 $Global:UiHash.SETTINGS_BUTTON_CLICKED = $false
 $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
 $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
-$Global:UiHash.REFRESH_CONFIG_PANEL = $true
+$Global:UiHash.REFRESH_CONFIG_PANEL = $false
 $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $false
-# Initialize hashtable to store CheckBox states.
-$Global:UiHash.ConfigCheckBoxStates = @{}
 # Initialize settings related variables.
 $Global:MainHash.AutoRefreshApp = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshApp
 $Global:MainHash.AutoRefreshConfig = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshConfig
@@ -59,9 +68,9 @@ $Global:MainHash.AutoRefreshConfig = $Global:MainHash.FPCASettings.General.Defau
 [int32]$MainFormLoadLoopCounter_Max = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainFormLoadLoopCounter -Default 500
 [int32]$ConfigPanelUpdateCounter_Max = [int32]$ConfigPanelUpdateCounter
 [int32]$InternetCheckUpdateCounter_Max = [int32]$InternetCheckUpdateCounter
-[int32]$RefreshAppLoopCounter_Max = [int32]$RefreshAppLoopCounter
 $Global:UiHash.MainUiTimerInterval = [int32]$MainUiTimerInterval
-
+# Run the modloader script to parse and enable mods.
+. "$PSScriptRoot\Mod-Loader.ps1" -UiHash $Global:UiHash
 
 # Create a runspace for the UI
 # This runspace will be used to execute the UI script in a separate thread.
@@ -103,32 +112,9 @@ $Null = $UiPowershell.AddScript({
                 $Global:UiHash.PermanentButtonClicked = $true
             }
         })
-        $REFRESH_APP_BUTTON.Add_Click({
-            if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED -eq $false) {
-                $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $true
-            }
-        })
-        #Add Button's control to the UiHash for later access.
+        # Add Button's control to the UiHash for later access.
         $Global:UiHash.CONFIG_START_BUTTON = $CONFIG_START_BUTTON
         $Global:UiHash.SETTINGS_BUTTON = $SETTINGS_BUTTON
-        $Global:UiHash.REFRESH_APP_BUTTON = $REFRESH_APP_BUTTON
-
-        # Define config checkbox actions.
-        $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.CheckBoxChanged = $true
-        })
-        # Add checkboxes checkedchanged event handlers for app tab settings.
-        $USECUSTOM_APP_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.AppCheckBoxChanged = $true
-        })
-        $AUTOREFRESH_APP_CHECKBOX.Add_CheckedChanged({
-            $Global:UiHash.AppCheckBoxChanged = $true
-        })
-        # Add CheckBoxes to the UiHash for later access.
-        $Global:UiHash.AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
-        # Add app checkboxes to the UiHash for later access.
-        $Global:UiHash.USECUSTOM_APP_CHECKBOX = $USECUSTOM_APP_CHECKBOX
-        $Global:UiHash.AUTOREFRESH_APP_CHECKBOX = $AUTOREFRESH_APP_CHECKBOX
 
         # Add Label link click event handlers.
         $SYSTEMINFO_LINK_LABEL.Add_Click({
@@ -161,67 +147,136 @@ $Null = $UiPowershell.AddScript({
 
                 ### CONFIG TAB HANDLING ###
                 if ($Global:UiHash.REFRESH_CONFIG_PANEL) {
+                    # Suspend layout to prevent flickering during bulk updates
+                    $SCROLL_CONFIG_PANEL.SuspendLayout()
+                    
                     try {
-                        # Save current scroll position before refresh
-                        $savedScrollX = 0
-                        $savedScrollY = 0
+                        # Clear the CONFIG_TAB and add all 
+                        $SCROLL_CONFIG_PANEL.Controls.Clear()
+                        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ConfigurationTab-Ui.ps1" -UiHash $Global:UiHash
                         
-                        if ($DEFAULT_CONFIG_PANEL.AutoScrollPosition) {
-                            $savedScrollX = [Math]::Abs($DEFAULT_CONFIG_PANEL.AutoScrollPosition.X)
-                            $savedScrollY = [Math]::Abs($DEFAULT_CONFIG_PANEL.AutoScrollPosition.Y)
+                        # Add all mod UI elements to the panel
+                        foreach ($category in $Global:UiHash.ConfigTabUIElements.Categories.Keys) {
+                            $SCROLL_CONFIG_PANEL.Controls.Add($Global:UiHash.ConfigTabUIElements.Categories[$category])
                         }
                         
-                        # Generate the configuration UI controls
-                        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-DefaultConfiguration-Ui.ps1" -UiHash $Global:UiHash
-
-                        # Clear panel
-                        $DEFAULT_CONFIG_PANEL.Controls.Clear()
-
-                        # Add all controls to your panel in order
-                        if ($Global:UiHash.ConfigurationControlsOrdered) {
-                            foreach ($control in $Global:UiHash.ConfigurationControlsOrdered) {
-                                if ($control) {
-                                    $DEFAULT_CONFIG_PANEL.Controls.Add($control)
+                        # Add individual config elements
+                        foreach ($config in $Global:UiHash.ConfigTabUIElements.Configs.Keys) {
+                            foreach ($element in $Global:UiHash.ConfigTabUIElements.Configs[$config].Keys) {
+                                if ($element -eq "MainCheckBox" -or $element -eq "CreateShortcutCheckBox" -or $element -eq "RemindDefaultCheckBox") {
+                                $Global:UiHash.ConfigTabUIElements.Configs[$config][$element].Add_CheckedChanged({
+                                    if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
+                                        $Global:UiHash.REFRESH_CONFIG_PANEL = $true
+                                    }
+                                })
+                            }
+                            $SCROLL_CONFIG_PANEL.Controls.Add($Global:UiHash.ConfigTabUIElements.Configs[$config][$element])
+                        }
+                    }
+                    $Global:UiHash.CONFIG_CHECKBOX_CHECKED = $true
+                    $Global:UiHash.REFRESH_CONFIG_PANEL = $false
+                    
+                    } finally {
+                        # Resume layout and trigger a refresh
+                        $SCROLL_CONFIG_PANEL.ResumeLayout($true)
+                    }
+                }
+                if ($Global:UiHash.REFRESH_CONFIG_MODPANEL) {
+                    # Suspend layout to prevent flickering
+                    $SCROLL_CONFIGMOD_PANEL.SuspendLayout()
+                    
+                    try {
+                        # Clear the Mod config panel and generate the custom configuration UI.
+                        $SCROLL_CONFIGMOD_PANEL.Controls.Clear()
+                        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ConfigurationTabMod-Ui.ps1" -UiHash $Global:UiHash
+                        
+                        # Add all mod UI elements to the panel
+                        foreach ($mod in $Global:UiHash.ConfigTabModUIElements.Keys) {
+                            foreach ($element in $Global:UiHash.ConfigTabModUIElements[$mod].Keys) {
+                                if ($element -eq "EnableCheckbox") {
+                                    $Global:UiHash.ConfigTabModUIElements[$mod][$element].Add_CheckedChanged({
+                                        if ($Global:UiHash.ModEnabledConfigCheckBoxChanged -eq $false) {
+                                            $Global:UiHash.ModEnabledConfigCheckBoxChanged = $true
+                                        }
+                                    })
                                 }
+                                $SCROLL_CONFIGMOD_PANEL.Controls.Add($Global:UiHash.ConfigTabModUIElements[$mod][$element])
                             }
                         }
-
-                        if ($savedScrollX -gt 0 -or $savedScrollY -gt 0) {
-                            $DEFAULT_CONFIG_PANEL.AutoScrollPosition = New-Object System.Drawing.Point($savedScrollX, $savedScrollY)
-                        }
-                        
-                    } catch {
-                        Write-Host "Error in CONFIG_TAB refresh: $($_.Exception.Message)"
+                    $Global:UiHash.REFRESH_CONFIG_MODPANEL = $false
+                    
                     } finally {
-                        $Global:UiHash.REFRESH_CONFIG_PANEL = $false
+                        # Resume layout and trigger a refresh
+                        $SCROLL_CONFIGMOD_PANEL.ResumeLayout($true)
                     }
                 }
 
             } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "APP_TAB") {
                 # Check if the REFRESH_APP_BUTTON_CLICKED flag is set to true in the UiHash.
-                if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED) {
-                    $Global:UiHash.NewAppUiObjects = @{}
-                    # Clear the MODULAR_APP_PANEL controls to remove old UI elements.
-                    $MODULAR_APP_PANEL.Controls.Clear()
-                    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\Ui-Scripts\Gen\Gen-App-Ui.ps1') -UiHash $Global:UiHash
-                    foreach ($section in $Global:UiHash.NewAppUiObjects.Keys) {
-                        $Global:UiHash.NewAppUiObjects[$section].Clicked = $false
-                        $Global:UiHash.ActiveSection = $section
-                        $Global:UiHash.NewAppUiObjects[$section].InstallationState = "Installed"
-                        $Global:UiHash.NewAppUiObjects[$section]['button'].Add_Click({
-                            # Check if the button has already been clicked
-                            if ($Global:UiHash.NewAppUiObjects[$Global:UiHash.ActiveSection].Clicked -eq $false) {
-                                # Set the button clicked state to true
-                                $Global:UiHash.NewAppUiObjects[$Global:UiHash.ActiveSection].Clicked = $true
-                                $Global:UiHash.AppButtonClicked = $true
+                if ($Global:UiHash.REFRESH_APP_PANEL) {
+                    # Suspend layout to prevent flickering
+                    $SCROLL_APP_PANEL.SuspendLayout()
+                    
+                    try {
+                        # Clear the APP_TAB and add all
+                        $SCROLL_APP_PANEL.Controls.Clear()
+
+                        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ApplicationTab-Ui.ps1" -UiHash $Global:UiHash
+
+                    foreach ($type in $UiHash.AppTabUIElements.Keys) {
+                        foreach ($element in $UiHash.AppTabUIElements[$type].Keys) {
+                            if ($type -eq "Buttons") {
+                                if (-not ($Global:UiHash.AppButtonsFlags.ContainsKey($element))) {
+                                    $Global:UiHash.AppButtonsFlags[$element] = $false
+                                }
+                                $Global:UiHash.AppTabUIElements[$type][$element].Add_Click({
+                                    if ($Global:UiHash.AppButtonsFlags[$element] -eq $false) {
+                                        $Global:UiHash.AppButtonsFlags[$element] = $true
+                                        $Global:UiHash.AppButtonClicked = $true
+                                    }
+                                })
                             }
-                        })
-                        $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].label)
-                        $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].progressbar)
-                        $MODULAR_APP_PANEL.Controls.Add($Global:UiHash.NewAppUiObjects[$section].button)
+                            $SCROLL_APP_PANEL.Controls.Add($Global:UiHash.AppTabUIElements[$type][$element])
+                        }
                     }
-                    $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $false
+                    $Global:UiHash.REFRESH_APP_PANEL = $false
+                    
+                    } finally {
+                        # Resume layout and trigger a refresh
+                        $SCROLL_APP_PANEL.ResumeLayout($true)
+                    }
                 }
+                if ($Global:UiHash.REFRESH_APP_MODPANEL) {
+                    # Suspend layout to prevent flickering
+                    $SCROLL_APPMOD_PANEL.SuspendLayout()
+                    
+                    try {
+                        # Clear the SCROLL_APPMOD_PANEL and add all mod panels directly
+                        $SCROLL_APPMOD_PANEL.Controls.Clear()
+                        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ApplicationTabMod-Ui.ps1" -UiHash $Global:UiHash
+                        
+                        # Add all mod UI elements to the SCROLL_APPMOD_PANEL
+                        foreach ($mod in $Global:UiHash.AppTabModUIElements.Keys) {
+                            foreach ($element in $Global:UiHash.AppTabModUIElements[$mod].Keys) {
+                            if ($element -eq "EnableCheckbox") {
+                                $Global:UiHash.AppTabModUIElements[$mod][$element].Add_CheckedChanged({
+                                    if ($Global:UiHash.ModEnabledAppCheckBoxChanged -eq $false) {
+                                        $Global:UiHash.ModEnabledAppCheckBoxChanged = $true
+                                    }
+                                })
+                            }
+                            $SCROLL_APPMOD_PANEL.Controls.Add($Global:UiHash.AppTabModUIElements[$mod][$element])
+                        }
+                    }
+                    $Global:UiHash.REFRESH_APP_MODPANEL = $false
+                    
+                    } finally {
+                        # Resume layout and trigger a refresh
+                        $SCROLL_APPMOD_PANEL.ResumeLayout($true)
+                    }
+                }
+            } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "TOOLS_TAB") {
+               
             }
         })
         $Timer.Start()  # Start the timer to trigger the tick event every second.
@@ -235,9 +290,9 @@ $Null = $UiPowershell.AddScript({
             $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::Green
             # Check the launch type and display a welcome or update message accordingly.
             if ($Global:UiHash.LaunchType -eq 'FirstLaunch') {
-                Show-TopMostMessageBox -Message "Welcome to FPCA!`nVersion: $($Global:UiHash['FPCAInfo']['General']['Version'])`nIf you encounter any bugs, please report them!" -Title "FPCA - Welcome!" -Owner $MAIN_FORM -Icon "Information"
+                Show-TopMostMessageBox -Message "Welcome to FPCA!`nVersion: $($Global:UiHash['FPCAInfo']['Version'])`nIf you encounter any bugs, please report them!" -Title "FPCA - Welcome!" -Owner $MAIN_FORM -Icon "Information"
             } elseif ($Global:UiHash.LaunchType -eq 'UpdatedLaunch') {
-                Show-TopMostMessageBox -Message "FPCA has been updated to Version: $($Global:UiHash['FPCAInfo']['General']['Version'])!`nPlease check the changelog for more information." -Title "FPCA - Update" -Owner $MAIN_FORM -Icon "Information"
+                Show-TopMostMessageBox -Message "FPCA has been updated to Version: $($Global:UiHash['FPCAInfo']['Version'])!`nPlease check the changelog for more information." -Title "FPCA - Update" -Owner $MAIN_FORM -Icon "Information"
             } elseif ($Global:UiHash.LaunchType -eq 'OutdatedLaunch') {
                 # If the launch type is OutdatedLaunch, it means the version is outdated.
                 # Change color of the version label to red to indicate an outdated version.
@@ -248,6 +303,10 @@ $Null = $UiPowershell.AddScript({
             # This is used to control the main loop in the script.
             $Global:UiHash.MainFormLoaded = $true
         })
+        # Enable double buffering on the main form to reduce flickering.
+        $MAIN_FORM.SetStyle([System.Windows.Forms.ControlStyles]::DoubleBuffer, $true)
+        $MAIN_FORM.SetStyle([System.Windows.Forms.ControlStyles]::UserPaint, $true)
+        $MAIN_FORM.SetStyle([System.Windows.Forms.ControlStyles]::AllPaintingInWmPaint, $true)
         # Add main form controls to the UiHash for later access.
         $Global:UiHash.MainForm = $MAIN_FORM
         # Display the main form of the application.
@@ -354,8 +413,6 @@ While ($Global:MainHash.MainListener) {
             $result = [System.Windows.Forms.DialogResult]::Yes
         } elseif ($Global:MainHash.FPCASettings.General.DeleteOnExit -eq "prompt") {
             $result = Show-TopMostMessageBox -Message "Do you want to delete FPCA?" -Title "FPCA - Delete Application" -Icon "Question" -Buttons "YesNo"
-        } else {
-            $result = [System.Windows.Forms.DialogResult]::No
         }
         # If the user chooses to delete the application, create a scheduled task to delete the application folder.
         if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
@@ -400,12 +457,18 @@ While ($Global:MainHash.MainListener) {
     # Checks to trigger the UI refresh. On tab opening.
     $Global:MainHash.CurrentTab = $Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name
     if ($Global:MainHash.CurrentTab -eq "APP_TAB" -and $Global:MainHash.PreviousTab -ne "APP_TAB") {
-        if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED -eq $false) {
-            $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $true
+        if ($Global:UiHash.REFRESH_APP_PANEL -eq $false) {
+            $Global:UiHash.REFRESH_APP_PANEL = $true
+        }
+        if ($GLobal:UiHash.REFRESH_APP_MODPANEL -eq $false) {
+            $Global:UiHash.REFRESH_APP_MODPANEL = $true
         }
     } elseif ($Global:MainHash.CurrentTab -eq "CONFIG_TAB" -and $Global:MainHash.PreviousTab -ne "CONFIG_TAB") {
         if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
             $Global:UiHash.REFRESH_CONFIG_PANEL = $true
+        }
+        if ($GLobal:UiHash.REFRESH_CONFIG_MODPANEL -eq $false) {
+            $Global:UiHash.REFRESH_CONFIG_MODPANEL = $true
         }
     }
     # Update previous tab for next iteration
@@ -473,21 +536,6 @@ While ($Global:MainHash.MainListener) {
 
     if ($Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name -eq "CONFIG_TAB") {
 
-        # Check if the ConfigPanelUpdateCounter has reached the defined iterations by settings.
-        if ($Global:MainHash.AutoRefreshConfig -eq "true") {
-            $ConfigPanelUpdateCounter++
-            # Check if the ConfigPanelUpdateCounter has reached defined iterations by settings.
-            if ([int32]$ConfigPanelUpdateCounter -gt [int32]$ConfigPanelUpdateCounter_Max) {
-                [int32]$ConfigPanelUpdateCounter = 0
-                if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
-                    $Global:UiHash.REFRESH_CONFIG_PANEL = $true
-                }
-                if ($Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL -eq $false) {
-                    $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $true
-                }
-            }
-        }
-
         # UI interaction and event handling.
         # Check if the ButtonClicked flag is set to true in the UiHash.
         if ($Global:UiHash.ConfigButtonClicked) {
@@ -498,10 +546,34 @@ While ($Global:MainHash.MainListener) {
             if ($Global:UiHash.CONFIG_START_BUTTON_CLICKED) {
                 # Set the StartConfigClosingRunning flag to true to indicate that the configuration process is starting
                 $selectedTasks = @()
-                foreach ($key in $Global:UiHash.ConfigurationControls.Keys) {
-                    $control = $Global:UiHash.ConfigurationControls[$key]
-                    if ($control.Tag.Type -eq "CheckBox" -and $control.Checked) {
-                        $selectedTasks += $key
+                $configSettings = @{}
+                foreach ($config in $Global:UiHash.ConfigTabUIElements.Configs.Keys) {
+                    if ($Global:UiHash.ConfigTabUIElements.Configs[$config].MainCheckBox.Checked) {
+                        $selectedTasks += $config
+                    }
+                    if ($Global:UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('InputTextBox')) {
+                        if (-not $configSettings.ContainsKey($config)) {
+                            $configSettings[$config] = @{}
+                        }
+                        $configSettings[$config].InputText = $Global:UiHash.ConfigTabUIElements.Configs[$config].InputTextBox.Text
+                    }
+                    if ($Global:UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('InputComboBox')) {
+                        if (-not $configSettings.ContainsKey($config)) {
+                            $configSettings[$config] = @{}
+                        }
+                        $configSettings[$config].InputCombo = $Global:UiHash.ConfigTabUIElements.Configs[$config].InputComboBox.SelectedItem
+                    }
+                    if ($Global:UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('CreateShortcutCheckBox') -and $Global:UiHash.ConfigTabUIElements.Configs[$config].CreateShortcutCheckBox.Checked) {
+                        if (-not $configSettings.ContainsKey($config)) {
+                            $configSettings[$config] = @{}
+                        }
+                        $configSettings[$config].CreateShortcut = $true
+                    }
+                    if ($Global:UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('RemindDefaultCheckBox') -and $Global:UiHash.ConfigTabUIElements.Configs[$config].RemindDefaultCheckBox.Checked) {
+                        if (-not $configSettings.ContainsKey($config)) {
+                            $configSettings[$config] = @{}
+                        }
+                        $configSettings[$config].RemindDefault = $true
                     }
                 }
                 # If the selectedTasks array is not empty, launch the task launcher script with the selected tasks.
@@ -511,7 +583,7 @@ While ($Global:MainHash.MainListener) {
                     # Close the main form to prevent further interaction.
                     $Global:UiHash.MainForm.Close()
                     # Launch the configuration script with the selected tasks.
-                    . "$PSScriptRoot\FPCA-Config.ps1" -SelectedTasks $selectedTasks
+                    . "$PSScriptRoot\FPCA-Config.ps1" -SelectedTasks $selectedTasks -SelectedTasksSettings $configSettings
 
                     if ($ExitCode -eq 0) {
                         # Exit according to settings if the exit code is 0.
@@ -546,7 +618,43 @@ While ($Global:MainHash.MainListener) {
 
         }
 
-        # INSERT MORE CONFIG TAB HANDLING HERE
+        # Check if the ModEnabledConfigCheckBoxChanged flag is set to true in the UiHash.
+        if ($Global:UiHash.ModEnabledConfigCheckBoxChanged) {
+            # Reset the ModEnabledConfigCheckBoxChanged flag to false.
+            $Global:UiHash.ModEnabledConfigCheckBoxChanged = $false
+            # loop through mod checkbox states and update the ModEnabled state in the MainHash accordingly.
+            foreach ($modElement in $Global:UiHash.ConfigTabModUIElements.Keys) {
+                # Add null checks to prevent index errors
+                if ($Global:UiHash.ConfigTabModUIElements[$modElement] -and $Global:UiHash.ConfigTabModUIElements[$modElement].EnableCheckbox) {
+                    if ($Global:UiHash.ConfigTabModUIElements[$modElement].EnableCheckbox.Checked) {
+                        $Global:UiHash.ConfigTabModUIElements[$modElement].EnableCheckbox.ForeColor = [System.Drawing.Color]::Green
+                        if ($Global:UiHash.AvailableMods.All -and $Global:UiHash.AvailableMods.All.ContainsKey($modElement)) {
+                            # Add the entire mod to EnabledMods if not already present
+                            if (-not $Global:UiHash.EnabledMods.ContainsKey($modElement)) {
+                                $Global:UiHash.EnabledMods[$modElement] = @{}
+                            }
+                            if (-not ($Global:UiHash.EnabledMods[$modElement].ContainsKey('Mod_Data'))) {
+                                $Global:UiHash.EnabledMods[$modElement].Mod_Data = @{}
+                            }
+                            $Global:UiHash.EnabledMods[$modElement].Mod_Data += @{
+                                Configuration = $Global:UiHash.AvailableMods.All[$modElement].Mod_Data.Configuration
+                            }
+                        }
+                    } else {
+                        $Global:UiHash.ConfigTabModUIElements[$modElement].EnableCheckbox.ForeColor = [System.Drawing.Color]::Black
+                        if ($Global:UiHash.EnabledMods.ContainsKey($modElement)) {
+                            if ($Global:UiHash.EnabledMods[$modElement].Mod_Data.ContainsKey('Configuration')) {
+                                $Global:UiHash.EnabledMods[$modElement].Mod_Data.Remove('Configuration')
+                            }
+                            if ($Global:UiHash.EnabledMods[$modElement].Mod_Data.Count -eq 0) {
+                                $Global:UiHash.EnabledMods.Remove($modElement)
+                            }
+                        }
+                    }
+                }
+            }
+            $Global:UiHash.REFRESH_CONFIG_MODPANEL = $true
+        }
 
     }
 
@@ -559,69 +667,45 @@ While ($Global:MainHash.MainListener) {
 
     # Check if the user is on the Application tab.
     if ($Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name -eq "APP_TAB") {
+        # INSERT APPLICATION TAB HANDLING HERE
 
-        if ($Global:MainHash.AutoRefreshApp){
-            $RefreshAppLoopCounter++
-            if ($RefreshAppLoopCounter -gt $RefreshAppLoopCounter_Max) {
-                # Reset the RefreshAppLoopCounter to 0.
-                [int32]$RefreshAppLoopCounter = 0
-                # Request a refresh of the application UI.
-                if ($Global:UiHash.REFRESH_APP_BUTTON_CLICKED -eq $false) {
-                    $Global:UiHash.REFRESH_APP_BUTTON_CLICKED = $true
-                }
-            }
-        }
-
-        # Check if the AppCheckBoxChanged flag is set to true in the UiHash.
-        if ($Global:UiHash.AppCheckBoxChanged) {
-            # Reset the AppCheckBoxChanged flag to false.
-            $Global:UiHash.AppCheckBoxChanged = $false
-
-            # Check the state of each checkbox and update the MainHash accordingly.
-            if ($Global:UiHash.USECUSTOM_APP_CHECKBOX.Checked) {
-                # If the Use Custom App checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.USECUSTOM_APP_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:UiHash.UseCustomApp = $true
-            } else {
-                # If the Use Custom App checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.USECUSTOM_APP_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:UiHash.UseCustomApp = $false
-            }
-            if ($Global:UiHash.AUTOREFRESH_APP_CHECKBOX.Checked) {
-                # If the Auto Refresh App checkbox is checked, set the state to true in the MainHash.
-                $Global:UiHash.AUTOREFRESH_APP_CHECKBOX.ForeColor = [System.Drawing.Color]::Green
-                $Global:MainHash.AutoRefreshApp = $true
-            } else {
-                # If the Auto Refresh App checkbox is unchecked, set the state to false in the MainHash.
-                $Global:UiHash.AUTOREFRESH_APP_CHECKBOX.ForeColor = [System.Drawing.Color]::Black
-                $Global:MainHash.AutoRefreshApp = $false
-            }
-        }
-
-        if ($Global:UiHash.AppButtonClicked) {
-            # Reset the AppButtonClicked flag to false.
-            $Global:UiHash.AppButtonClicked = $false
-
-            foreach ($section in $Global:UiHash.NewAppUiObjects) {
-                if ($Global:UiHash.NewAppUiObjects[$section].ButtonClicked) {
-                    if ($Global:UiHash.NewAppUiObjects[$section].InstallationState -eq "Installed") {
-                        Start-Job -Name "${section}_Download" -ScriptBlock {
-                            Param(
-                                $Global:UiHash,
-                                $section
-                            )
-                            Start-Process -FilePath "$($Global:UiHash['PSScriptroot'])\Apps-Data\PortableApps$($Global:UiHash.DLinfo[$section].Folder)\$($Global:UiHash.DLinfo[$section].Executable)" -Verb Runas
-                        }.AddArgument($Global:UiHash).AddArgument($section) | Out-Null
-                    } elseif ($Global:UiHash.NewAppUiObjects[$section].InstallationState -eq "NotInstalled") {
-
+        # Check if the ModEnabledAppCheckBoxChanged flag is set to true in the UiHash.
+        if ($Global:UiHash.ModEnabledAppCheckBoxChanged) { 
+            # Reset the ModEnabledAppCheckBoxChanged flag to false.
+            $Global:UiHash.ModEnabledAppCheckBoxChanged = $false
+            # loop through mod checkbox states and update the ModEnabled state in the MainHash accordingly.
+            foreach ($modElement in $Global:UiHash.AppTabModUIElements.Keys) {
+                # Add null checks to prevent index errors
+                if ($Global:UiHash.AppTabModUIElements[$modElement] -and $Global:UiHash.AppTabModUIElements[$modElement].EnableCheckbox) {
+                    if ($Global:UiHash.AppTabModUIElements[$modElement].EnableCheckbox.Checked) {
+                        $Global:UiHash.AppTabModUIElements[$modElement].EnableCheckbox.ForeColor = [System.Drawing.Color]::Green
+                        if ($Global:UiHash.AvailableMods.All -and $Global:UiHash.AvailableMods.All.ContainsKey($modElement)) {
+                            # Add the entire mod to EnabledMods if not already present
+                            if (-not $Global:UiHash.EnabledMods.ContainsKey($modElement)) {
+                                $Global:UiHash.EnabledMods[$modElement] = @{}
+                            }
+                            if (-not ($Global:UiHash.EnabledMods[$modElement].ContainsKey('Mod_Data'))) {
+                                $Global:UiHash.EnabledMods[$modElement].Mod_Data = @{}
+                            }
+                            $Global:UiHash.EnabledMods[$modElement].Mod_Data += @{
+                                Applications = $Global:UiHash.AvailableMods.All[$modElement].Mod_Data.Applications
+                            }
+                        }
+                    } else {
+                        $Global:UiHash.AppTabModUIElements[$modElement].EnableCheckbox.ForeColor = [System.Drawing.Color]::Black
+                        if ($Global:UiHash.EnabledMods.ContainsKey($modElement)) {
+                            if ($Global:UiHash.EnabledMods[$modElement].Mod_Data.ContainsKey('Applications')) {
+                                $Global:UiHash.EnabledMods[$modElement].Mod_Data.Remove('Applications')
+                            }
+                            if ($Global:UiHash.EnabledMods[$modElement].Mod_Data.Count -eq 0) {
+                                $Global:UiHash.EnabledMods.Remove($modElement)
+                            }
+                        }
                     }
                 }
             }
-
+            $Global:UiHash.REFRESH_APP_PANEL = $true
         }
-
-        # INSERT APPLICATION TAB HANDLING HERE
-
     }
 
 

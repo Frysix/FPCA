@@ -16,22 +16,27 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Button]$SETTINGS_BUTTON = $null
 [System.Windows.Forms.TabControl]$MAIN_TAB_CONTROL = $null
 [System.Windows.Forms.TabPage]$CONFIG_TAB = $null
-[System.Windows.Forms.Panel]$CUSTOMCONFIG_CONTROL_PANEL = $null
-[System.Windows.Forms.CheckBox]$CUSTOM_CHECKALL_CHECKBOX = $null
-[System.Windows.Forms.CheckBox]$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = $null
-[System.Windows.Forms.Panel]$PROFILECONFIG_PANEL = $null
-[System.Windows.Forms.Panel]$CUSTOM_CONFIG_PANEL = $null
-[System.Windows.Forms.Panel]$DEFAULT_CONFIG_PANEL = $null
-[System.Windows.Forms.Panel]$DEFAULTCONFIG_CONTROL_PANEL = $null
-[System.Windows.Forms.CheckBox]$DEFAULT_CHECKALL_CHECKBOX = $null
+[System.Windows.Forms.Panel]$CONFIG_START_BUTTON_PANEL = $null
 [System.Windows.Forms.Button]$CONFIG_START_BUTTON = $null
+[System.Windows.Forms.Panel]$MAIN_CONFIGMOD_PANEL = $null
+[System.Windows.Forms.Panel]$SCROLL_CONFIGMOD_PANEL = $null
+[System.Windows.Forms.Panel]$TITLE_CONFIGMOD_PANEL = $null
+[System.Windows.Forms.Label]$TITLE_AVAILCONFIGSMOD_LABEL = $null
+[System.Windows.Forms.Panel]$MAIN_CONFIG_PANEL = $null
+[System.Windows.Forms.Panel]$TITLE_CONFIGTAB_PANEL = $null
+[System.Windows.Forms.Label]$TITLE_AVAILCONFIGS_LABEL = $null
+[System.Windows.Forms.Panel]$SCROLL_CONFIG_PANEL = $null
 [System.Windows.Forms.TabPage]$APP_TAB = $null
-[System.Windows.Forms.RichTextBox]$APP_LOG_TEXTBOX = $null
-[System.Windows.Forms.CheckBox]$AUTOREFRESH_APP_CHECKBOX = $null
-[System.Windows.Forms.CheckBox]$USECUSTOM_APP_CHECKBOX = $null
-[System.Windows.Forms.Button]$REFRESH_APP_BUTTON = $null
-[System.Windows.Forms.Panel]$MODULAR_APP_PANEL = $null
+[System.Windows.Forms.Panel]$MAIN_APP_PANEL = $null
+[System.Windows.Forms.Panel]$SCROLL_APP_PANEL = $null
+[System.Windows.Forms.Panel]$TITLE_APPTAB_PANEL = $null
+[System.Windows.Forms.Label]$TITLE_AVAILAPPS_LABEL = $null
+[System.Windows.Forms.Panel]$MAIN_APPMOD_PANEL = $null
+[System.Windows.Forms.Panel]$SCROLL_APPMOD_PANEL = $null
+[System.Windows.Forms.Panel]$TITLE_APPMOD_PANEL = $null
+[System.Windows.Forms.Label]$TITLE_AVAILAPPSMOD_LABEL = $null
 [System.Windows.Forms.TabPage]$TOOLS_TAB = $null
+[System.Windows.Forms.TabPage]$MODS_TAB = $null
 [System.Windows.Forms.TabPage]$INFO_TAB = $null
 [System.Windows.Forms.Label]$VERSION_LABEL = $null
 [System.Windows.Forms.Label]$VERSION_NUMBER_LABEL = $null
@@ -54,36 +59,49 @@ $SYSTEMINFO_LINK_LABEL = (New-Object -TypeName System.Windows.Forms.LinkLabel)
 $SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MAIN_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $CONFIG_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
-$CUSTOMCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$CUSTOM_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$PROFILECONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$CUSTOM_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$DEFAULT_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$DEFAULTCONFIG_CONTROL_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$DEFAULT_CHECKALL_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
+$MAIN_CONFIGMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SCROLL_CONFIGMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_CONFIGMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$MAIN_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_CONFIGTAB_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SCROLL_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $CONFIG_START_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $APP_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
-$APP_LOG_TEXTBOX = (New-Object -TypeName System.Windows.Forms.RichTextBox)
-$AUTOREFRESH_APP_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$USECUSTOM_APP_CHECKBOX = (New-Object -TypeName System.Windows.Forms.CheckBox)
-$REFRESH_APP_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
-$MODULAR_APP_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$MAIN_APP_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SCROLL_APP_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_APPTAB_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_AVAILAPPS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$MAIN_APPMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SCROLL_APPMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_APPMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_AVAILAPPSMOD_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $TOOLS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$MODS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $INFO_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$TITLE_AVAILCONFIGS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$TITLE_AVAILCONFIGSMOD_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$CONFIG_START_BUTTON_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
-$CUSTOMCONFIG_CONTROL_PANEL.SuspendLayout()
-$DEFAULTCONFIG_CONTROL_PANEL.SuspendLayout()
+$MAIN_CONFIGMOD_PANEL.SuspendLayout()
+$TITLE_CONFIGMOD_PANEL.SuspendLayout()
+$MAIN_CONFIG_PANEL.SuspendLayout()
+$TITLE_CONFIGTAB_PANEL.SuspendLayout()
 $APP_TAB.SuspendLayout()
+$MAIN_APP_PANEL.SuspendLayout()
+$TITLE_APPTAB_PANEL.SuspendLayout()
+$MAIN_APPMOD_PANEL.SuspendLayout()
+$TITLE_APPMOD_PANEL.SuspendLayout()
+$CONFIG_START_BUTTON_PANEL.SuspendLayout()
 $MAIN_FORM.SuspendLayout()
 #
 #SIDE_PANNEL
 #
 $SIDE_PANNEL.BackColor = [System.Drawing.Color]::Gray
+$SIDE_PANNEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
 $SIDE_PANNEL.Controls.Add($INTERNET_TITLE_LABEL)
 $SIDE_PANNEL.Controls.Add($CONNECTION_TITLE_LABEL)
 $SIDE_PANNEL.Controls.Add($PC_RAM_FREQUENCY_LABEL)
@@ -256,6 +274,7 @@ $SETTINGS_BUTTON.add_Click($Button1_Click)
 $MAIN_TAB_CONTROL.Controls.Add($CONFIG_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($APP_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($TOOLS_TAB)
+$MAIN_TAB_CONTROL.Controls.Add($MODS_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($INFO_TAB)
 $MAIN_TAB_CONTROL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
 $MAIN_TAB_CONTROL.HotTrack = $true
@@ -269,12 +288,9 @@ $MAIN_TAB_CONTROL.TabIndex = [System.Int32]3
 #CONFIG_TAB
 #
 $CONFIG_TAB.BackColor = [System.Drawing.Color]::Gray
-$CONFIG_TAB.Controls.Add($CUSTOMCONFIG_CONTROL_PANEL)
-$CONFIG_TAB.Controls.Add($PROFILECONFIG_PANEL)
-$CONFIG_TAB.Controls.Add($CUSTOM_CONFIG_PANEL)
-$CONFIG_TAB.Controls.Add($DEFAULT_CONFIG_PANEL)
-$CONFIG_TAB.Controls.Add($DEFAULTCONFIG_CONTROL_PANEL)
-$CONFIG_TAB.Controls.Add($CONFIG_START_BUTTON)
+$CONFIG_TAB.Controls.Add($CONFIG_START_BUTTON_PANEL)
+$CONFIG_TAB.Controls.Add($MAIN_CONFIGMOD_PANEL)
+$CONFIG_TAB.Controls.Add($MAIN_CONFIG_PANEL)
 $CONFIG_TAB.ForeColor = [System.Drawing.SystemColors]::ControlText
 $CONFIG_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $CONFIG_TAB.Name = [System.String]'CONFIG_TAB'
@@ -283,97 +299,77 @@ $CONFIG_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([Sy
 $CONFIG_TAB.TabIndex = [System.Int32]0
 $CONFIG_TAB.Text = [System.String]'Configuration'
 #
-#CUSTOMCONFIG_CONTROL_PANEL
+#MAIN_CONFIGMOD_PANEL
 #
-$CUSTOMCONFIG_CONTROL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$CUSTOMCONFIG_CONTROL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$CUSTOMCONFIG_CONTROL_PANEL.Controls.Add($CUSTOM_CHECKALL_CHECKBOX)
-$CUSTOMCONFIG_CONTROL_PANEL.Controls.Add($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX)
-$CUSTOMCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]262,[System.Int32]406))
-$CUSTOMCONFIG_CONTROL_PANEL.Name = [System.String]'CUSTOMCONFIG_CONTROL_PANEL'
-$CUSTOMCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
-$CUSTOMCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]31
-$CUSTOMCONFIG_CONTROL_PANEL.add_Paint($CUSTOMCONFIG_CONTROL_PANEL_Paint)
+$MAIN_CONFIGMOD_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$MAIN_CONFIGMOD_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$MAIN_CONFIGMOD_PANEL.Controls.Add($SCROLL_CONFIGMOD_PANEL)
+$MAIN_CONFIGMOD_PANEL.Controls.Add($TITLE_CONFIGMOD_PANEL)
+$MAIN_CONFIGMOD_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]497,[System.Int32]6))
+$MAIN_CONFIGMOD_PANEL.Name = [System.String]'MAIN_CONFIGMOD_PANEL'
+$MAIN_CONFIGMOD_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]132,[System.Int32]378))
+$MAIN_CONFIGMOD_PANEL.TabIndex = [System.Int32]30
 #
-#CUSTOM_CHECKALL_CHECKBOX
+#SCROLL_CONFIGMOD_PANEL
 #
-$CUSTOM_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$CUSTOM_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
-$CUSTOM_CHECKALL_CHECKBOX.Name = [System.String]'CUSTOM_CHECKALL_CHECKBOX'
-$CUSTOM_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
-$CUSTOM_CHECKALL_CHECKBOX.TabIndex = [System.Int32]27
-$CUSTOM_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
-$CUSTOM_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
+$SCROLL_CONFIGMOD_PANEL.AutoScroll = $true
+$SCROLL_CONFIGMOD_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$SCROLL_CONFIGMOD_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SCROLL_CONFIGMOD_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]36))
+$SCROLL_CONFIGMOD_PANEL.Name = [System.String]'SCROLL_CONFIGMOD_PANEL'
+$SCROLL_CONFIGMOD_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]331))
+$SCROLL_CONFIGMOD_PANEL.TabIndex = [System.Int32]1
 #
-#AUTOREFRESH_CUSTOMCONFIG_CHECKBOX
+#TITLE_CONFIGMOD_PANEL
 #
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]157,[System.Int32]3))
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Name = [System.String]'AUTOREFRESH_CUSTOMCONFIG_CHECKBOX'
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]88,[System.Int32]21))
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.TabIndex = [System.Int32]26
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.Text = [System.String]'Auto Refresh'
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.UseVisualStyleBackColor = $true
-$AUTOREFRESH_CUSTOMCONFIG_CHECKBOX.add_CheckedChanged($AUTOREFRESH_CUSTOMCONFIG_CHECKBOX_CheckedChanged)
+$TITLE_CONFIGMOD_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$TITLE_CONFIGMOD_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$TITLE_CONFIGMOD_PANEL.Controls.Add($TITLE_AVAILCONFIGSMOD_LABEL)
+$TITLE_CONFIGMOD_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]4))
+$TITLE_CONFIGMOD_PANEL.Name = [System.String]'TITLE_CONFIGMOD_PANEL'
+$TITLE_CONFIGMOD_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]27))
+$TITLE_CONFIGMOD_PANEL.TabIndex = [System.Int32]0
 #
-#PROFILECONFIG_PANEL
+#MAIN_CONFIG_PANEL
 #
-$PROFILECONFIG_PANEL.AutoScroll = $true
-$PROFILECONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$PROFILECONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$PROFILECONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]518,[System.Int32]6))
-$PROFILECONFIG_PANEL.Name = [System.String]'PROFILECONFIG_PANEL'
-$PROFILECONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]109,[System.Int32]394))
-$PROFILECONFIG_PANEL.TabIndex = [System.Int32]30
+$MAIN_CONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$MAIN_CONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$MAIN_CONFIG_PANEL.Controls.Add($TITLE_CONFIGTAB_PANEL)
+$MAIN_CONFIG_PANEL.Controls.Add($SCROLL_CONFIG_PANEL)
+$MAIN_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]6))
+$MAIN_CONFIG_PANEL.Name = [System.String]'MAIN_CONFIG_PANEL'
+$MAIN_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]488,[System.Int32]427))
+$MAIN_CONFIG_PANEL.TabIndex = [System.Int32]28
+$MAIN_CONFIG_PANEL.add_Paint($MAIN_CONFIG_PANEL_Paint)
 #
-#CUSTOM_CONFIG_PANEL
+#TITLE_CONFIGTAB_PANEL
 #
-$CUSTOM_CONFIG_PANEL.AutoScroll = $true
-$CUSTOM_CONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$CUSTOM_CONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$CUSTOM_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]262,[System.Int32]6))
-$CUSTOM_CONFIG_PANEL.Name = [System.String]'CUSTOM_CONFIG_PANEL'
-$CUSTOM_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]394))
-$CUSTOM_CONFIG_PANEL.TabIndex = [System.Int32]29
+$TITLE_CONFIGTAB_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$TITLE_CONFIGTAB_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$TITLE_CONFIGTAB_PANEL.Controls.Add($TITLE_AVAILCONFIGS_LABEL)
+$TITLE_CONFIGTAB_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]4))
+$TITLE_CONFIGTAB_PANEL.Name = [System.String]'TITLE_CONFIGTAB_PANEL'
+$TITLE_CONFIGTAB_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]473,[System.Int32]26))
+$TITLE_CONFIGTAB_PANEL.TabIndex = [System.Int32]1
 #
-#DEFAULT_CONFIG_PANEL
+#SCROLL_CONFIG_PANEL
 #
-$DEFAULT_CONFIG_PANEL.AutoScroll = $true
-$DEFAULT_CONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$DEFAULT_CONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$DEFAULT_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]6))
-$DEFAULT_CONFIG_PANEL.Name = [System.String]'DEFAULT_CONFIG_PANEL'
-$DEFAULT_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]394))
-$DEFAULT_CONFIG_PANEL.TabIndex = [System.Int32]28
-#
-#DEFAULTCONFIG_CONTROL_PANEL
-#
-$DEFAULTCONFIG_CONTROL_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$DEFAULTCONFIG_CONTROL_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$DEFAULTCONFIG_CONTROL_PANEL.Controls.Add($DEFAULT_CHECKALL_CHECKBOX)
-$DEFAULTCONFIG_CONTROL_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]406))
-$DEFAULTCONFIG_CONTROL_PANEL.Name = [System.String]'DEFAULTCONFIG_CONTROL_PANEL'
-$DEFAULTCONFIG_CONTROL_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]250,[System.Int32]27))
-$DEFAULTCONFIG_CONTROL_PANEL.TabIndex = [System.Int32]24
-#
-#DEFAULT_CHECKALL_CHECKBOX
-#
-$DEFAULT_CHECKALL_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$DEFAULT_CHECKALL_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
-$DEFAULT_CHECKALL_CHECKBOX.Name = [System.String]'DEFAULT_CHECKALL_CHECKBOX'
-$DEFAULT_CHECKALL_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]104,[System.Int32]24))
-$DEFAULT_CHECKALL_CHECKBOX.TabIndex = [System.Int32]0
-$DEFAULT_CHECKALL_CHECKBOX.Text = [System.String]'Check All'
-$DEFAULT_CHECKALL_CHECKBOX.UseVisualStyleBackColor = $true
+$SCROLL_CONFIG_PANEL.AutoScroll = $true
+$SCROLL_CONFIG_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$SCROLL_CONFIG_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SCROLL_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]36))
+$SCROLL_CONFIG_PANEL.Name = [System.String]'SCROLL_CONFIG_PANEL'
+$SCROLL_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]473,[System.Int32]384))
+$SCROLL_CONFIG_PANEL.TabIndex = [System.Int32]0
 #
 #CONFIG_START_BUTTON
 #
 $CONFIG_START_BUTTON.BackColor = [System.Drawing.Color]::Silver
 $CONFIG_START_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
 $CONFIG_START_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75,[System.Drawing.FontStyle]::Bold,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
-$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]518,[System.Int32]406))
+$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]6))
 $CONFIG_START_BUTTON.Name = [System.String]'CONFIG_START_BUTTON'
-$CONFIG_START_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]109,[System.Int32]27))
+$CONFIG_START_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]30))
 $CONFIG_START_BUTTON.TabIndex = [System.Int32]0
 $CONFIG_START_BUTTON.Text = [System.String]'Start'
 $CONFIG_START_BUTTON.UseVisualStyleBackColor = $false
@@ -382,72 +378,100 @@ $CONFIG_START_BUTTON.add_Click($CONFIG_START_BUTTON_Click)
 #APP_TAB
 #
 $APP_TAB.BackColor = [System.Drawing.Color]::Gray
-$APP_TAB.Controls.Add($APP_LOG_TEXTBOX)
-$APP_TAB.Controls.Add($AUTOREFRESH_APP_CHECKBOX)
-$APP_TAB.Controls.Add($USECUSTOM_APP_CHECKBOX)
-$APP_TAB.Controls.Add($REFRESH_APP_BUTTON)
-$APP_TAB.Controls.Add($MODULAR_APP_PANEL)
+$APP_TAB.Controls.Add($MAIN_APP_PANEL)
+$APP_TAB.Controls.Add($MAIN_APPMOD_PANEL)
 $APP_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $APP_TAB.Name = [System.String]'APP_TAB'
 $APP_TAB.Padding = (New-Object -TypeName System.Windows.Forms.Padding -ArgumentList @([System.Int32]3))
 $APP_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $APP_TAB.TabIndex = [System.Int32]1
-$APP_TAB.Text = [System.String]'App'
+$APP_TAB.Text = [System.String]'Apps'
+$APP_TAB.add_Click($APP_TAB_Click)
 #
-#APP_LOG_TEXTBOX
+#MAIN_APP_PANEL
 #
-$APP_LOG_TEXTBOX.BackColor = [System.Drawing.Color]::DarkGray
-$APP_LOG_TEXTBOX.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$APP_LOG_TEXTBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]448,[System.Int32]6))
-$APP_LOG_TEXTBOX.Name = [System.String]'APP_LOG_TEXTBOX'
-$APP_LOG_TEXTBOX.ReadOnly = $true
-$APP_LOG_TEXTBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]179,[System.Int32]231))
-$APP_LOG_TEXTBOX.TabIndex = [System.Int32]4
-$APP_LOG_TEXTBOX.Text = [System.String]''
+$MAIN_APP_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$MAIN_APP_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$MAIN_APP_PANEL.Controls.Add($SCROLL_APP_PANEL)
+$MAIN_APP_PANEL.Controls.Add($TITLE_APPTAB_PANEL)
+$MAIN_APP_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]6))
+$MAIN_APP_PANEL.Name = [System.String]'MAIN_APP_PANEL'
+$MAIN_APP_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]488,[System.Int32]427))
+$MAIN_APP_PANEL.TabIndex = [System.Int32]2
 #
-#AUTOREFRESH_APP_CHECKBOX
+#SCROLL_APP_PANEL
 #
-$AUTOREFRESH_APP_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$AUTOREFRESH_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]537,[System.Int32]385))
-$AUTOREFRESH_APP_CHECKBOX.Name = [System.String]'AUTOREFRESH_APP_CHECKBOX'
-$AUTOREFRESH_APP_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]16))
-$AUTOREFRESH_APP_CHECKBOX.TabIndex = [System.Int32]3
-$AUTOREFRESH_APP_CHECKBOX.Text = [System.String]'Auto Refresh'
-$AUTOREFRESH_APP_CHECKBOX.UseVisualStyleBackColor = $true
+$SCROLL_APP_PANEL.AutoScroll = $true
+$SCROLL_APP_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$SCROLL_APP_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SCROLL_APP_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]36))
+$SCROLL_APP_PANEL.Name = [System.String]'SCROLL_APP_PANEL'
+$SCROLL_APP_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]473,[System.Int32]384))
+$SCROLL_APP_PANEL.TabIndex = [System.Int32]1
 #
-#USECUSTOM_APP_CHECKBOX
+#TITLE_APPTAB_PANEL
 #
-$USECUSTOM_APP_CHECKBOX.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]7.5))
-$USECUSTOM_APP_CHECKBOX.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]537,[System.Int32]363))
-$USECUSTOM_APP_CHECKBOX.Name = [System.String]'USECUSTOM_APP_CHECKBOX'
-$USECUSTOM_APP_CHECKBOX.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]16))
-$USECUSTOM_APP_CHECKBOX.TabIndex = [System.Int32]2
-$USECUSTOM_APP_CHECKBOX.Text = [System.String]'Use Custom'
-$USECUSTOM_APP_CHECKBOX.UseVisualStyleBackColor = $true
-$USECUSTOM_APP_CHECKBOX.add_CheckedChanged($USECUSTOM_APP_CHECKBOX_CheckedChanged)
+$TITLE_APPTAB_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$TITLE_APPTAB_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$TITLE_APPTAB_PANEL.Controls.Add($TITLE_AVAILAPPS_LABEL)
+$TITLE_APPTAB_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]4))
+$TITLE_APPTAB_PANEL.Name = [System.String]'TITLE_APPTAB_PANEL'
+$TITLE_APPTAB_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]473,[System.Int32]26))
+$TITLE_APPTAB_PANEL.TabIndex = [System.Int32]0
 #
-#REFRESH_APP_BUTTON
+#TITLE_AVAILAPPS_LABEL
 #
-$REFRESH_APP_BUTTON.BackColor = [System.Drawing.Color]::Silver
-$REFRESH_APP_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
-$REFRESH_APP_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
-$REFRESH_APP_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]537,[System.Int32]407))
-$REFRESH_APP_BUTTON.Name = [System.String]'REFRESH_APP_BUTTON'
-$REFRESH_APP_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]90,[System.Int32]26))
-$REFRESH_APP_BUTTON.TabIndex = [System.Int32]1
-$REFRESH_APP_BUTTON.Text = [System.String]'Refresh'
-$REFRESH_APP_BUTTON.UseVisualStyleBackColor = $false
-$REFRESH_APP_BUTTON.add_Click($REFRESH_APP_BUTTON_Click)
+$TITLE_AVAILAPPS_LABEL.BackColor = [System.Drawing.Color]::Transparent
+$TITLE_AVAILAPPS_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]11.25,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
+$TITLE_AVAILAPPS_LABEL.ForeColor = [System.Drawing.Color]::Black
+$TITLE_AVAILAPPS_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]0))
+$TITLE_AVAILAPPS_LABEL.Name = [System.String]'TITLE_AVAILAPPS_LABEL'
+$TITLE_AVAILAPPS_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]469,[System.Int32]24))
+$TITLE_AVAILAPPS_LABEL.TabIndex = [System.Int32]0
+$TITLE_AVAILAPPS_LABEL.Text = [System.String]'Available Applications:'
+$TITLE_AVAILAPPS_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
 #
-#MODULAR_APP_PANEL
+#MAIN_APPMOD_PANEL
 #
-$MODULAR_APP_PANEL.AutoScroll = $true
-$MODULAR_APP_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$MODULAR_APP_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$MODULAR_APP_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]3))
-$MODULAR_APP_PANEL.Name = [System.String]'MODULAR_APP_PANEL'
-$MODULAR_APP_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]345,[System.Int32]433))
-$MODULAR_APP_PANEL.TabIndex = [System.Int32]0
+$MAIN_APPMOD_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$MAIN_APPMOD_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$MAIN_APPMOD_PANEL.Controls.Add($SCROLL_APPMOD_PANEL)
+$MAIN_APPMOD_PANEL.Controls.Add($TITLE_APPMOD_PANEL)
+$MAIN_APPMOD_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]497,[System.Int32]6))
+$MAIN_APPMOD_PANEL.Name = [System.String]'MAIN_APPMOD_PANEL'
+$MAIN_APPMOD_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]132,[System.Int32]427))
+$MAIN_APPMOD_PANEL.TabIndex = [System.Int32]1
+#
+#SCROLL_APPMOD_PANEL
+#
+$SCROLL_APPMOD_PANEL.AutoScroll = $true
+$SCROLL_APPMOD_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$SCROLL_APPMOD_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SCROLL_APPMOD_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]36))
+$SCROLL_APPMOD_PANEL.Name = [System.String]'SCROLL_APPMOD_PANEL'
+$SCROLL_APPMOD_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]384))
+$SCROLL_APPMOD_PANEL.TabIndex = [System.Int32]1
+#
+#TITLE_APPMOD_PANEL
+#
+$TITLE_APPMOD_PANEL.BackColor = [System.Drawing.Color]::LightGray
+$TITLE_APPMOD_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$TITLE_APPMOD_PANEL.Controls.Add($TITLE_AVAILAPPSMOD_LABEL)
+$TITLE_APPMOD_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]4))
+$TITLE_APPMOD_PANEL.Name = [System.String]'TITLE_APPMOD_PANEL'
+$TITLE_APPMOD_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]27))
+$TITLE_APPMOD_PANEL.TabIndex = [System.Int32]0
+#
+#TITLE_AVAILAPPSMOD_LABEL
+#
+$TITLE_AVAILAPPSMOD_LABEL.ForeColor = [System.Drawing.Color]::Black
+$TITLE_AVAILAPPSMOD_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]0))
+$TITLE_AVAILAPPSMOD_LABEL.Name = [System.String]'TITLE_AVAILAPPSMOD_LABEL'
+$TITLE_AVAILAPPSMOD_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]111,[System.Int32]25))
+$TITLE_AVAILAPPSMOD_LABEL.TabIndex = [System.Int32]0
+$TITLE_AVAILAPPSMOD_LABEL.Text = [System.String]'Available Mods:'
+$TITLE_AVAILAPPSMOD_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$TITLE_AVAILAPPSMOD_LABEL.add_Click($TITLE_AVAILMOD_LABEL_Click)
 #
 #TOOLS_TAB
 #
@@ -457,6 +481,15 @@ $TOOLS_TAB.Name = [System.String]'TOOLS_TAB'
 $TOOLS_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $TOOLS_TAB.TabIndex = [System.Int32]2
 $TOOLS_TAB.Text = [System.String]'Tools'
+#
+#MODS_TAB
+#
+$MODS_TAB.BackColor = [System.Drawing.Color]::Gray
+$MODS_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
+$MODS_TAB.Name = [System.String]'MODS_TAB'
+$MODS_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
+$MODS_TAB.TabIndex = [System.Int32]4
+$MODS_TAB.Text = [System.String]'Mods'
 #
 #INFO_TAB
 #
@@ -490,6 +523,35 @@ $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
 $VERSION_NUMBER_LABEL.Text = [System.String]'0.0.0'
 $VERSION_NUMBER_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
 #
+#TITLE_AVAILCONFIGS_LABEL
+#
+$TITLE_AVAILCONFIGS_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]11.25))
+$TITLE_AVAILCONFIGS_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]0))
+$TITLE_AVAILCONFIGS_LABEL.Name = [System.String]'TITLE_AVAILCONFIGS_LABEL'
+$TITLE_AVAILCONFIGS_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]469,[System.Int32]24))
+$TITLE_AVAILCONFIGS_LABEL.TabIndex = [System.Int32]0
+$TITLE_AVAILCONFIGS_LABEL.Text = [System.String]'Available Configurations:'
+$TITLE_AVAILCONFIGS_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+#
+#TITLE_AVAILCONFIGSMOD_LABEL
+#
+$TITLE_AVAILCONFIGSMOD_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
+$TITLE_AVAILCONFIGSMOD_LABEL.Name = [System.String]'TITLE_AVAILCONFIGSMOD_LABEL'
+$TITLE_AVAILCONFIGSMOD_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]111,[System.Int32]23))
+$TITLE_AVAILCONFIGSMOD_LABEL.TabIndex = [System.Int32]0
+$TITLE_AVAILCONFIGSMOD_LABEL.Text = [System.String]'Available Mods:'
+$TITLE_AVAILCONFIGSMOD_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+#
+#CONFIG_START_BUTTON_PANEL
+#
+$CONFIG_START_BUTTON_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$CONFIG_START_BUTTON_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$CONFIG_START_BUTTON_PANEL.Controls.Add($CONFIG_START_BUTTON)
+$CONFIG_START_BUTTON_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]497,[System.Int32]390))
+$CONFIG_START_BUTTON_PANEL.Name = [System.String]'CONFIG_START_BUTTON_PANEL'
+$CONFIG_START_BUTTON_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]132,[System.Int32]43))
+$CONFIG_START_BUTTON_PANEL.TabIndex = [System.Int32]31
+#
 #MAIN_FORM
 #
 $MAIN_FORM.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
@@ -502,7 +564,7 @@ $MAIN_FORM.Controls.Add($VERSION_LABEL)
 $MAIN_FORM.Controls.Add($MAIN_TAB_CONTROL)
 $MAIN_FORM.Controls.Add($SIDE_PANNEL)
 $MAIN_FORM.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]8.25,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
-$MAIN_FORM.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+$MAIN_FORM.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 $MAIN_FORM.MaximizeBox = $false
 $MAIN_FORM.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $MAIN_FORM.Text = [System.String]'Main - FPCA - (Frysix''s Powershell Configurator App)'
@@ -510,9 +572,16 @@ $MAIN_FORM.TopMost = $true
 $SIDE_PANNEL.ResumeLayout($false)
 $MAIN_TAB_CONTROL.ResumeLayout($false)
 $CONFIG_TAB.ResumeLayout($false)
-$CUSTOMCONFIG_CONTROL_PANEL.ResumeLayout($false)
-$DEFAULTCONFIG_CONTROL_PANEL.ResumeLayout($false)
+$MAIN_CONFIGMOD_PANEL.ResumeLayout($false)
+$TITLE_CONFIGMOD_PANEL.ResumeLayout($false)
+$MAIN_CONFIG_PANEL.ResumeLayout($false)
+$TITLE_CONFIGTAB_PANEL.ResumeLayout($false)
 $APP_TAB.ResumeLayout($false)
+$MAIN_APP_PANEL.ResumeLayout($false)
+$TITLE_APPTAB_PANEL.ResumeLayout($false)
+$MAIN_APPMOD_PANEL.ResumeLayout($false)
+$TITLE_APPMOD_PANEL.ResumeLayout($false)
+$CONFIG_START_BUTTON_PANEL.ResumeLayout($false)
 $MAIN_FORM.ResumeLayout($false)
 Add-Member -InputObject $MAIN_FORM -Name SIDE_PANNEL -Value $SIDE_PANNEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name INTERNET_TITLE_LABEL -Value $INTERNET_TITLE_LABEL -MemberType NoteProperty
@@ -531,22 +600,27 @@ Add-Member -InputObject $MAIN_FORM -Name SYSTEMINFO_LINK_LABEL -Value $SYSTEMINF
 Add-Member -InputObject $MAIN_FORM -Name SETTINGS_BUTTON -Value $SETTINGS_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name MAIN_TAB_CONTROL -Value $MAIN_TAB_CONTROL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_TAB -Value $CONFIG_TAB -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CUSTOMCONFIG_CONTROL_PANEL -Value $CUSTOMCONFIG_CONTROL_PANEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CUSTOM_CHECKALL_CHECKBOX -Value $CUSTOM_CHECKALL_CHECKBOX -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -Value $AUTOREFRESH_CUSTOMCONFIG_CHECKBOX -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name PROFILECONFIG_PANEL -Value $PROFILECONFIG_PANEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name CUSTOM_CONFIG_PANEL -Value $CUSTOM_CONFIG_PANEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name DEFAULT_CONFIG_PANEL -Value $DEFAULT_CONFIG_PANEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name DEFAULTCONFIG_CONTROL_PANEL -Value $DEFAULTCONFIG_CONTROL_PANEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name DEFAULT_CHECKALL_CHECKBOX -Value $DEFAULT_CHECKALL_CHECKBOX -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name CONFIG_START_BUTTON_PANEL -Value $CONFIG_START_BUTTON_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_START_BUTTON -Value $CONFIG_START_BUTTON -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name MAIN_CONFIGMOD_PANEL -Value $MAIN_CONFIGMOD_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SCROLL_CONFIGMOD_PANEL -Value $SCROLL_CONFIGMOD_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_CONFIGMOD_PANEL -Value $TITLE_CONFIGMOD_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_AVAILCONFIGSMOD_LABEL -Value $TITLE_AVAILCONFIGSMOD_LABEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name MAIN_CONFIG_PANEL -Value $MAIN_CONFIG_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_CONFIGTAB_PANEL -Value $TITLE_CONFIGTAB_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_AVAILCONFIGS_LABEL -Value $TITLE_AVAILCONFIGS_LABEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SCROLL_CONFIG_PANEL -Value $SCROLL_CONFIG_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name APP_TAB -Value $APP_TAB -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name APP_LOG_TEXTBOX -Value $APP_LOG_TEXTBOX -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name AUTOREFRESH_APP_CHECKBOX -Value $AUTOREFRESH_APP_CHECKBOX -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name USECUSTOM_APP_CHECKBOX -Value $USECUSTOM_APP_CHECKBOX -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name REFRESH_APP_BUTTON -Value $REFRESH_APP_BUTTON -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name MODULAR_APP_PANEL -Value $MODULAR_APP_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name MAIN_APP_PANEL -Value $MAIN_APP_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SCROLL_APP_PANEL -Value $SCROLL_APP_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_APPTAB_PANEL -Value $TITLE_APPTAB_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_AVAILAPPS_LABEL -Value $TITLE_AVAILAPPS_LABEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name MAIN_APPMOD_PANEL -Value $MAIN_APPMOD_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SCROLL_APPMOD_PANEL -Value $SCROLL_APPMOD_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_APPMOD_PANEL -Value $TITLE_APPMOD_PANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TITLE_AVAILAPPSMOD_LABEL -Value $TITLE_AVAILAPPSMOD_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name TOOLS_TAB -Value $TOOLS_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name MODS_TAB -Value $MODS_TAB -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name INFO_TAB -Value $INFO_TAB -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_LABEL -Value $VERSION_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_NUMBER_LABEL -Value $VERSION_NUMBER_LABEL -MemberType NoteProperty

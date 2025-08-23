@@ -1,0 +1,73 @@
+{
+    "Information": {
+        "Name": "Frysix's Demo Mod",
+        "Description": "This is a demo mod for FPCA created by Frysix.",
+        "Author": "Frysix",
+        "ModVersion": "1.0.0",
+        "AppVersion": ["0.9.3", "0.9.4"]
+    },
+    "Mod_Data": {
+        "Applications": {
+            "Modding": {
+                "MODRINTH": {
+                    "DisplayName": "Modrinth Client",
+                    "Description": "Install the Modrinth client for easy access to Minecraft mods.",
+                    "AppType": "Installer",
+                    "Script": "Install-Modrinth.ps1",
+                    "DownloadLinks": {
+                        "1": "https://ftp.frysix.com/public/file/modrinth-client.zip"
+                    },
+                    "Files": {
+                        "Installer": {
+                            "Folder": "ModrinthClient",
+                            "Executable": "ModrinthClient.exe",
+                            "Installer": "ModrinthClientInstaller.exe"
+                        }
+                    }
+                },
+                "MO2": {
+                    "DisplayName": "Mod Organizer 2",
+                    "Description": "Install Mod Organizer 2 for managing game mods.",
+                    "AppType": ["Installer", "Portable"],
+                    "Script": "Install-MO2.ps1",
+                    "DownloadLinks": {
+                        "1": "https://ftp.frysix.com/public/file/mod-organizer-2.zip"
+                    },
+                    "Files": {
+                        "Portable": {
+                            "Zip": "ModOrganizer2Portable.zip",
+                            "Executable": "ModOrganizer.exe",
+                            "Folder": "ModOrganizer2Portable"
+                        },
+                        "Installer": {
+                            "Folder": "ModOrganizer2",
+                            "Executable": "ModOrganizer2.exe",
+                            "Installer": "ModOrganizer2Installer.exe"
+                        }
+                    }
+                }
+            },
+            "Stress Testing": {
+                "OCCT": {
+                    "DisplayName": "OCCT Stress Test",
+                    "Description": "Install OCCT for stress testing your system.",
+                    "AppType": "Portable",
+                    "Script": "Install-OCCT.ps1",
+                    "DownloadLinks": {
+                        "1": "https://ftp.frysix.com/public/file/occt-stress-test.zip"
+                    },
+                    "Files": {
+                        "Portable": {
+                            "Zip": "OCCTStressTest.zip",
+                            "Executable": "OCCT.exe",
+                            "Folder": "OCCTStressTest"
+                        }
+                    }
+                }
+            }
+        },
+        "Configuration": {
+
+        }
+    }
+}

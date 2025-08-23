@@ -47,50 +47,6 @@ function Convert-StringToInt {
     }
 }
 
-# This function reads ps1 files from a specified file and returns their content as script blocks.
-function Get-ScriptBlocksFromFile {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$FilePath
-    )
-    $scriptBlocks = @()
-    if (Test-Path -Path $FilePath) {
-        $content = Get-Content -Path $FilePath -Raw
-        $scriptBlocks = $content -split "`n" | ForEach-Object { [scriptblock]::Create($_) }
-    } else {
-        Write-Host "File not found: $FilePath"
-    }
-    return $scriptBlocks
-}
-
-# Specifically designed to parse a configuration file in a custom format.
-# The file contains sections, checkboxes, and settings in a structured format.
-function Get-FromConfigFile {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$FilePath
-    )
-    $result = @{}
-    $category = $null
-    $checkbox = $null
-
-    foreach ($line in Get-Content $FilePath) {
-        $line = $line.Trim()
-        if ($line -match "^\[(.+)\]$") {
-            $category = $matches[1]
-            $result[$category] = @{}
-            $checkbox = $null
-        } elseif ($line -match "^\((.+)\)$" -and $category) {
-            $checkbox = $matches[1]
-            $result[$category][$checkbox] = @{}
-        } elseif ($line -match "^(.*?)=(.*)$" -and $category -and $checkbox) {
-            $setting = $matches[1].Trim()
-            $value = $matches[2].Trim()
-            $result[$category][$checkbox][$setting] = $value
-        }
-    }
-    return $result
-}
 
 # Function to parse a JSON file and return its content as a hashtable
 function Convert-JsonToHashtable {

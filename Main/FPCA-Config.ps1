@@ -4,6 +4,8 @@ Param(
     [Parameter(Mandatory=$true)]
     [string[]]$SelectedTasks,
     [Parameter(Mandatory=$false)]
+    [hashtable]$SelectedTasksSettings,
+    [Parameter(Mandatory=$false)]
     [string[]]$LoadedModConfigs
 )
 
