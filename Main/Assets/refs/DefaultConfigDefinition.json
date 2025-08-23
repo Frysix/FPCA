@@ -100,10 +100,10 @@
                 "DisplayName": "Microsoft Office",
                 "Description": "Install Microsoft Office suite",
                 "DefaultState": "false",
-                "Type": "CheckBox",
+                "Type": "ComboBox",
+                "Options": ["Office 365 Pro", "Office 365 Home", "Office 2021 Pro", "Office 2021 Home", "Office 2019 Pro", "Office 2019 Home", "Office 2016 Pro", "Office 2016 Home", "Office 2013 Pro", "Office 2013 Home", "Office 2010 Pro", "Office 2010 Home"],
                 "Script": "Install-Office.ps1",
-                "RequireInternet": "true",
-                "PreConfigScript": "PreConfig-Office.ps1"
+                "RequireInternet": "true"
             }
         },
         "Settings": {
@@ -248,26 +248,6 @@
                 "Script": "CheckWindowsActivationStatus.ps1",
                 "RequireInternet": "false"
             }            
-        },
-        "Finishing": {
-            "RESTARTOPTION": {
-                "DisplayName": "Restart Option",
-                "Description": "Choose an option on how to restart after Configuration",
-                "DefaultState": "true",
-                "Type": "ComboBox",
-                "Options": ["restart", "disabled", "prompt", "shutdown", "bios"],
-                "DefaultOption": "prompt",
-                "Script": "RestartOption.ps1",
-                "RequireInternet": "false"
-            },
-            "DEFAULTAPPREMINDER": {
-                "DisplayName": "Default App Reminder",
-                "Description": "Open Settings to set default apps after configuration",
-                "DefaultState": "true",
-                "Type": "CheckBox",
-                "Script": "DefaultAppReminder.ps1",
-                "RequireInternet": "false"
-            }
         }
     }
 }
