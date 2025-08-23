@@ -304,9 +304,9 @@ $Null = $UiPowershell.AddScript({
             $Global:UiHash.MainFormLoaded = $true
         })
         # Enable double buffering on the main form to reduce flickering.
-        $MAIN_FORM.SetStyle([System.Windows.Forms.ControlStyles]::DoubleBuffer, $true)
-        $MAIN_FORM.SetStyle([System.Windows.Forms.ControlStyles]::UserPaint, $true)
-        $MAIN_FORM.SetStyle([System.Windows.Forms.ControlStyles]::AllPaintingInWmPaint, $true)
+        # Use reflection to access the protected DoubleBuffered property
+        $MAIN_FORM.GetType().GetProperty("DoubleBuffered", [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic).SetValue($MAIN_FORM, $true, $null)
+        
         # Add main form controls to the UiHash for later access.
         $Global:UiHash.MainForm = $MAIN_FORM
         # Display the main form of the application.

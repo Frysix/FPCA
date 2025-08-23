@@ -59,13 +59,16 @@ $SYSTEMINFO_LINK_LABEL = (New-Object -TypeName System.Windows.Forms.LinkLabel)
 $SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MAIN_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $CONFIG_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$CONFIG_START_BUTTON_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$CONFIG_START_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MAIN_CONFIGMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $SCROLL_CONFIGMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $TITLE_CONFIGMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_AVAILCONFIGSMOD_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $MAIN_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $TITLE_CONFIGTAB_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$TITLE_AVAILCONFIGS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $SCROLL_CONFIG_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$CONFIG_START_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $APP_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $MAIN_APP_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $SCROLL_APP_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
@@ -80,12 +83,10 @@ $MODS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $INFO_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$TITLE_AVAILCONFIGS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$TITLE_AVAILCONFIGSMOD_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$CONFIG_START_BUTTON_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
+$CONFIG_START_BUTTON_PANEL.SuspendLayout()
 $MAIN_CONFIGMOD_PANEL.SuspendLayout()
 $TITLE_CONFIGMOD_PANEL.SuspendLayout()
 $MAIN_CONFIG_PANEL.SuspendLayout()
@@ -95,7 +96,6 @@ $MAIN_APP_PANEL.SuspendLayout()
 $TITLE_APPTAB_PANEL.SuspendLayout()
 $MAIN_APPMOD_PANEL.SuspendLayout()
 $TITLE_APPMOD_PANEL.SuspendLayout()
-$CONFIG_START_BUTTON_PANEL.SuspendLayout()
 $MAIN_FORM.SuspendLayout()
 #
 #SIDE_PANNEL
@@ -299,6 +299,29 @@ $CONFIG_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([Sy
 $CONFIG_TAB.TabIndex = [System.Int32]0
 $CONFIG_TAB.Text = [System.String]'Configuration'
 #
+#CONFIG_START_BUTTON_PANEL
+#
+$CONFIG_START_BUTTON_PANEL.BackColor = [System.Drawing.Color]::DarkGray
+$CONFIG_START_BUTTON_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$CONFIG_START_BUTTON_PANEL.Controls.Add($CONFIG_START_BUTTON)
+$CONFIG_START_BUTTON_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]497,[System.Int32]390))
+$CONFIG_START_BUTTON_PANEL.Name = [System.String]'CONFIG_START_BUTTON_PANEL'
+$CONFIG_START_BUTTON_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]132,[System.Int32]43))
+$CONFIG_START_BUTTON_PANEL.TabIndex = [System.Int32]31
+#
+#CONFIG_START_BUTTON
+#
+$CONFIG_START_BUTTON.BackColor = [System.Drawing.Color]::Silver
+$CONFIG_START_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
+$CONFIG_START_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75,[System.Drawing.FontStyle]::Bold,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
+$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]6))
+$CONFIG_START_BUTTON.Name = [System.String]'CONFIG_START_BUTTON'
+$CONFIG_START_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]30))
+$CONFIG_START_BUTTON.TabIndex = [System.Int32]0
+$CONFIG_START_BUTTON.Text = [System.String]'Start'
+$CONFIG_START_BUTTON.UseVisualStyleBackColor = $false
+$CONFIG_START_BUTTON.add_Click($CONFIG_START_BUTTON_Click)
+#
 #MAIN_CONFIGMOD_PANEL
 #
 $MAIN_CONFIGMOD_PANEL.BackColor = [System.Drawing.Color]::DarkGray
@@ -330,6 +353,15 @@ $TITLE_CONFIGMOD_PANEL.Name = [System.String]'TITLE_CONFIGMOD_PANEL'
 $TITLE_CONFIGMOD_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]27))
 $TITLE_CONFIGMOD_PANEL.TabIndex = [System.Int32]0
 #
+#TITLE_AVAILCONFIGSMOD_LABEL
+#
+$TITLE_AVAILCONFIGSMOD_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
+$TITLE_AVAILCONFIGSMOD_LABEL.Name = [System.String]'TITLE_AVAILCONFIGSMOD_LABEL'
+$TITLE_AVAILCONFIGSMOD_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]111,[System.Int32]23))
+$TITLE_AVAILCONFIGSMOD_LABEL.TabIndex = [System.Int32]0
+$TITLE_AVAILCONFIGSMOD_LABEL.Text = [System.String]'Available Mods:'
+$TITLE_AVAILCONFIGSMOD_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+#
 #MAIN_CONFIG_PANEL
 #
 $MAIN_CONFIG_PANEL.BackColor = [System.Drawing.Color]::DarkGray
@@ -352,6 +384,16 @@ $TITLE_CONFIGTAB_PANEL.Name = [System.String]'TITLE_CONFIGTAB_PANEL'
 $TITLE_CONFIGTAB_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]473,[System.Int32]26))
 $TITLE_CONFIGTAB_PANEL.TabIndex = [System.Int32]1
 #
+#TITLE_AVAILCONFIGS_LABEL
+#
+$TITLE_AVAILCONFIGS_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]11.25))
+$TITLE_AVAILCONFIGS_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]0))
+$TITLE_AVAILCONFIGS_LABEL.Name = [System.String]'TITLE_AVAILCONFIGS_LABEL'
+$TITLE_AVAILCONFIGS_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]469,[System.Int32]24))
+$TITLE_AVAILCONFIGS_LABEL.TabIndex = [System.Int32]0
+$TITLE_AVAILCONFIGS_LABEL.Text = [System.String]'Available Configurations:'
+$TITLE_AVAILCONFIGS_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+#
 #SCROLL_CONFIG_PANEL
 #
 $SCROLL_CONFIG_PANEL.AutoScroll = $true
@@ -361,19 +403,6 @@ $SCROLL_CONFIG_PANEL.Location = (New-Object -TypeName System.Drawing.Point -Argu
 $SCROLL_CONFIG_PANEL.Name = [System.String]'SCROLL_CONFIG_PANEL'
 $SCROLL_CONFIG_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]473,[System.Int32]384))
 $SCROLL_CONFIG_PANEL.TabIndex = [System.Int32]0
-#
-#CONFIG_START_BUTTON
-#
-$CONFIG_START_BUTTON.BackColor = [System.Drawing.Color]::Silver
-$CONFIG_START_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
-$CONFIG_START_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75,[System.Drawing.FontStyle]::Bold,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
-$CONFIG_START_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]6))
-$CONFIG_START_BUTTON.Name = [System.String]'CONFIG_START_BUTTON'
-$CONFIG_START_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]119,[System.Int32]30))
-$CONFIG_START_BUTTON.TabIndex = [System.Int32]0
-$CONFIG_START_BUTTON.Text = [System.String]'Start'
-$CONFIG_START_BUTTON.UseVisualStyleBackColor = $false
-$CONFIG_START_BUTTON.add_Click($CONFIG_START_BUTTON_Click)
 #
 #APP_TAB
 #
@@ -523,35 +552,6 @@ $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
 $VERSION_NUMBER_LABEL.Text = [System.String]'0.0.0'
 $VERSION_NUMBER_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
 #
-#TITLE_AVAILCONFIGS_LABEL
-#
-$TITLE_AVAILCONFIGS_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]11.25))
-$TITLE_AVAILCONFIGS_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]0))
-$TITLE_AVAILCONFIGS_LABEL.Name = [System.String]'TITLE_AVAILCONFIGS_LABEL'
-$TITLE_AVAILCONFIGS_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]469,[System.Int32]24))
-$TITLE_AVAILCONFIGS_LABEL.TabIndex = [System.Int32]0
-$TITLE_AVAILCONFIGS_LABEL.Text = [System.String]'Available Configurations:'
-$TITLE_AVAILCONFIGS_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-#
-#TITLE_AVAILCONFIGSMOD_LABEL
-#
-$TITLE_AVAILCONFIGSMOD_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]1))
-$TITLE_AVAILCONFIGSMOD_LABEL.Name = [System.String]'TITLE_AVAILCONFIGSMOD_LABEL'
-$TITLE_AVAILCONFIGSMOD_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]111,[System.Int32]23))
-$TITLE_AVAILCONFIGSMOD_LABEL.TabIndex = [System.Int32]0
-$TITLE_AVAILCONFIGSMOD_LABEL.Text = [System.String]'Available Mods:'
-$TITLE_AVAILCONFIGSMOD_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
-#
-#CONFIG_START_BUTTON_PANEL
-#
-$CONFIG_START_BUTTON_PANEL.BackColor = [System.Drawing.Color]::DarkGray
-$CONFIG_START_BUTTON_PANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$CONFIG_START_BUTTON_PANEL.Controls.Add($CONFIG_START_BUTTON)
-$CONFIG_START_BUTTON_PANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]497,[System.Int32]390))
-$CONFIG_START_BUTTON_PANEL.Name = [System.String]'CONFIG_START_BUTTON_PANEL'
-$CONFIG_START_BUTTON_PANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]132,[System.Int32]43))
-$CONFIG_START_BUTTON_PANEL.TabIndex = [System.Int32]31
-#
 #MAIN_FORM
 #
 $MAIN_FORM.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
@@ -572,6 +572,7 @@ $MAIN_FORM.TopMost = $true
 $SIDE_PANNEL.ResumeLayout($false)
 $MAIN_TAB_CONTROL.ResumeLayout($false)
 $CONFIG_TAB.ResumeLayout($false)
+$CONFIG_START_BUTTON_PANEL.ResumeLayout($false)
 $MAIN_CONFIGMOD_PANEL.ResumeLayout($false)
 $TITLE_CONFIGMOD_PANEL.ResumeLayout($false)
 $MAIN_CONFIG_PANEL.ResumeLayout($false)
@@ -581,7 +582,6 @@ $MAIN_APP_PANEL.ResumeLayout($false)
 $TITLE_APPTAB_PANEL.ResumeLayout($false)
 $MAIN_APPMOD_PANEL.ResumeLayout($false)
 $TITLE_APPMOD_PANEL.ResumeLayout($false)
-$CONFIG_START_BUTTON_PANEL.ResumeLayout($false)
 $MAIN_FORM.ResumeLayout($false)
 Add-Member -InputObject $MAIN_FORM -Name SIDE_PANNEL -Value $SIDE_PANNEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name INTERNET_TITLE_LABEL -Value $INTERNET_TITLE_LABEL -MemberType NoteProperty
