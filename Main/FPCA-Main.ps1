@@ -62,11 +62,9 @@ $Global:MainHash.AutoRefreshApp = $Global:MainHash.FPCASettings.General.DefaultA
 $Global:MainHash.AutoRefreshConfig = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshConfig
 [int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainLoopRefreshRate -Default 50
 [int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.InternetCheckUpdateCounter -Default 100
-[int32]$RefreshAppLoopCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.RefreshAppLoopCounter -Default 150
-[int32]$MainUiTimerInterval = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainUiTimerInterval -Default 1000
+[int32]$MainUiTimerInterval = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainUiTimerInterval -Default 100
 [int32]$ConfigPanelUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigPanelUpdateCounter -Default 150
 [int32]$MainFormLoadLoopCounter_Max = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainFormLoadLoopCounter -Default 500
-[int32]$ConfigPanelUpdateCounter_Max = [int32]$ConfigPanelUpdateCounter
 [int32]$InternetCheckUpdateCounter_Max = [int32]$InternetCheckUpdateCounter
 $Global:UiHash.MainUiTimerInterval = [int32]$MainUiTimerInterval
 # Run the modloader script to parse and enable mods.
@@ -147,12 +145,19 @@ $Null = $UiPowershell.AddScript({
 
                 ### CONFIG TAB HANDLING ###
                 if ($Global:UiHash.REFRESH_CONFIG_PANEL) {
+                    # Store the current scroll position before refresh
+                    $savedScrollPosition = $SCROLL_CONFIG_PANEL.AutoScrollPosition
+                    
                     # Suspend layout to prevent flickering during bulk updates
                     $SCROLL_CONFIG_PANEL.SuspendLayout()
                     
                     try {
                         # Clear the CONFIG_TAB and add all 
                         $SCROLL_CONFIG_PANEL.Controls.Clear()
+                        
+                        # Reset scroll position to top temporarily for proper UI generation
+                        $SCROLL_CONFIG_PANEL.AutoScrollPosition = New-Object System.Drawing.Point(0, 0)
+                        
                         . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ConfigurationTab-Ui.ps1" -UiHash $Global:UiHash
                         
                         # Add all mod UI elements to the panel
@@ -179,15 +184,26 @@ $Null = $UiPowershell.AddScript({
                     } finally {
                         # Resume layout and trigger a refresh
                         $SCROLL_CONFIG_PANEL.ResumeLayout($true)
+                        
+                        # Store scroll position for restoration in next timer tick
+                        $Global:UiHash.PendingScrollPosition = $savedScrollPosition
+                        $Global:UiHash.RestoreScrollPosition = $true
                     }
                 }
                 if ($Global:UiHash.REFRESH_CONFIG_MODPANEL) {
+                    # Store the current scroll position before refresh
+                    $savedScrollPosition = $SCROLL_CONFIGMOD_PANEL.AutoScrollPosition
+                    
                     # Suspend layout to prevent flickering
                     $SCROLL_CONFIGMOD_PANEL.SuspendLayout()
                     
                     try {
                         # Clear the Mod config panel and generate the custom configuration UI.
                         $SCROLL_CONFIGMOD_PANEL.Controls.Clear()
+                        
+                        # Reset scroll position to top temporarily for proper UI generation
+                        $SCROLL_CONFIGMOD_PANEL.AutoScrollPosition = New-Object System.Drawing.Point(0, 0)
+                        
                         . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ConfigurationTabMod-Ui.ps1" -UiHash $Global:UiHash
                         
                         # Add all mod UI elements to the panel
@@ -208,18 +224,41 @@ $Null = $UiPowershell.AddScript({
                     } finally {
                         # Resume layout and trigger a refresh
                         $SCROLL_CONFIGMOD_PANEL.ResumeLayout($true)
+                        
+                        # Store scroll position for restoration in next timer tick
+                        $Global:UiHash.PendingConfigModScrollPosition = $savedScrollPosition
+                        $Global:UiHash.RestoreConfigModScrollPosition = $true
                     }
+                }
+
+                # Handle scroll position restoration after layout operations are complete
+                if ($Global:UiHash.RestoreScrollPosition -and $Global:UiHash.PendingScrollPosition) {
+                    $SCROLL_CONFIG_PANEL.AutoScrollPosition = New-Object System.Drawing.Point([Math]::Abs($Global:UiHash.PendingScrollPosition.X), [Math]::Abs($Global:UiHash.PendingScrollPosition.Y))
+                    $Global:UiHash.RestoreScrollPosition = $false
+                    $Global:UiHash.PendingScrollPosition = $null
+                }
+                
+                if ($Global:UiHash.RestoreConfigModScrollPosition -and $Global:UiHash.PendingConfigModScrollPosition) {
+                    $SCROLL_CONFIGMOD_PANEL.AutoScrollPosition = New-Object System.Drawing.Point([Math]::Abs($Global:UiHash.PendingConfigModScrollPosition.X), [Math]::Abs($Global:UiHash.PendingConfigModScrollPosition.Y))
+                    $Global:UiHash.RestoreConfigModScrollPosition = $false
+                    $Global:UiHash.PendingConfigModScrollPosition = $null
                 }
 
             } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "APP_TAB") {
                 # Check if the REFRESH_APP_BUTTON_CLICKED flag is set to true in the UiHash.
                 if ($Global:UiHash.REFRESH_APP_PANEL) {
+                    # Store the current scroll position before refresh
+                    $savedScrollPosition = $SCROLL_APP_PANEL.AutoScrollPosition
+                    
                     # Suspend layout to prevent flickering
                     $SCROLL_APP_PANEL.SuspendLayout()
                     
                     try {
                         # Clear the APP_TAB and add all
                         $SCROLL_APP_PANEL.Controls.Clear()
+
+                        # Reset scroll position to top temporarily for proper UI generation
+                        $SCROLL_APP_PANEL.AutoScrollPosition = New-Object System.Drawing.Point(0, 0)
 
                         . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ApplicationTab-Ui.ps1" -UiHash $Global:UiHash
 
@@ -244,15 +283,26 @@ $Null = $UiPowershell.AddScript({
                     } finally {
                         # Resume layout and trigger a refresh
                         $SCROLL_APP_PANEL.ResumeLayout($true)
+                        
+                        # Store scroll position for restoration in next timer tick
+                        $Global:UiHash.PendingAppScrollPosition = $savedScrollPosition
+                        $Global:UiHash.RestoreAppScrollPosition = $true
                     }
                 }
                 if ($Global:UiHash.REFRESH_APP_MODPANEL) {
+                    # Store the current scroll position before refresh
+                    $savedScrollPosition = $SCROLL_APPMOD_PANEL.AutoScrollPosition
+                    
                     # Suspend layout to prevent flickering
                     $SCROLL_APPMOD_PANEL.SuspendLayout()
                     
                     try {
                         # Clear the SCROLL_APPMOD_PANEL and add all mod panels directly
                         $SCROLL_APPMOD_PANEL.Controls.Clear()
+                        
+                        # Reset scroll position to top temporarily for proper UI generation
+                        $SCROLL_APPMOD_PANEL.AutoScrollPosition = New-Object System.Drawing.Point(0, 0)
+                        
                         . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ApplicationTabMod-Ui.ps1" -UiHash $Global:UiHash
                         
                         # Add all mod UI elements to the SCROLL_APPMOD_PANEL
@@ -273,7 +323,24 @@ $Null = $UiPowershell.AddScript({
                     } finally {
                         # Resume layout and trigger a refresh
                         $SCROLL_APPMOD_PANEL.ResumeLayout($true)
+                        
+                        # Store scroll position for restoration in next timer tick
+                        $Global:UiHash.PendingAppModScrollPosition = $savedScrollPosition
+                        $Global:UiHash.RestoreAppModScrollPosition = $true
                     }
+                }
+                
+                # Handle scroll position restoration for APP tab panels
+                if ($Global:UiHash.RestoreAppScrollPosition -and $Global:UiHash.PendingAppScrollPosition) {
+                    $SCROLL_APP_PANEL.AutoScrollPosition = New-Object System.Drawing.Point([Math]::Abs($Global:UiHash.PendingAppScrollPosition.X), [Math]::Abs($Global:UiHash.PendingAppScrollPosition.Y))
+                    $Global:UiHash.RestoreAppScrollPosition = $false
+                    $Global:UiHash.PendingAppScrollPosition = $null
+                }
+                
+                if ($Global:UiHash.RestoreAppModScrollPosition -and $Global:UiHash.PendingAppModScrollPosition) {
+                    $SCROLL_APPMOD_PANEL.AutoScrollPosition = New-Object System.Drawing.Point([Math]::Abs($Global:UiHash.PendingAppModScrollPosition.X), [Math]::Abs($Global:UiHash.PendingAppModScrollPosition.Y))
+                    $Global:UiHash.RestoreAppModScrollPosition = $false
+                    $Global:UiHash.PendingAppModScrollPosition = $null
                 }
             } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "TOOLS_TAB") {
                
@@ -303,10 +370,6 @@ $Null = $UiPowershell.AddScript({
             # This is used to control the main loop in the script.
             $Global:UiHash.MainFormLoaded = $true
         })
-        # Enable double buffering on the main form to reduce flickering.
-        # Use reflection to access the protected DoubleBuffered property
-        $MAIN_FORM.GetType().GetProperty("DoubleBuffered", [System.Reflection.BindingFlags]::Instance -bor [System.Reflection.BindingFlags]::NonPublic).SetValue($MAIN_FORM, $true, $null)
-        
         # Add main form controls to the UiHash for later access.
         $Global:UiHash.MainForm = $MAIN_FORM
         # Display the main form of the application.

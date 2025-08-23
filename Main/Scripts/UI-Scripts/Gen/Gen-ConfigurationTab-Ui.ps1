@@ -86,14 +86,14 @@ $UiHash.ConfigTabUIElements = @{
 }
 
 # Initialize positioning variables
-$Row1XPoint = 5
-$Row2XPoint = 225
-$Row1YPoint = 5
-$Row2YPoint = 5
-$Row1 = $true
-$doPlaceTextBox = $false
-$doPlaceComboBox = $false
-$doPlaceInstallOptions = $false
+[int]$Row1XPoint = 5
+[int]$Row2XPoint = 225
+[int]$Row1YPoint = 5
+[int]$Row2YPoint = 5
+[bool]$Row1 = $true
+[bool]$doPlaceTextBox = $false
+[bool]$doPlaceComboBox = $false
+[bool]$doPlaceInstallOptions = $false
 
 # Safety check: Ensure ConfigTabDefinitionElements exists and is not empty
 if (-not $UiHash.ConfigTabDefinitionElements -or $UiHash.ConfigTabDefinitionElements.Keys.Count -eq 0) {
