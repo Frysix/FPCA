@@ -76,6 +76,30 @@ if ($UiHash.ConfigTabUIElements -and $UiHash.ConfigTabUIElements.ContainsKey('Co
             }
             $PreviousCheckStates[$config]['MainCheckBox'] = $UiHash.ConfigTabUIElements.Configs[$config].MainCheckBox.Checked
         }
+        if ($UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('InputTextBox')) {
+            if (-not $PreviousCheckStates.ContainsKey($config)) {
+                $PreviousCheckStates[$config] = @{}
+            }
+            $PreviousCheckStates[$config]['InputTextBox'] = $UiHash.ConfigTabUIElements.Configs[$config].InputTextBox.Text
+        }
+        if ($UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('InputComboBox')) {
+            if (-not $PreviousCheckStates.ContainsKey($config)) {
+                $PreviousCheckStates[$config] = @{}
+            }
+            $PreviousCheckStates[$config]['InputComboBox'] = $UiHash.ConfigTabUIElements.Configs[$config].InputComboBox.SelectedItem
+        }
+        if ($UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('CreateShortcutCheckBox')) {
+            if (-not $PreviousCheckStates.ContainsKey($config)) {
+                $PreviousCheckStates[$config] = @{}
+            }
+            $PreviousCheckStates[$config]['CreateShortcutCheckBox'] = $UiHash.ConfigTabUIElements.Configs[$config].CreateShortcutCheckBox.Checked
+        }
+        if ($UiHash.ConfigTabUIElements.Configs[$config].ContainsKey('RemindDefaultCheckBox')) {
+            if (-not $PreviousCheckStates.ContainsKey($config)) {
+                $PreviousCheckStates[$config] = @{}
+            }
+            $PreviousCheckStates[$config]['RemindDefaultCheckBox'] = $UiHash.ConfigTabUIElements.Configs[$config].RemindDefaultCheckBox.Checked
+        }
     }
 }
 
@@ -125,6 +149,10 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
 
     # Go over each config in the category
     foreach ($config in $UiHash.ConfigTabDefinitionElements[$category].Keys) {
+
+        # Reset state tracking variables for each config
+        [bool]$ChangedCreateShortcut = $false
+        [bool]$ChangedRemindDefault = $false
 
         # Initialize the hashtable for this config
         $UiHash.ConfigTabUIElements.Configs[$config] = @{}
@@ -194,10 +222,14 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
                 # If the maincheckbox is checked, create a TextBox for user input
                 if ($MainCheckBox.Checked) {
                     $InputTextBox = New-Object System.Windows.Forms.TextBox
-                    if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultText')) {
-                        $InputTextBox.Text = "$($UiHash.ConfigTabDefinitionElements[$category][$config]['DefaultText'])"
+                    if ($PreviousCheckStates.ContainsKey($config) -and $PreviousCheckStates[$config].ContainsKey('InputTextBox')) {
+                        $InputTextBox.Text = $PreviousCheckStates[$config]['InputTextBox']
                     } else {
-                        $InputTextBox.Text = ""
+                        if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultText')) {
+                            $InputTextBox.Text = "$($UiHash.ConfigTabDefinitionElements[$category][$config]['DefaultText'])"
+                        } else {
+                            $InputTextBox.Text = ""
+                        }
                     }
                     $InputTextBox.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Regular)
                     $InputTextBox.Size = New-Object System.Drawing.Size(120, 20)
@@ -215,10 +247,14 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
                         $InputComboBox.Items.Add($option) | Out-Null
                     }
                     # Set default selected item if specified
-                    if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultOption')) {
-                        $InputComboBox.SelectedItem = "$($UiHash.ConfigTabDefinitionElements[$category][$config]['DefaultOption'])"
+                    if ($PreviousCheckStates.ContainsKey($config) -and $PreviousCheckStates[$config].ContainsKey('InputComboBox')) {
+                        $InputComboBox.SelectedItem = $PreviousCheckStates[$config]['InputComboBox']
                     } else {
-                        $InputComboBox.SelectedIndex = 0
+                        if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultOption')) {
+                            $InputComboBox.SelectedItem = "$($UiHash.ConfigTabDefinitionElements[$category][$config]['DefaultOption'])"
+                        } else {
+                            $InputComboBox.SelectedIndex = 0
+                        }
                     }
                     $doPlaceComboBox = $true
                     Write-Host "ComboBox created for config: ${config} with options." -ForegroundColor Cyan
@@ -243,27 +279,55 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
             $RemindDefaultCheckBox.Font = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Regular)
             $RemindDefaultCheckBox.Size = New-Object System.Drawing.Size(180, 20)
 
-            if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('OptionsDefaults')) {
-                if ($UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.ContainsKey('CreateShortcut') -and $UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.CreateShortcut -eq 'true') {
-                    $CreateShortcutCheckBox.Checked = $true
-                    $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Green
-                } else {
-                    $CreateShortcutCheckBox.Checked = $false
-                    $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Black
+            if ($PreviousCheckStates.ContainsKey($config)) {
+                if ($PreviousCheckStates[$config].ContainsKey('CreateShortcutCheckBox')) {
+                    $CreateShortcutCheckBox.Checked = $PreviousCheckStates[$config]['CreateShortcutCheckBox']
+                    if ($CreateShortcutCheckBox.Checked) {
+                        $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Green
+                    } else {
+                        $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Black
+                    }
+                    $ChangedCreateShortcut = $true
                 }
-                if ($UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.ContainsKey('RemindDefault') -and $UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.RemindDefault -eq 'true') {
-                    $RemindDefaultCheckBox.Checked = $true
-                    $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Green
-                } else {
-                    $RemindDefaultCheckBox.Checked = $false
-                    $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Black
+                if ($PreviousCheckStates[$config].ContainsKey('RemindDefaultCheckBox')) {
+                    $RemindDefaultCheckBox.Checked = $PreviousCheckStates[$config]['RemindDefaultCheckBox']
+                    if ($RemindDefaultCheckBox.Checked) {
+                        $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Green
+                    } else {
+                        $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Black
+                    }
+                    $ChangedRemindDefault = $true
+                }
+            }
+            if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('OptionsDefaults')) {
+                if ($ChangedCreateShortcut -eq $false) {
+                    if ($UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.ContainsKey('CreateShortcut') -and $UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.CreateShortcut -eq 'true') {
+                        $CreateShortcutCheckBox.Checked = $true
+                        $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Green
+                    } else {
+                        $CreateShortcutCheckBox.Checked = $false
+                        $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Black
+                    }
+                }
+                if ($ChangedRemindDefault -eq $false) {
+                    if ($UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.ContainsKey('RemindDefault') -and $UiHash.ConfigTabDefinitionElements[$category][$config].OptionsDefaults.RemindDefault -eq 'true') {
+                        $RemindDefaultCheckBox.Checked = $true
+                        $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Green
+                    } else {
+                        $RemindDefaultCheckBox.Checked = $false
+                        $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Black
+                    }
                 }
             } else {
                 # Default both to unchecked if no defaults provided
-                $CreateShortcutCheckBox.Checked = $false
-                $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Black
-                $RemindDefaultCheckBox.Checked = $false
-                $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Black
+                if ($ChangedCreateShortcut -eq $false) {
+                    $CreateShortcutCheckBox.Checked = $false
+                    $CreateShortcutCheckBox.ForeColor = [System.Drawing.Color]::Black
+                }
+                if ($ChangedRemindDefault -eq $false) {
+                    $RemindDefaultCheckBox.Checked = $false
+                    $RemindDefaultCheckBox.ForeColor = [System.Drawing.Color]::Black
+                }
             }
 
             $doPlaceInstallOptions = $true

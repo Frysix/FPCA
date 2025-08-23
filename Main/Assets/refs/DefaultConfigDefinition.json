@@ -101,7 +101,7 @@
                 "Description": "Install Microsoft Office suite",
                 "DefaultState": "false",
                 "Type": "ComboBox",
-                "Options": ["Office 365 Pro", "Office 365 Home", "Office 2021 Pro", "Office 2021 Home", "Office 2019 Pro", "Office 2019 Home", "Office 2016 Pro", "Office 2016 Home", "Office 2013 Pro", "Office 2013 Home", "Office 2010 Pro", "Office 2010 Home"],
+                "Options": ["Office 365 Pro", "Office 365 Home", "Office 2024 Pro", "Office 2024 Home", "Office 2021 Pro", "Office 2021 Home", "Office 2019 Pro", "Office 2019 Home", "Office 2016 Pro", "Office 2016 Home", "Office 2013 Pro", "Office 2013 Home", "Office 2010 Pro", "Office 2010 Home"],
                 "Script": "Install-Office.ps1",
                 "RequireInternet": "true"
             }
@@ -146,6 +146,14 @@
                 "Type": "TextBox",
                 "DefaultText": "OS",
                 "Script": "RenameDisk.ps1",
+                "RequireInternet": "false"
+            },
+            "REMOVEBITLOCKER": {
+                "DisplayName": "Remove BitLocker",
+                "Description": "Remove BitLocker encryption from the primary disk",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "Remove-BitLocker.ps1",
                 "RequireInternet": "false"
             }
         },

@@ -174,12 +174,13 @@ $Null = $UiPowershell.AddScript({
                                         $Global:UiHash.REFRESH_CONFIG_PANEL = $true
                                     }
                                 })
-                            }
+                                
+                                }
                             $SCROLL_CONFIG_PANEL.Controls.Add($Global:UiHash.ConfigTabUIElements.Configs[$config][$element])
+                            }
                         }
-                    }
-                    $Global:UiHash.CONFIG_CHECKBOX_CHECKED = $true
-                    $Global:UiHash.REFRESH_CONFIG_PANEL = $false
+                        $Global:UiHash.CONFIG_CHECKBOX_CHECKED = $true
+                        $Global:UiHash.REFRESH_CONFIG_PANEL = $false
                     
                     } finally {
                         # Resume layout and trigger a refresh
@@ -219,7 +220,7 @@ $Null = $UiPowershell.AddScript({
                                 $SCROLL_CONFIGMOD_PANEL.Controls.Add($Global:UiHash.ConfigTabModUIElements[$mod][$element])
                             }
                         }
-                    $Global:UiHash.REFRESH_CONFIG_MODPANEL = $false
+                        $Global:UiHash.REFRESH_CONFIG_MODPANEL = $false
                     
                     } finally {
                         # Resume layout and trigger a refresh
@@ -262,24 +263,24 @@ $Null = $UiPowershell.AddScript({
 
                         . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ApplicationTab-Ui.ps1" -UiHash $Global:UiHash
 
-                    foreach ($type in $UiHash.AppTabUIElements.Keys) {
-                        foreach ($element in $UiHash.AppTabUIElements[$type].Keys) {
-                            if ($type -eq "Buttons") {
-                                if (-not ($Global:UiHash.AppButtonsFlags.ContainsKey($element))) {
-                                    $Global:UiHash.AppButtonsFlags[$element] = $false
-                                }
-                                $Global:UiHash.AppTabUIElements[$type][$element].Add_Click({
-                                    if ($Global:UiHash.AppButtonsFlags[$element] -eq $false) {
-                                        $Global:UiHash.AppButtonsFlags[$element] = $true
-                                        $Global:UiHash.AppButtonClicked = $true
+                        foreach ($type in $UiHash.AppTabUIElements.Keys) {
+                            foreach ($element in $UiHash.AppTabUIElements[$type].Keys) {
+                                if ($type -eq "Buttons") {
+                                    if (-not ($Global:UiHash.AppButtonsFlags.ContainsKey($element))) {
+                                        $Global:UiHash.AppButtonsFlags[$element] = $false
                                     }
-                                })
+                                    $Global:UiHash.AppTabUIElements[$type][$element].Add_Click({
+                                        if ($Global:UiHash.AppButtonsFlags[$element] -eq $false) {
+                                            $Global:UiHash.AppButtonsFlags[$element] = $true
+                                            $Global:UiHash.AppButtonClicked = $true
+                                        }
+                                    })
+                                }
+                                $SCROLL_APP_PANEL.Controls.Add($Global:UiHash.AppTabUIElements[$type][$element])
                             }
-                            $SCROLL_APP_PANEL.Controls.Add($Global:UiHash.AppTabUIElements[$type][$element])
                         }
-                    }
-                    $Global:UiHash.REFRESH_APP_PANEL = $false
-                    
+                        $Global:UiHash.REFRESH_APP_PANEL = $false
+                        
                     } finally {
                         # Resume layout and trigger a refresh
                         $SCROLL_APP_PANEL.ResumeLayout($true)
@@ -308,16 +309,16 @@ $Null = $UiPowershell.AddScript({
                         # Add all mod UI elements to the SCROLL_APPMOD_PANEL
                         foreach ($mod in $Global:UiHash.AppTabModUIElements.Keys) {
                             foreach ($element in $Global:UiHash.AppTabModUIElements[$mod].Keys) {
-                            if ($element -eq "EnableCheckbox") {
-                                $Global:UiHash.AppTabModUIElements[$mod][$element].Add_CheckedChanged({
-                                    if ($Global:UiHash.ModEnabledAppCheckBoxChanged -eq $false) {
-                                        $Global:UiHash.ModEnabledAppCheckBoxChanged = $true
-                                    }
-                                })
-                            }
+                                if ($element -eq "EnableCheckbox") {
+                                    $Global:UiHash.AppTabModUIElements[$mod][$element].Add_CheckedChanged({
+                                        if ($Global:UiHash.ModEnabledAppCheckBoxChanged -eq $false) {
+                                            $Global:UiHash.ModEnabledAppCheckBoxChanged = $true
+                                        }
+                                    })
+                                }
                             $SCROLL_APPMOD_PANEL.Controls.Add($Global:UiHash.AppTabModUIElements[$mod][$element])
+                            }
                         }
-                    }
                     $Global:UiHash.REFRESH_APP_MODPANEL = $false
                     
                     } finally {
@@ -696,6 +697,9 @@ While ($Global:MainHash.MainListener) {
                             if (-not $Global:UiHash.EnabledMods.ContainsKey($modElement)) {
                                 $Global:UiHash.EnabledMods[$modElement] = @{}
                             }
+                            if (-not $Global:UiHash.EnabledMods[$modElement].ContainsKey('Information')) {
+                                $Global:UiHash.EnabledMods[$modElement].Information = $Global:UiHash.AvailableMods.All[$modElement].Information
+                            }
                             if (-not ($Global:UiHash.EnabledMods[$modElement].ContainsKey('Mod_Data'))) {
                                 $Global:UiHash.EnabledMods[$modElement].Mod_Data = @{}
                             }
@@ -746,6 +750,9 @@ While ($Global:MainHash.MainListener) {
                             # Add the entire mod to EnabledMods if not already present
                             if (-not $Global:UiHash.EnabledMods.ContainsKey($modElement)) {
                                 $Global:UiHash.EnabledMods[$modElement] = @{}
+                            }
+                            if (-not $Global:UiHash.EnabledMods[$modElement].ContainsKey('Information')) {
+                                $Global:UiHash.EnabledMods[$modElement].Information = $Global:UiHash.AvailableMods.All[$modElement].Information
                             }
                             if (-not ($Global:UiHash.EnabledMods[$modElement].ContainsKey('Mod_Data'))) {
                                 $Global:UiHash.EnabledMods[$modElement].Mod_Data = @{}

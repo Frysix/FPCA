@@ -97,9 +97,13 @@ function Start-TaskExecution {
 
         # Define used variable for the script block
         $TaskName = $task
-
+        if ($SelectedTasksSettings -and $SelectedTasksSettings.ContainsKey($task)) {
+            if (-not $Global:TaskHash.ContainsKey('TaskSettings')) {
+                $Global:TaskHash.TaskSettings = @{}
+            }
+            $Global:TaskHash.TaskSettings[$task] = $SelectedTasksSettings[$task]
+        }
         # Build the script block for the task
-        # Replace your script block with this corrected version:
         $ScriptBlock = {
             Param(
                 [string]$TaskName,
@@ -154,7 +158,12 @@ function Start-TaskExecution {
                 # Execute the script
                 if ($ScriptFileName -like "*.ps1") {
                     Write-Host "Executing PowerShell script: $ScriptPath"
-                    . $ScriptPath -Coms $TaskHash.CommunicationChannel[$TaskName] -TaskName $TaskName -ScriptRoot $TaskHash.PSScriptRoot
+                    if ($TaskHash.ContainsKey('TaskSettings') -and $TaskHash.TaskSettings.ContainsKey($TaskName)) {
+                        Write-Host "Passing settings to script: $($Settings | Out-String)"
+                        . $ScriptPath -Coms $TaskHash.CommunicationChannel[$TaskName] -TaskName $TaskName -ScriptRoot $TaskHash.PSScriptRoot -TaskSettings $TaskHash.TaskSettings[$TaskName]
+                    } else {
+                        . $ScriptPath -Coms $TaskHash.CommunicationChannel[$TaskName] -TaskName $TaskName -ScriptRoot $TaskHash.PSScriptRoot
+                    }
                 } elseif ($ScriptFileName -like "*.exe") {
                     Write-Host "Executing executable: $ScriptPath"
                     Start-Process -FilePath $ScriptPath -Wait
