@@ -12,6 +12,7 @@ Param(
 $chromeInstalled = $false
 $firstTryFailed = $false
 $InstallSuccess = $false
+$ShortCutExists = $false
 $msiInstallerPath = $null
 $exeInstallerPath = $null
 $Coms.Status = "Running"
@@ -223,21 +224,34 @@ Try {
             $Coms.RemindDefault = $true
         }
         if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $true) {
-            $Coms.Comment = "Creating Desktop Shortcut for Chrome"
-            $shortcutPath = Join-Path -Path ([Environment]::GetFolderPath('Desktop')) -ChildPath "Google Chrome.lnk"
-            $targetPath = "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
-            if (-not (Test-Path -Path $targetPath)) {
-                $targetPath = "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe"
+            $DesktopIcons = Get-ChildItem -Path ([Environment]::GetFolderPath('Desktop')) -ErrorAction SilentlyContinue
+            if ($DesktopIcons) {
+                foreach ($icon in $DesktopIcons) {
+                    if ($icon.Name -like "Google Chrome.lnk") {
+                        Write-Host "Desktop shortcut already exists: $($icon.FullName)"
+                        $Coms.Comment = "Desktop shortcut already exists."
+                        $ShortCutExists = $true
+                        break
+                    }
+                }
             }
-            if (Test-Path -Path $targetPath) {
-                $WScriptShell = New-Object -ComObject WScript.Shell
-                $shortcut = $WScriptShell.CreateShortcut($shortcutPath)
-                $shortcut.TargetPath = $targetPath
-                $shortcut.IconLocation = "$targetPath, 0"
-                $shortcut.Save()
-                $Coms.Comment = "Desktop shortcut for Chrome created."
-            } else {
-                $Coms.Comment = "Could not find Chrome executable to create shortcut."
+            if (-not ($ShortCutExists)) {
+                $Coms.Comment = "Creating Desktop Shortcut for Chrome"
+                $shortcutPath = Join-Path -Path ([Environment]::GetFolderPath('Desktop')) -ChildPath "Google Chrome.lnk"
+                $targetPath = "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
+                if (-not (Test-Path -Path $targetPath)) {
+                    $targetPath = "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe"
+                }
+                if (Test-Path -Path $targetPath) {
+                    $WScriptShell = New-Object -ComObject WScript.Shell
+                    $shortcut = $WScriptShell.CreateShortcut($shortcutPath)
+                    $shortcut.TargetPath = $targetPath
+                    $shortcut.IconLocation = "$targetPath, 0"
+                    $shortcut.Save()
+                    $Coms.Comment = "Desktop shortcut for Chrome created."
+                } else {
+                    $Coms.Comment = "Could not find Chrome executable to create shortcut."
+                }
             }
         }
         $Coms.Progress = 100

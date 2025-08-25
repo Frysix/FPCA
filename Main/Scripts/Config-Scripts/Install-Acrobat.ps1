@@ -12,6 +12,7 @@ Param(
 $acrobatInstalled = $false
 $firstTryFailed = $false
 $InstallSuccess = $false
+$ShortCutExists = $false
 $msiInstallerPath = $null
 $exeInstallerPath = $null
 $Coms.Status = "Running"
@@ -322,31 +323,44 @@ Try {
             }
         }
         if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $true) {
-            $Coms.Comment = "Creating Desktop Shortcut for Adobe Reader"
-            $shortcutPath = Join-Path -Path ([Environment]::GetFolderPath('Desktop')) -ChildPath "Adobe Acrobat Reader DC.lnk"
-            $targetPath = ""
-            
-            # Find the correct executable path
-            foreach ($path in $acrobatPaths) {
-                if (Test-Path -Path $path) {
-                    $targetPath = $path
-                    break
+            $DesktopIcons = Get-ChildItem -Path ([Environment]::GetFolderPath('Desktop')) -ErrorAction SilentlyContinue
+            if ($DekstopIcons) {
+                foreach ($icon in $DesktopIcons) {
+                    if ($icon.Name -like "Adobe Acrobat Reader DC.lnk" -or $icon.Name -like "Adobe Reader.lnk") {
+                        Write-Host "Desktop shortcut already exists: $($icon.FullName)"
+                        $Coms.Comment = "Desktop shortcut already exists."
+                        $ShortCutExists = $true
+                        break
+                    }
                 }
             }
-            
-            if ($targetPath) {
-                try {
-                    $WScriptShell = New-Object -ComObject WScript.Shell
-                    $shortcut = $WScriptShell.CreateShortcut($shortcutPath)
-                    $shortcut.TargetPath = $targetPath
-                    $shortcut.IconLocation = "$targetPath, 0"
-                    $shortcut.Save()
-                    $Coms.Comment = "Desktop shortcut for Adobe Reader created."
-                } catch {
-                    $Coms.Comment = "Error creating desktop shortcut: $($_.Exception.Message)"
+            if (-not ($ShortCutExists)) {
+                $Coms.Comment = "Creating Desktop Shortcut for Adobe Reader"
+                $shortcutPath = Join-Path -Path ([Environment]::GetFolderPath('Desktop')) -ChildPath "Adobe Acrobat Reader DC.lnk"
+                $targetPath = ""
+                
+                # Find the correct executable path
+                foreach ($path in $acrobatPaths) {
+                    if (Test-Path -Path $path) {
+                        $targetPath = $path
+                        break
+                    }
                 }
-            } else {
-                $Coms.Comment = "Could not find Adobe Reader executable to create shortcut."
+                
+                if ($targetPath) {
+                    try {
+                        $WScriptShell = New-Object -ComObject WScript.Shell
+                        $shortcut = $WScriptShell.CreateShortcut($shortcutPath)
+                        $shortcut.TargetPath = $targetPath
+                        $shortcut.IconLocation = "$targetPath, 0"
+                        $shortcut.Save()
+                        $Coms.Comment = "Desktop shortcut for Adobe Reader created."
+                    } catch {
+                        $Coms.Comment = "Error creating desktop shortcut: $($_.Exception.Message)"
+                    }
+                } else {
+                    $Coms.Comment = "Could not find Adobe Reader executable to create shortcut."
+                }
             }
         }
         $Coms.Progress = 100

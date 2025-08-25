@@ -104,6 +104,22 @@
                 "Options": ["Office 365 Pro", "Office 365 Home", "Office 2024 Pro", "Office 2024 Home", "Office 2021 Pro", "Office 2021 Home", "Office 2019 Pro", "Office 2019 Home", "Office 2016 Pro", "Office 2016 Home", "Office 2013 Pro", "Office 2013 Home", "Office 2010 Pro", "Office 2010 Home"],
                 "Script": "Install-Office.ps1",
                 "RequireInternet": "true"
+            },
+            "LIBREOFFICE": {
+                "DisplayName": "LibreOffice",
+                "Description": "Install LibreOffice suite",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-LibreOffice.ps1",
+                "RequireInternet": "true"
+            },
+            "TEAMS": {
+                "DisplayName": "Microsoft Teams",
+                "Description": "Install Microsoft Teams app",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-Teams.ps1",
+                "RequireInternet": "true"
             }
         },
         "Settings": {
@@ -112,7 +128,7 @@
                 "Description": "Start windows update process",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "UpdateWindows.ps1",
+                "Script": "Update-Windows.ps1",
                 "RequireInternet": "true"
             },
             "UPDATEMSS": {
@@ -120,7 +136,7 @@
                 "Description": "Start Microsoft Store update process",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "UpdateMicrosoftStore.ps1",
+                "Script": "Update-MicrosoftStore.ps1",
                 "RequireInternet": "true"
             },
             "CONFIGEXP": {
@@ -128,7 +144,7 @@
                 "Description": "Configure FIle Explorer settings",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "ConfigureExplorer.ps1",
+                "Script": "Configure-Explorer.ps1",
                 "RequireInternet": "false"
             },
             "DISABLEPWEXP": {
@@ -154,6 +170,22 @@
                 "DefaultState": "true",
                 "Type": "CheckBox",
                 "Script": "Remove-BitLocker.ps1",
+                "RequireInternet": "false"
+            },
+            "DISABLEFASTSTARTUP": {
+                "DisplayName": "Disable Fast Startup",
+                "Description": "Disable Fast Startup to prevent potential issues",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "Disable-FastStartup.ps1",
+                "RequireInternet": "false"
+            },
+            "DISABLEONEDRIVE": {
+                "DisplayName": "Disable OneDrive",
+                "Description": "Disable OneDrive from starting automatically",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "Disable-OneDrive.ps1",
                 "RequireInternet": "false"
             }
         },
@@ -255,7 +287,25 @@
                 "Type": "CheckBox",
                 "Script": "CheckWindowsActivationStatus.ps1",
                 "RequireInternet": "false"
-            }            
+            },
+            "REMKEYBOARDLAYOUT": {
+                "DisplayName": "Remove Keyboard Layouts",
+                "Description": "Remove unnecessary keyboard layouts and keep only the selected one",
+                "DefaultState": "true",
+                "Type": "ComboBox",
+                "Options": ["Keep French CA", "Keep French CMS", "Keep English CA", "Keep English US", "Keep French FR"],
+                "DefaultOption": "Keep French CA",
+                "Script": "Remove-KeyboardLayouts.ps1",
+                "RequireInternet": "false"
+            },
+            "SHOWICONSONDESKTOP": {
+                "DisplayName": "Show Common Icons on Desktop",
+                "Description": "Show common icons like This PC, User Folder and Control Panel on the desktop",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "Show-CommonDesktopIcons.ps1",
+                "RequireInternet": "false"
+            }
         }
     }
 }
