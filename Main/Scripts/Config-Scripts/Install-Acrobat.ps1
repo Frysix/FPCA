@@ -85,149 +85,189 @@ Try {
         $Coms.Progress = 5
         
         # Download and install Adobe Acrobat Reader from the latest sources
-        # Note: Adobe uses a complex URL structure, using known direct download URLs
-        $acrobatMsiUrl = "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820360/AcroRdrDC2300820360_en_US.msi"
-        $acrobatExeUrl = "https://get.adobe.com/reader/download/?installer=Reader_DC_English_Windows&os=Windows%2011&browser_type=KHTML&browser_dist=Chrome&d=McAfee_Security_Scan_Plus&d=McAfee_Safe_Connect"
+        # Using Adobe's FTP download URLs which are more reliable
+        $acrobatMsiUrl = "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/misc/AcroRdrDCUpd2300820360.msp"
+        $acrobatExeUrl = "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820533/AcroRdrDC2300820533_en_US.exe"
+        # Fallback to the web installer
+        $webInstallerUrl = "https://get.adobe.com/reader/download/?installer=Reader_DC_English_Windows&os=Windows%2010&browser_type=KHTML"
+        
         $msiInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\AdobeReaderDC.msi"
         $exeInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\AdobeReaderDC.exe"
         
-        $Coms.Comment = "Trying to download Adobe Acrobat Reader installer from Adobe's MSI source"
+        $Coms.Comment = "Trying to download Adobe Acrobat Reader installer"
         $Coms.Progress = 10
         
-        Write-Host "Starting Adobe Reader MSI download from: $acrobatMsiUrl"
-        Write-Host "Target path: $msiInstallerPath"
+        Write-Host "Starting Adobe Reader download"
+        Write-Host "Primary URL: $acrobatExeUrl"
+        Write-Host "Target path: $exeInstallerPath"
         
         # Use simple download method to avoid runspace issues
         try {
-            $Coms.Comment = "Downloading Adobe Reader MSI installer..."
+            $Coms.Comment = "Downloading Adobe Reader installer..."
             $Coms.Progress = 15
             
             # Ensure output directory exists
-            $OutputDir = Split-Path $msiInstallerPath -Parent
+            $OutputDir = Split-Path $exeInstallerPath -Parent
             if (-not (Test-Path $OutputDir)) {
                 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
             }
             
-            # Use Invoke-WebRequest with progress updates
-            Write-Host "Downloading MSI installer..."
-            Invoke-WebRequest -Uri $acrobatMsiUrl -OutFile $msiInstallerPath -UseBasicParsing
-            
-            $Coms.Progress = 45
-            $Coms.Comment = "MSI download completed"
-            
-            # Verify download
-            if (Test-Path -Path $msiInstallerPath) {
-                $fileSize = (Get-Item $msiInstallerPath).Length
-                Write-Host "Downloaded file size: $([math]::Round($fileSize/1MB, 2)) MB"
-                if ($fileSize -gt 10MB) { # Adobe Reader is usually 100+ MB
-                    Write-Host "MSI download successful"
-                } else {
-                    Write-Host "Downloaded file too small, treating as failed"
-                    $firstTryFailed = $true
-                }
-            } else {
-                Write-Host "MSI download failed - file not found"
-                $firstTryFailed = $true
-            }
-            
-        } catch {
-            Write-Host "Error during MSI download: $($_.Exception.Message)"
-            $Coms.Comment = "MSI download error - trying alternative method"
-            $firstTryFailed = $true
-        }
-        
-        if (-not $firstTryFailed) {
-            $Coms.Comment = "Download completed. Starting Adobe Reader installation."
-            $Coms.Progress = 50
-            
-            # Install Adobe Reader using MSI with quiet parameters
-            $installProcess = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$msiInstallerPath`" /qn /norestart EULA_ACCEPT=YES" -Wait -PassThru -Verb RunAs
-            if ($installProcess.ExitCode -eq 0) {
-                $InstallSuccess = $true
-                $Coms.Progress = 80
-                $Coms.Comment = "Adobe Acrobat Reader installed successfully."
-            } else {
-                $Coms.Comment = "Adobe Reader installation failed with exit code $($installProcess.ExitCode)."
-                $firstTryFailed = $true
-            }
-        } else {
-            $Coms.Comment = "Failed to download Adobe Reader installer from primary MSI URL."
-            $firstTryFailed = $true
-        }
-        
-        # Try alternative download method (using Adobe's web installer)
-        if ($firstTryFailed) {
-            $Coms.Comment = "Trying alternative Adobe Reader download method."
-            $Coms.Progress = 10
-            
-            # Use a more reliable direct download URL for the offline installer
-            $alternativeUrl = "https://get.adobe.com/reader/download/?installer=Reader_DC_English_Windows&os=Windows%2011"
-            $exeInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\AdobeReaderDC_installer.exe"
-            
-            Write-Host "Starting Adobe Reader alternative download from Adobe"
-            Write-Host "Target path: $exeInstallerPath"
-            
+            # Try the EXE installer first (more reliable)
+            Write-Host "Downloading EXE installer..."
             try {
-                $Coms.Comment = "Downloading Adobe Reader installer (alternative method)..."
-                $Coms.Progress = 15
-                
-                # Ensure output directory exists
-                $OutputDir = Split-Path $exeInstallerPath -Parent
-                if (-not (Test-Path $OutputDir)) {
-                    New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-                }
-                
-                # Try to get the actual installer using web scraping approach
-                # Since Adobe's download page is complex, we'll use a known working direct URL
-                $directInstallerUrl = "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820360/AcroRdrDC2300820360_en_US.exe"
-                
-                Write-Host "Downloading EXE installer from direct URL..."
-                Invoke-WebRequest -Uri $directInstallerUrl -OutFile $exeInstallerPath -UseBasicParsing
-                
+                Invoke-WebRequest -Uri $acrobatExeUrl -OutFile $exeInstallerPath -UseBasicParsing -TimeoutSec 300
                 $Coms.Progress = 45
-                $Coms.Comment = "EXE download completed"
+                $Coms.Comment = "Download completed"
                 
                 # Verify download
                 if (Test-Path -Path $exeInstallerPath) {
                     $fileSize = (Get-Item $exeInstallerPath).Length
-                    Write-Host "Downloaded EXE file size: $([math]::Round($fileSize/1MB, 2)) MB"
-                    if ($fileSize -gt 1MB) {
+                    Write-Host "Downloaded file size: $([math]::Round($fileSize/1MB, 2)) MB"
+                    if ($fileSize -gt 5MB) { # Adobe Reader should be at least 5MB
                         Write-Host "EXE download successful"
+                        $firstTryFailed = $false
                     } else {
-                        Write-Host "Downloaded EXE file too small"
-                        $Coms.Progress = 0
-                        $Coms.Status = "Failed"
+                        Write-Host "Downloaded file too small ($([math]::Round($fileSize/1MB, 2)) MB), trying alternative"
+                        Remove-Item $exeInstallerPath -Force -ErrorAction SilentlyContinue
+                        $firstTryFailed = $true
                     }
                 } else {
                     Write-Host "EXE download failed - file not found"
-                    $Coms.Progress = 0
-                    $Coms.Status = "Failed"
+                    $firstTryFailed = $true
                 }
-                
             } catch {
-                Write-Host "Error during EXE download: $($_.Exception.Message)"
-                $Coms.Comment = "EXE download error"
-                $Coms.Progress = 0
-                $Coms.Status = "Failed"
+                Write-Host "Primary EXE download failed: $($_.Exception.Message)"
+                $firstTryFailed = $true
             }
             
-            if ((Test-Path -Path $exeInstallerPath) -and $Coms.Status -ne "Failed") {
-                $Coms.Comment = "Download completed. Starting Adobe Reader installation."
-                $Coms.Progress = 50
+        } catch {
+            Write-Host "Error during download setup: $($_.Exception.Message)"
+            $Coms.Comment = "Download error - trying alternative method"
+            $firstTryFailed = $true
+        }
+        
+        if (-not $firstTryFailed -and (Test-Path -Path $exeInstallerPath)) {
+            $Coms.Comment = "Download completed. Starting Adobe Reader installation."
+            $Coms.Progress = 50
+            
+            # Install Adobe Reader using EXE with silent parameters
+            Write-Host "Installing Adobe Reader from EXE..."
+            try {
+                $installArgs = @(
+                    "/sAll",           # Silent install all
+                    "/rs",             # Suppress restart
+                    "/msi",            # Use MSI mode
+                    "/norestart",      # No restart
+                    "/quiet",          # Quiet mode
+                    "EULA_ACCEPT=YES", # Accept EULA
+                    "SUPPRESS_APP_LAUNCH=YES" # Don't launch after install
+                )
                 
-                # Install Adobe Reader using EXE with silent parameters
-                $installProcess = Start-Process -FilePath $exeInstallerPath -ArgumentList "/sAll /rs /rps /msi /norestart /quiet EULA_ACCEPT=YES" -Wait -PassThru -Verb RunAs
+                Write-Host "Install command: $exeInstallerPath $($installArgs -join ' ')"
+                $installProcess = Start-Process -FilePath $exeInstallerPath -ArgumentList $installArgs -Wait -PassThru -Verb RunAs
+                
+                Write-Host "Installation exit code: $($installProcess.ExitCode)"
+                
                 if ($installProcess.ExitCode -eq 0) {
                     $InstallSuccess = $true
                     $Coms.Progress = 80
                     $Coms.Comment = "Adobe Acrobat Reader installed successfully."
                 } else {
+                    Write-Host "Adobe Reader installation failed with exit code $($installProcess.ExitCode)."
                     $Coms.Comment = "Adobe Reader installation failed with exit code $($installProcess.ExitCode)."
+                    $firstTryFailed = $true
+                }
+            } catch {
+                Write-Host "Error during installation: $($_.Exception.Message)"
+                $Coms.Comment = "Installation error: $($_.Exception.Message)"
+                $firstTryFailed = $true
+            }
+        } else {
+            $Coms.Comment = "Failed to download Adobe Reader installer from primary URL."
+            $firstTryFailed = $true
+        }
+        
+        # Try alternative download method (direct from Adobe with different approach)
+        if ($firstTryFailed) {
+            $Coms.Comment = "Trying alternative Adobe Reader download method."
+            $Coms.Progress = 10
+            
+            # Try a different approach - download the web installer and let it handle the download
+            $webInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\AdobeReaderDC_web.exe"
+            
+            Write-Host "Attempting to download Adobe web installer"
+            
+            try {
+                # Use a more generic Adobe Reader download URL
+                $genericUrl = "https://get.adobe.com/reader/"
+                
+                # Try to get the actual download URL by parsing Adobe's page (simplified approach)
+                $alternativeDirectUrl = "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820533/AcroRdrDC2300820533_en_US.exe"
+                
+                $Coms.Comment = "Downloading from alternative source..."
+                $Coms.Progress = 20
+                
+                Invoke-WebRequest -Uri $alternativeDirectUrl -OutFile $webInstallerPath -UseBasicParsing -TimeoutSec 300
+                
+                $Coms.Progress = 45
+                $Coms.Comment = "Alternative download completed"
+                
+                # Verify download
+                if (Test-Path -Path $webInstallerPath) {
+                    $fileSize = (Get-Item $webInstallerPath).Length
+                    Write-Host "Alternative download file size: $([math]::Round($fileSize/1MB, 2)) MB"
+                    if ($fileSize -gt 1MB) {
+                        Write-Host "Alternative download successful"
+                        
+                        # Try installation with the alternative download
+                        $Coms.Comment = "Installing Adobe Reader from alternative download."
+                        $Coms.Progress = 50
+                        
+                        try {
+                            # Try simpler installation arguments
+                            $simpleArgs = @("/S")  # Just silent install
+                            
+                            Write-Host "Alternative install command: $webInstallerPath $($simpleArgs -join ' ')"
+                            $installProcess = Start-Process -FilePath $webInstallerPath -ArgumentList $simpleArgs -Wait -PassThru -Verb RunAs
+                            
+                            Write-Host "Alternative installation exit code: $($installProcess.ExitCode)"
+                            
+                            if ($installProcess.ExitCode -eq 0) {
+                                $InstallSuccess = $true
+                                $Coms.Progress = 80
+                                $Coms.Comment = "Adobe Acrobat Reader installed successfully (alternative method)."
+                            } else {
+                                Write-Host "Alternative installation also failed with exit code: $($installProcess.ExitCode)"
+                                $Coms.Comment = "All installation methods failed. Exit code: $($installProcess.ExitCode)"
+                                $Coms.Progress = 0
+                                $Coms.Status = "Failed"
+                            }
+                        } catch {
+                            Write-Host "Alternative installation error: $($_.Exception.Message)"
+                            $Coms.Comment = "Alternative installation error: $($_.Exception.Message)"
+                            $Coms.Progress = 0
+                            $Coms.Status = "Failed"
+                        }
+                        
+                        # Clean up alternative installer
+                        Remove-Item $webInstallerPath -Force -ErrorAction SilentlyContinue
+                        
+                    } else {
+                        Write-Host "Alternative download file too small"
+                        $Coms.Comment = "All download methods failed."
+                        $Coms.Progress = 0
+                        $Coms.Status = "Failed"
+                    }
+                } else {
+                    Write-Host "Alternative download failed - file not found"
+                    $Coms.Comment = "All download methods failed."
                     $Coms.Progress = 0
                     $Coms.Status = "Failed"
                 }
-            } else {
-                $Coms.Comment = "Failed to download Adobe Reader installer from alternative URL."
+                
+            } catch {
+                Write-Host "Alternative download error: $($_.Exception.Message)"
+                $Coms.Comment = "All download methods failed: $($_.Exception.Message)"
                 $Coms.Progress = 0
                 $Coms.Status = "Failed"
             }
@@ -238,12 +278,24 @@ Try {
     $Coms.Progress = 0
     $Coms.Status = "Failed"
 } Finally {
-    if ($msiInstallerPath -and (Test-Path -Path $msiInstallerPath -ErrorAction SilentlyContinue)) {
-        Remove-Item -Path $msiInstallerPath -Force -ErrorAction SilentlyContinue
+    # Clean up downloaded installers (only if they exist and variables are defined)
+    $cleanupPaths = @()
+    
+    if ($msiInstallerPath) { $cleanupPaths += $msiInstallerPath }
+    if ($exeInstallerPath) { $cleanupPaths += $exeInstallerPath }
+    if ($webInstallerPath) { $cleanupPaths += $webInstallerPath }
+    
+    foreach ($path in $cleanupPaths) {
+        try {
+            if (Test-Path -Path $path -ErrorAction SilentlyContinue) {
+                Remove-Item -Path $path -Force -ErrorAction SilentlyContinue
+                Write-Host "Cleaned up: $path"
+            }
+        } catch {
+            Write-Host "Could not clean up $path : $($_.Exception.Message)"
+        }
     }
-    if ($exeInstallerPath -and (Test-Path -Path $exeInstallerPath -ErrorAction SilentlyContinue)) {
-        Remove-Item -Path $exeInstallerPath -Force -ErrorAction SilentlyContinue
-    }
+    
     if ($InstallSuccess) {
         $Coms.Comment = "Finalizing Adobe Reader installation according to settings."
         if ($TaskSettings.ContainsKey('SetAsDefault') -and $TaskSettings.SetAsDefault -eq $true) {
@@ -299,5 +351,14 @@ Try {
         }
         $Coms.Progress = 100
         $Coms.Status = "Completed"
+    } else {
+        # Make sure we have proper error status if installation failed
+        if (-not $Coms.Status -or $Coms.Status -eq "") {
+            $Coms.Status = "Failed"
+            $Coms.Progress = 0
+            if (-not $Coms.Comment -or $Coms.Comment -eq "") {
+                $Coms.Comment = "Adobe Acrobat Reader installation failed."
+            }
+        }
     }
 }

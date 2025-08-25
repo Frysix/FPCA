@@ -11,14 +11,14 @@ Param(
 
 $renameSuccess = $false
 $Coms.Status = "Running"
-$Coms.Comment = "Starting Disk Rename Script"
+$Coms.Comment = "Starting Volume Label Rename Script"
 $Coms.Progress = 1
 
 Try {
-    $Coms.Comment = "Validating disk rename parameters"
+    $Coms.Comment = "Validating volume label rename parameters"
     $Coms.Progress = 10
     
-    # Get the new disk name from TaskSettings
+    # Get the new volume label from TaskSettings
     $newDiskName = $null
     if ($TaskSettings -and $TaskSettings.ContainsKey('InputText')) {
         $newDiskName = $TaskSettings.InputText
@@ -26,29 +26,35 @@ Try {
     
     # Validate the new disk name
     if ([string]::IsNullOrWhiteSpace($newDiskName)) {
-        throw "No disk name provided. Please specify a new name for the disk."
+        throw "No disk name provided. Please specify a new volume label for the partition."
     }
     
-    # Clean up the disk name (remove invalid characters)
-    $invalidChars = [System.IO.Path]::GetInvalidFileNameChars() + @('\', '/', ':', '*', '?', '"', '<', '>', '|')
+    # Clean up the disk name (remove invalid characters for volume labels)
+    $invalidChars = [System.IO.Path]::GetInvalidFileNameChars()
+    # Also add characters that are specifically invalid for volume labels
+    $additionalInvalidChars = @('/', ':', '*', '?', '"', '<', '>', '|', '\')
+    
     foreach ($char in $invalidChars) {
+        $newDiskName = $newDiskName.Replace($char.ToString(), '')
+    }
+    foreach ($char in $additionalInvalidChars) {
         $newDiskName = $newDiskName.Replace($char, '')
     }
     
-    # Trim whitespace and limit length
+    # Trim whitespace and limit length (Windows volume labels can be up to 32 characters)
     $newDiskName = $newDiskName.Trim()
     if ($newDiskName.Length -gt 32) {
         $newDiskName = $newDiskName.Substring(0, 32).Trim()
-        Write-Host "Disk name truncated to 32 characters: '$newDiskName'"
+        Write-Host "Volume label truncated to 32 characters: '$newDiskName'"
     }
     
     if ([string]::IsNullOrWhiteSpace($newDiskName)) {
-        throw "Disk name is empty or contains only invalid characters."
+        throw "Volume label is empty or contains only invalid characters."
     }
     
-    Write-Host "Target disk name: '$newDiskName'"
+    Write-Host "Target volume label (partition name): '$newDiskName'"
     
-    # Determine which drive to rename
+    # Determine which drive to rename (this is the drive letter, but we're changing the volume label/partition name)
     $targetDrive = $null
     $targetDriveLetter = $null
     
@@ -61,7 +67,7 @@ Try {
         Write-Host "No drive specified, defaulting to C: drive"
     }
     
-    $Coms.Comment = "Locating target drive $targetDriveLetter"
+    $Coms.Comment = "Locating target drive $targetDriveLetter to rename its volume label"
     $Coms.Progress = 20
     
     # Get the target drive information
@@ -72,7 +78,7 @@ Try {
         }
         
         Write-Host "Found target drive: $($targetDrive.DeviceID)"
-        Write-Host "Current drive label: '$($targetDrive.VolumeName)'"
+        Write-Host "Current volume label: '$($targetDrive.VolumeName)'"
         Write-Host "Drive type: $($targetDrive.DriveType) (3=Fixed Disk, 2=Removable, 5=CD-ROM)"
         Write-Host "File system: $($targetDrive.FileSystem)"
         Write-Host "Total size: $([math]::Round($targetDrive.Size / 1GB, 2)) GB"

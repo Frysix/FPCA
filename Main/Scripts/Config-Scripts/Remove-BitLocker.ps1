@@ -25,71 +25,145 @@ Try {
     $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     
     if (-not $isAdmin) {
-        throw "This script must be run as Administrator to manage BitLocker encryption."
+        $errorMsg = "This script must be run as Administrator to manage BitLocker encryption."
+        $Coms.Comment = $errorMsg
+        $Coms.Status = "Failed"
+        $Coms.Progress = 0
+        throw $errorMsg
     }
     
     Write-Host "Running as Administrator - proceeding with BitLocker check"
+    
+    # Check if BitLocker PowerShell module is available
+    $Coms.Comment = "Checking BitLocker PowerShell module availability"
+    $Coms.Progress = 12
+    
+    $bitLockerModuleAvailable = $false
+    try {
+        Import-Module BitLocker -ErrorAction Stop
+        $bitLockerModuleAvailable = $true
+        Write-Host "BitLocker PowerShell module loaded successfully"
+    } catch {
+        Write-Host "BitLocker PowerShell module not available: $($_.Exception.Message)"
+        Write-Host "Will use command-line tools instead"
+    }
     
     # Check if BitLocker feature is available on this system
     $Coms.Comment = "Checking if BitLocker feature is available"
     $Coms.Progress = 15
     
+    $bitLockerFeatureAvailable = $false
     try {
         $bitLockerFeature = Get-WindowsOptionalFeature -Online -FeatureName "BitLocker" -ErrorAction SilentlyContinue
-        if (-not $bitLockerFeature) {
-            $Coms.Comment = "BitLocker feature not found on this system. No action needed."
-            $Coms.Progress = 100
-            $Coms.Status = "Completed"
-            return
-        }
-        
-        Write-Host "BitLocker feature status: $($bitLockerFeature.State)"
-        if ($bitLockerFeature.State -eq "Disabled") {
-            $Coms.Comment = "BitLocker feature is already disabled. No action needed."
-            $Coms.Progress = 100
-            $Coms.Status = "Completed"
-            return
+        if ($bitLockerFeature) {
+            $bitLockerFeatureAvailable = $true
+            Write-Host "BitLocker feature status: $($bitLockerFeature.State)"
+            if ($bitLockerFeature.State -eq "Disabled") {
+                $Coms.Comment = "BitLocker feature is already disabled. Checking for encrypted volumes anyway."
+                Write-Host "BitLocker feature disabled, but checking for encrypted volumes"
+            }
+        } else {
+            Write-Host "BitLocker feature not found via Get-WindowsOptionalFeature"
         }
     } catch {
-        Write-Host "Unable to check BitLocker feature status, proceeding with drive checks"
+        Write-Host "Unable to check BitLocker feature status: $($_.Exception.Message)"
+    }
+    
+    # Additional check using manage-bde to verify BitLocker is available
+    $manageBdeAvailable = $false
+    try {
+        $testResult = & manage-bde.exe 2>$null
+        if ($LASTEXITCODE -eq 0 -or $testResult) {
+            $manageBdeAvailable = $true
+            Write-Host "manage-bde.exe is available"
+        } else {
+            Write-Host "manage-bde.exe not available or failed"
+        }
+    } catch {
+        Write-Host "Error testing manage-bde.exe: $($_.Exception.Message)"
+    }
+    
+    # If neither method is available, we can't proceed
+    if (-not $bitLockerModuleAvailable -and -not $manageBdeAvailable) {
+        $errorMsg = "BitLocker tools are not available on this system. Cannot check or disable BitLocker."
+        $Coms.Comment = $errorMsg
+        $Coms.Status = "Failed"
+        $Coms.Progress = 0
+        Write-Host $errorMsg -ForegroundColor Red
+        return
     }
     
     # Get all BitLocker volumes
     $Coms.Comment = "Scanning for BitLocker encrypted volumes"
     $Coms.Progress = 20
     
-    try {
-        $bitLockerVolumes = Get-BitLockerVolume -ErrorAction SilentlyContinue
-        if (-not $bitLockerVolumes) {
-            Write-Host "No BitLocker volumes found using Get-BitLockerVolume"
-            # Try alternative method using manage-bde
-            $manageBdeOutput = & manage-bde.exe -status 2>$null
-            if ($manageBdeOutput -and ($manageBdeOutput -join " ") -match "Protection On|Encryption in Progress") {
-                Write-Host "BitLocker detected via manage-bde command"
-                $bitLockerFound = $true
-            }
-        } else {
-            Write-Host "Found $($bitLockerVolumes.Count) BitLocker volume(s)"
-            $bitLockerFound = $true
-        }
-    } catch {
-        Write-Host "Error checking BitLocker volumes: $($_.Exception.Message)"
-        # Try command line method as fallback
+    $bitLockerVolumes = $null
+    $detectionMethod = "none"
+    
+    # Try PowerShell method first if module is available
+    if ($bitLockerModuleAvailable) {
         try {
-            $manageBdeOutput = & manage-bde.exe -status 2>$null
-            if ($manageBdeOutput -and ($manageBdeOutput -join " ") -match "Protection On|Encryption in Progress") {
-                Write-Host "BitLocker detected via manage-bde fallback"
-                $bitLockerFound = $true
+            Write-Host "Trying PowerShell Get-BitLockerVolume method"
+            $bitLockerVolumes = Get-BitLockerVolume -ErrorAction Stop
+            if ($bitLockerVolumes) {
+                $detectionMethod = "powershell"
+                Write-Host "Found $($bitLockerVolumes.Count) volume(s) using PowerShell method"
+                foreach ($vol in $bitLockerVolumes) {
+                    Write-Host "  Volume $($vol.MountPoint): Protection=$($vol.ProtectionStatus), Encryption=$($vol.EncryptionPercentage)%"
+                    if ($vol.ProtectionStatus -eq "On" -or $vol.EncryptionPercentage -gt 0) {
+                        $bitLockerFound = $true
+                    }
+                }
+            } else {
+                Write-Host "No BitLocker volumes found using PowerShell method"
             }
         } catch {
-            Write-Host "Unable to check BitLocker status via command line either"
+            Write-Host "PowerShell method failed: $($_.Exception.Message)"
+            $bitLockerVolumes = $null
         }
     }
+    
+    # Try command-line method if PowerShell failed or no volumes found
+    if (-not $bitLockerFound -and $manageBdeAvailable) {
+        try {
+            Write-Host "Trying manage-bde command-line method"
+            $manageBdeOutput = & manage-bde.exe -status 2>&1
+            $manageBdeExitCode = $LASTEXITCODE
+            
+            Write-Host "manage-bde exit code: $manageBdeExitCode"
+            
+            if ($manageBdeOutput) {
+                $outputString = $manageBdeOutput -join "`n"
+                Write-Host "manage-bde output:"
+                Write-Host $outputString
+                
+                # Look for signs of BitLocker encryption
+                if ($outputString -match "Protection On|Encryption in Progress|Fully Encrypted|Used Space Only Encrypted") {
+                    Write-Host "BitLocker encryption detected via manage-bde"
+                    $bitLockerFound = $true
+                    $detectionMethod = "command-line"
+                } elseif ($outputString -match "Protection Off.*Fully Decrypted") {
+                    Write-Host "BitLocker is present but fully decrypted and protection is off"
+                } elseif ($outputString -match "BitLocker Drive Encryption is not enabled") {
+                    Write-Host "BitLocker is not enabled on any drives"
+                } else {
+                    Write-Host "Unable to determine BitLocker status from output"
+                }
+            } else {
+                Write-Host "No output from manage-bde command"
+            }
+        } catch {
+            Write-Host "Command-line method failed: $($_.Exception.Message)"
+        }
+    }
+    
+    Write-Host "Detection summary: BitLocker found = $bitLockerFound, Method = $detectionMethod"
     
     if (-not $bitLockerFound) {
         $Coms.Comment = "No BitLocker encrypted volumes found. No action needed."
         $Coms.Progress = 100
         $Coms.Status = "Completed"
+        Write-Host "No BitLocker encryption detected - task completed"
         return
     }
     
@@ -133,6 +207,9 @@ Try {
                         Write-Host "Turning off BitLocker protection for drive $driveLetter"
                         Disable-BitLocker -MountPoint $driveLetter -ErrorAction Stop
                         Write-Host "BitLocker protection disabled for drive $driveLetter"
+                        
+                        # Wait a moment for the operation to take effect
+                        Start-Sleep -Seconds 2
                     }
                     
                     # If the drive is encrypted, decrypt it
@@ -148,21 +225,44 @@ Try {
                     $disableSuccess = $true
                     
                 } catch {
-                    Write-Host "Error disabling BitLocker on drive $driveLetter`: $($_.Exception.Message)"
+                    $errorMsg = $_.Exception.Message
+                    Write-Host "Error disabling BitLocker on drive $driveLetter`: $errorMsg" -ForegroundColor Red
                     
                     # Try command-line method as fallback
                     try {
                         Write-Host "Trying command-line method for drive $driveLetter"
-                        $result = & manage-bde.exe -off $driveLetter 2>&1
-                        Write-Host "Command-line result: $result"
-                        if ($LASTEXITCODE -eq 0) {
+                        
+                        # First try to turn off protection
+                        $result1 = & manage-bde.exe -protectors -disable $driveLetter 2>&1
+                        $exitCode1 = $LASTEXITCODE
+                        Write-Host "Protection disable result: $result1 (Exit code: $exitCode1)"
+                        
+                        # Then try to turn off encryption
+                        $result2 = & manage-bde.exe -off $driveLetter 2>&1
+                        $exitCode2 = $LASTEXITCODE
+                        Write-Host "Encryption disable result: $result2 (Exit code: $exitCode2)"
+                        
+                        if ($exitCode1 -eq 0 -or $exitCode2 -eq 0) {
                             $disableSuccess = $true
                             $requiresRestart = $true
+                            Write-Host "Command-line method succeeded for drive $driveLetter"
                         } else {
-                            Write-Host "Command-line method failed with exit code: $LASTEXITCODE"
+                            Write-Host "Command-line method failed for drive $driveLetter - Exit codes: $exitCode1, $exitCode2" -ForegroundColor Red
+                            
+                            # Store the specific error for this drive
+                            if (-not $Coms.ContainsKey('DriveErrors')) {
+                                $Coms.DriveErrors = @{}
+                            }
+                            $Coms.DriveErrors[$driveLetter] = "PowerShell: $errorMsg, Command-line: Exit codes $exitCode1/$exitCode2"
                         }
                     } catch {
-                        Write-Host "Command-line fallback also failed: $($_.Exception.Message)"
+                        Write-Host "Command-line fallback also failed for drive $driveLetter`: $($_.Exception.Message)" -ForegroundColor Red
+                        
+                        # Store the error for this drive
+                        if (-not $Coms.ContainsKey('DriveErrors')) {
+                            $Coms.DriveErrors = @{}
+                        }
+                        $Coms.DriveErrors[$driveLetter] = "Both methods failed - PowerShell: $errorMsg, Command-line: $($_.Exception.Message)"
                     }
                 }
             } else {
@@ -232,17 +332,64 @@ Try {
         }
         $Coms.Progress = 100
         $Coms.Status = "Completed"
+        
+        # Include any drive-specific warnings
+        if ($Coms.ContainsKey('DriveErrors') -and $Coms.DriveErrors.Count -gt 0) {
+            $errorSummary = "Some drives had issues: "
+            foreach ($drive in $Coms.DriveErrors.Keys) {
+                $errorSummary += "$drive (see logs), "
+            }
+            $Coms.Comment += " Warning: $($errorSummary.TrimEnd(', '))"
+        }
     } else {
-        $Coms.Comment = "Failed to disable BitLocker. Manual intervention may be required."
+        $failureReason = "Unknown error"
+        
+        # Provide specific failure reasons
+        if ($Coms.ContainsKey('DriveErrors') -and $Coms.DriveErrors.Count -gt 0) {
+            $failureReason = "Failed on drives: " + ($Coms.DriveErrors.Keys -join ", ")
+        } elseif (-not $bitLockerModuleAvailable -and -not $manageBdeAvailable) {
+            $failureReason = "BitLocker tools not available"
+        } elseif (-not $isAdmin) {
+            $failureReason = "Insufficient privileges"
+        }
+        
+        $Coms.Comment = "Failed to disable BitLocker. $failureReason"
         $Coms.Progress = 0
         $Coms.Status = "Failed"
+        
+        Write-Host "BitLocker removal failed: $failureReason" -ForegroundColor Red
     }
     
 } Catch {
-    $Coms.ErrorMessage = "An error occurred: $_"
+    # Provide detailed error information
+    $errorDetails = $_.Exception.Message
+    $errorType = $_.Exception.GetType().Name
+    $scriptLineNumber = $_.InvocationInfo.ScriptLineNumber
+    
+    $detailedError = "BitLocker removal failed - Type: $errorType, Line: $scriptLineNumber, Message: $errorDetails"
+    
+    Write-Host "Critical error in BitLocker removal:" -ForegroundColor Red
+    Write-Host "  Error Type: $errorType" -ForegroundColor Red
+    Write-Host "  Line Number: $scriptLineNumber" -ForegroundColor Red
+    Write-Host "  Message: $errorDetails" -ForegroundColor Red
+    
+    # Set detailed error information for the UI
+    $Coms.ErrorMessage = $detailedError
+    $Coms.Comment = "BitLocker removal failed: $errorDetails"
     $Coms.Progress = 0
     $Coms.Status = "Failed"
-    Write-Host "Critical error in BitLocker removal: $($_.Exception.Message)" -ForegroundColor Red
+    
+    # Additional context based on common error scenarios
+    if ($errorDetails -match "Access.*denied|Unauthorized|Permission") {
+        $Coms.Comment = "Access denied - ensure you're running as Administrator"
+        Write-Host "Suggestion: Ensure script is running as Administrator" -ForegroundColor Yellow
+    } elseif ($errorDetails -match "Module.*not.*found|Command.*not.*found") {
+        $Coms.Comment = "BitLocker tools not available on this system"
+        Write-Host "Suggestion: BitLocker may not be available on this Windows edition" -ForegroundColor Yellow
+    } elseif ($errorDetails -match "WMI|CIM|Management") {
+        $Coms.Comment = "System management interface error - try restarting"
+        Write-Host "Suggestion: Try restarting the system and running again" -ForegroundColor Yellow
+    }
 } Finally {
     # Provide final status information
     if ($disableSuccess) {
