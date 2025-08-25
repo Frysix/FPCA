@@ -68,16 +68,18 @@ Try {
         $Coms.Comment = "Google Chrome not found. Proceeding with installation."
         $Coms.Progress = 5
         # Download and install Chrome from the latest sources
-        $chromeInstallerUrl = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
-        $installerPath = Join-Path -Path $env:USERPROFILE "\Downloads\googlechromestandaloneenterprise64.msi"
+        $chromeMsiUrl = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
+        $chromeExeUrl = "https://dl.google.com/chrome/install/latest/chrome_installer.exe"
+        $msiInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\googlechromestandaloneenterprise64.msi"
+        $exeInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\chrome_installer.exe"
         $InstallerComs = @{}
-        $Coms.Comment = "Trying to download Chrome installer from $chromeInstallerUrl"
+        $Coms.Comment = "Trying to download Chrome installer from Google's MSI source"
         $Coms.Progress = 10
-        . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeInstallerUrl -OutputFile $installerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
-        if ($InstallerComs.Status -eq "Completed" -and (Test-Path $installerPath)) {
+        . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeMsiUrl -OutputFile $msiInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+        if ($InstallerComs.Status -eq "Completed" -and (Test-Path -Path $msiInstallerPath)) {
             $Coms.Comment = "Download completed. Starting Chrome installation."
             $Coms.Progress = 50
-            $installProcess = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installerPath`" /qn /norestart" -Wait -PassThru -Verb RunAs
+            $installProcess = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$msiInstallerPath`" /qn /norestart" -Wait -PassThru -Verb RunAs
             if ($installProcess.ExitCode -eq 0) {
                 $InstallSuccess = $true
                 $Coms.Progress = 80
@@ -87,21 +89,19 @@ Try {
                 $firstTryFailed = $true
             }
         } else {
-            $Coms.Comment = "Failed to download Chrome installer from primary URL."
+            $Coms.Comment = "Failed to download Chrome installer from primary MSI URL."
             $firstTryFailed = $true
         }
         # Try second option to download Chrome installer
         if ($firstTryFailed) {
-            $Coms.Comment = "Failed to download Chrome installer, trying alternative URL."
-            $chromeInstallerUrl = "https://dl.google.com/chrome/install/latest/chrome_installer.exe"
-            $installerPath2 = Join-Path -Path $env:USERPROFILE "\Downloads\chrome_installer.exe"
-            $InstallerComs = @{}
+            $Coms.Comment = "Failed to download Chrome installer, trying alternative EXE URL."
+            $InstallerComs = @{}  # Reset the communications hashtable
             $Coms.Progress = 10
-            . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeInstallerUrl -OutputFile $installerPath2 -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
-            if ($InstallerComs.Status -eq "Completed" -and (Test-Path $installerPath2)) {
+            . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeExeUrl -OutputFile $exeInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+            if ($InstallerComs.Status -eq "Completed" -and (Test-Path -Path $exeInstallerPath)) {
                 $Coms.Comment = "Download completed. Starting Chrome installation."
                 $Coms.Progress = 50
-                $installProcess = Start-Process -FilePath $installerPath2 -ArgumentList "/silent /install" -Wait -PassThru -Verb RunAs
+                $installProcess = Start-Process -FilePath $exeInstallerPath -ArgumentList "/silent /install" -Wait -PassThru -Verb RunAs
                 if ($installProcess.ExitCode -eq 0) {
                     $InstallSuccess = $true
                     $Coms.Progress = 80
@@ -112,7 +112,7 @@ Try {
                     $Coms.Status = "Failed"
                 }
             } else {
-                $Coms.Comment = "Failed to download Chrome installer from alternative URL."
+                $Coms.Comment = "Failed to download Chrome installer from alternative EXE URL."
                 $Coms.Progress = 0
                 $Coms.Status = "Failed"
             }
@@ -123,11 +123,11 @@ Try {
     $Coms.Progress = 0
     $Coms.Status = "Failed"
 } Finally {
-    if (Test-Path -Path $installerPath) {
-        Remove-Item -Path $installerPath -Force -ErrorAction SilentlyContinue
+    if (Test-Path -Path $msiInstallerPath -ErrorAction SilentlyContinue) {
+        Remove-Item -Path $msiInstallerPath -Force -ErrorAction SilentlyContinue
     }
-    if (Test-Path -Path $installerPath2) {
-        Remove-Item -Path $installerPath2 -Force -ErrorAction SilentlyContinue
+    if (Test-Path -Path $exeInstallerPath -ErrorAction SilentlyContinue) {
+        Remove-Item -Path $exeInstallerPath -Force -ErrorAction SilentlyContinue
     }
     if ($InstallSuccess) {
         $Coms.Comment = "Finalizing Chrome installation according to settings."
