@@ -486,8 +486,20 @@ While ($Global:TaskHash.TaskListener) {
             } else {
                 Write-Host "No custom exit type defined for task '$taskName'. Using default exit type."
             }
+            if ($TaskStatus.ContainsKey('RemindDefault') -and $TaskStatus.RemindDefault -eq $true) {
+                if ($ToRemindDefault -eq $null) {
+                    $ToRemindDefault = @()
+                }
+                $ToRemindDefault += $taskName
+            }
         }
-        Show-TopMostMessageBox -Message "The Configuration has ended." -Title "FPCA - Configuration" -Icon "Information"
+        if ($ToRemindDefault) {
+            $remindList = $ToRemindDefault -join ", "
+            Show-TopMostMessageBox -Message "The Configuration has ended. Please set the following apps as default: $remindList" -Title "FPCA - Configuration" -Icon "Information"
+            Start-Process "ms-settings:defaultapps"
+        } else {
+            Show-TopMostMessageBox -Message "The Configuration has ended." -Title "FPCA - Configuration" -Icon "Information"
+        }
         if ($Global:TaskHash.ExitType -eq "Default") {
             # Clean up the UI runspace
             $Global:UiHash.TaskForm.Close()

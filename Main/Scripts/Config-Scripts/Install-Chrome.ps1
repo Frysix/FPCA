@@ -1,5 +1,3 @@
-# Config Script for FPCA that installs Google Chrome browser
-# Standard Parameters structure for config scripts
 Param(
     [Parameter(Mandatory=$true)]
     [hashtable]$Coms,
@@ -11,436 +9,151 @@ Param(
     [hashtable]$TaskSettings
 )
 
-$Coms.Status = "Running"
-$Coms.Progress = 5
-$Coms.Comment = "Initializing Chrome installation..."
-
-# Initialize variables for cleanup
-$tempDownloadPath = $null
 $chromeInstalled = $false
+$firstTryFailed = $false
+$InstallSuccess = $false
+$Coms.Status = "Running"
+$Coms.Comment = "Starting Chrome Installation Script"
+$Coms.Progress = 1
+Try {
 
-try {
-    Write-Host "Starting Google Chrome installation process..."
-    
-    # Step 1: Check if Chrome is already installed
-    $Coms.Progress = 10
-    $Coms.Comment = "Checking for existing Chrome installation..."
-    
-    $chromeInstalled = $false
-    $chromeVersions = @()
-    
-    # Method 1: Check standard installation paths
+    $Coms.Comment = "Checking if Chrome is already installed"
+    # Check if chrome is already installed multiple ways
     $chromePaths = @(
-        "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe",
-        "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
-        "${env:LOCALAPPDATA}\Google\Chrome\Application\chrome.exe"
+        "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+        "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe",
+        "$env:LocalAppData\Google\Chrome\Application\chrome.exe"
     )
-    
     foreach ($path in $chromePaths) {
         if (Test-Path $path) {
-            try {
-                $version = (Get-ItemProperty $path).VersionInfo.ProductVersion
-                $chromeVersions += "Found at: $path (Version: $version)"
-                $chromeInstalled = $true
-            } catch {
-                $chromeVersions += "Found at: $path (Version: Unknown)"
-                $chromeInstalled = $true
-            }
+            $chromeInstalled = $true
+            break
         }
     }
-    
-    # Method 2: Check via Registry
-    if (-not $chromeInstalled) {
+
+    # Try to find Chrome via registry if not found in standard paths
+    if ($chromeInstalled -eq $false) {
         $registryPaths = @(
             "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome",
             "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome",
             "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Google Chrome"
         )
-        
         foreach ($regPath in $registryPaths) {
             try {
-                $chromeReg = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
-                if ($chromeReg) {
-                    $chromeVersions += "Registry entry found: $($chromeReg.DisplayName) $($chromeReg.DisplayVersion)"
+                $installLocation = (Get-ItemProperty -Path $regPath -ErrorAction Stop).InstallLocation
+                if ($installLocation) {
                     $chromeInstalled = $true
                     break
                 }
             } catch {
-                # Continue checking other paths
+                # Ignore errors, just means Chrome isn't installed in this registry path
             }
         }
     }
-    
-    # Method 3: Check via Get-Package (if available)
-    if (-not $chromeInstalled) {
-        try {
-            $chromePackage = Get-Package -Name "*Chrome*" -ErrorAction SilentlyContinue
-            if ($chromePackage) {
-                $chromeVersions += "Package manager: $($chromePackage.Name) $($chromePackage.Version)"
-                $chromeInstalled = $true
-            }
-        } catch {
-            # Package manager check failed, continue
+
+    # Try to find Chrome via WMI if not found in standard paths or registry
+    if ($chromeInstalled -eq $false) {
+        $wmiQuery = "SELECT * FROM Win32_Product WHERE Name LIKE 'Google Chrome%'"
+        $chromeProduct = Get-WmiObject -Query $wmiQuery -ErrorAction SilentlyContinue
+        if ($chromeProduct) {
+            $chromeInstalled = $true
         }
     }
-    
+
     if ($chromeInstalled) {
-        Write-Host "Chrome is already installed:"
-        foreach ($version in $chromeVersions) {
-            Write-Host "  - $version"
-        }
+        $Coms.Comment = "Google Chrome is already installed. No action needed."
         $Coms.Progress = 100
-        $Coms.Comment = "Chrome is already installed: $($chromeVersions[0])"
         $Coms.Status = "Completed"
-        return
-    }
-    
-    Write-Host "Chrome not found. Proceeding with installation..."
-    
-    # Step 2: Check internet connectivity
-    $Coms.Progress = 15
-    $Coms.Comment = "Checking internet connectivity..."
-    
-    $internetConnected = $false
-    $testUrls = @(
-        "https://dl.google.com",
-        "https://www.google.com",
-        "https://8.8.8.8"
-    )
-    
-    foreach ($url in $testUrls) {
-        try {
-            $response = Invoke-WebRequest -Uri $url -Method Head -TimeoutSec 10 -UseBasicParsing -ErrorAction Stop
-            if ($response.StatusCode -eq 200) {
-                $internetConnected = $true
-                Write-Host "Internet connectivity confirmed via: $url"
-                break
-            }
-        } catch {
-            Write-Host "Failed to connect to: $url"
-        }
-    }
-    
-    if (-not $internetConnected) {
-        throw "No internet connectivity detected. Chrome installation requires internet access."
-    }
-    
-    # Step 3: Prepare download
-    $Coms.Progress = 25
-    $Coms.Comment = "Preparing Chrome download..."
-    
-    # Create temp directory for download
-    $tempDir = Join-Path $env:TEMP "FPCA_Chrome_$(Get-Random)"
-    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-    $tempDownloadPath = Join-Path $tempDir "ChromeSetup.exe"
-    
-    Write-Host "Temporary download directory: $tempDir"
-    
-    # Chrome download URLs (multiple fallbacks)
-    $chromeUrls = @(
-        "https://dl.google.com/chrome/install/ChromeStandaloneSetup64.exe",
-        "https://dl.google.com/chrome/install/ChromeStandaloneSetup.exe",
-        "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi",
-        "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise.msi"
-    )
-    
-    # Step 4: Download Chrome installer
-    $Coms.Progress = 35
-    $Coms.Comment = "Downloading Chrome installer..."
-    
-    $downloadSuccess = $false
-    $downloadedFile = $null
-    
-    foreach ($url in $chromeUrls) {
-        try {
-            Write-Host "Attempting download from: $url"
-            $Coms.Comment = "Downloading from: $(Split-Path $url -Leaf)..."
-            
-            # Determine file extension
-            $fileName = if ($url -like "*.msi") { "ChromeSetup.msi" } else { "ChromeSetup.exe" }
-            $downloadPath = Join-Path $tempDir $fileName
-            
-            # Download with progress
-            $webClient = New-Object System.Net.WebClient
-            $webClient.DownloadFile($url, $downloadPath)
-            
-            # Verify download
-            if (Test-Path $downloadPath) {
-                $fileSize = (Get-Item $downloadPath).Length
-                if ($fileSize -gt 1MB) {  # Chrome installer should be larger than 1MB
-                    Write-Host "Download successful: $downloadPath ($([math]::Round($fileSize/1MB, 2)) MB)"
-                    $downloadSuccess = $true
-                    $downloadedFile = $downloadPath
-                    break
-                } else {
-                    Write-Host "Downloaded file is too small ($fileSize bytes), trying next URL..."
-                    Remove-Item $downloadPath -Force -ErrorAction SilentlyContinue
-                }
-            }
-        } catch {
-            Write-Host "Download failed from $url`: $($_.Exception.Message)"
-            continue
-        }
-    }
-    
-    if (-not $downloadSuccess) {
-        throw "Failed to download Chrome installer from all available sources."
-    }
-    
-    # Step 5: Install Chrome
-    $Coms.Progress = 60
-    $Coms.Comment = "Installing Google Chrome..."
-    
-    Write-Host "Starting Chrome installation from: $downloadedFile"
-    
-    $installSuccess = $false
-    $installationMethod = ""
-    
-    # Installation method based on file type
-    if ($downloadedFile -like "*.msi") {
-        # MSI Installation
-        try {
-            Write-Host "Installing Chrome via MSI..."
-            $Coms.Comment = "Installing Chrome (MSI)..."
-            
-            $msiArgs = @(
-                "/i",
-                "`"$downloadedFile`"",
-                "/quiet",
-                "/norestart",
-                "ALLUSERS=1"
-            )
-            
-            # Handle task settings for MSI
-            if ($TaskSettings) {
-                if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $false) {
-                    $msiArgs += "DESKTOP_SHORTCUT=0"
-                }
-                if ($TaskSettings.ContainsKey('RemindDefault') -and $TaskSettings.RemindDefault -eq $false) {
-                    $msiArgs += "SET_DEFAULT_BROWSER=0"
-                }
-            }
-            
-            $processInfo = New-Object System.Diagnostics.ProcessStartInfo
-            $processInfo.FileName = "msiexec.exe"
-            $processInfo.Arguments = $msiArgs -join " "
-            $processInfo.RedirectStandardOutput = $true
-            $processInfo.RedirectStandardError = $true
-            $processInfo.UseShellExecute = $false
-            $processInfo.CreateNoWindow = $true
-            
-            $process = New-Object System.Diagnostics.Process
-            $process.StartInfo = $processInfo
-            $process.Start() | Out-Null
-            
-            # Wait for installation with timeout
-            $timeout = 300  # 5 minutes
-            $process.WaitForExit($timeout * 1000)
-            
-            if (-not $process.HasExited) {
-                $process.Kill()
-                throw "MSI installation timed out after $timeout seconds"
-            }
-            
-            $exitCode = $process.ExitCode
-            $stdout = $process.StandardOutput.ReadToEnd()
-            $stderr = $process.StandardError.ReadToEnd()
-            
-            Write-Host "MSI Exit Code: $exitCode"
-            if ($stdout) { Write-Host "MSI Output: $stdout" }
-            if ($stderr) { Write-Host "MSI Error: $stderr" }
-            
-            if ($exitCode -eq 0 -or $exitCode -eq 3010) {  # 3010 = restart required
-                $installSuccess = $true
-                $installationMethod = "MSI"
-            } else {
-                throw "MSI installation failed with exit code: $exitCode"
-            }
-            
-        } catch {
-            Write-Host "MSI installation failed: $($_.Exception.Message)"
-        }
-    }
-    
-    if (-not $installSuccess -and $downloadedFile -like "*.exe") {
-        # EXE Installation
-        try {
-            Write-Host "Installing Chrome via EXE..."
-            $Coms.Comment = "Installing Chrome (EXE)..."
-            
-            $exeArgs = @(
-                "/silent",
-                "/install"
-            )
-            
-            # Handle task settings for EXE
-            if ($TaskSettings) {
-                if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $false) {
-                    $exeArgs += "/no-desktop-shortcut"
-                }
-                if ($TaskSettings.ContainsKey('RemindDefault') -and $TaskSettings.RemindDefault -eq $false) {
-                    $exeArgs += "/no-default-browser-check"
-                }
-            }
-            
-            $processInfo = New-Object System.Diagnostics.ProcessStartInfo
-            $processInfo.FileName = $downloadedFile
-            $processInfo.Arguments = $exeArgs -join " "
-            $processInfo.RedirectStandardOutput = $true
-            $processInfo.RedirectStandardError = $true
-            $processInfo.UseShellExecute = $false
-            $processInfo.CreateNoWindow = $true
-            
-            $process = New-Object System.Diagnostics.Process
-            $process.StartInfo = $processInfo
-            $process.Start() | Out-Null
-            
-            # Wait for installation with timeout
-            $timeout = 300  # 5 minutes
-            $process.WaitForExit($timeout * 1000)
-            
-            if (-not $process.HasExited) {
-                $process.Kill()
-                throw "EXE installation timed out after $timeout seconds"
-            }
-            
-            $exitCode = $process.ExitCode
-            $stdout = $process.StandardOutput.ReadToEnd()
-            $stderr = $process.StandardError.ReadToEnd()
-            
-            Write-Host "EXE Exit Code: $exitCode"
-            if ($stdout) { Write-Host "EXE Output: $stdout" }
-            if ($stderr) { Write-Host "EXE Error: $stderr" }
-            
-            if ($exitCode -eq 0) {
-                $installSuccess = $true
-                $installationMethod = "EXE"
-            } else {
-                throw "EXE installation failed with exit code: $exitCode"
-            }
-            
-        } catch {
-            Write-Host "EXE installation failed: $($_.Exception.Message)"
-        }
-    }
-    
-    if (-not $installSuccess) {
-        throw "All Chrome installation methods failed."
-    }
-    
-    # Step 6: Verify installation
-    $Coms.Progress = 85
-    $Coms.Comment = "Verifying Chrome installation..."
-    
-    Write-Host "Verifying Chrome installation..."
-    Start-Sleep -Seconds 5  # Give installation time to complete
-    
-    $verificationSuccess = $false
-    $installedVersion = "Unknown"
-    
-    # Re-check for Chrome installation
-    foreach ($path in $chromePaths) {
-        if (Test-Path $path) {
-            try {
-                $version = (Get-ItemProperty $path).VersionInfo.ProductVersion
-                $installedVersion = $version
-                $verificationSuccess = $true
-                Write-Host "Chrome verification successful: $path (Version: $version)"
-                break
-            } catch {
-                $verificationSuccess = $true
-                Write-Host "Chrome verification successful: $path (Version: Unknown)"
-                break
-            }
-        }
-    }
-    
-    if (-not $verificationSuccess) {
-        # Check registry again
-        foreach ($regPath in $registryPaths) {
-            try {
-                $chromeReg = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
-                if ($chromeReg) {
-                    $installedVersion = $chromeReg.DisplayVersion
-                    $verificationSuccess = $true
-                    Write-Host "Chrome verification successful via registry: $($chromeReg.DisplayName) $installedVersion"
-                    break
-                }
-            } catch {
-                continue
-            }
-        }
-    }
-    
-    if (-not $verificationSuccess) {
-        $Coms.Status = "Warning"
-        $Coms.Comment = "Chrome installation completed but verification failed. Please check manually."
-        $Coms.Progress = 95
     } else {
-        # Step 7: Handle post-installation settings
-        $Coms.Progress = 95
-        $Coms.Comment = "Configuring post-installation settings..."
-        
-        # Create desktop shortcut if requested
-        if ($TaskSettings -and $TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $true) {
-            try {
-                $Coms.Comment = "Creating desktop shortcut..."
-                $desktopPath = [Environment]::GetFolderPath("Desktop")
-                $shortcutPath = Join-Path $desktopPath "Google Chrome.lnk"
-                
-                # Find Chrome executable
-                $chromeExe = $null
-                foreach ($path in $chromePaths) {
-                    if (Test-Path $path) {
-                        $chromeExe = $path
-                        break
-                    }
+        $Coms.Comment = "Google Chrome not found. Proceeding with installation."
+        $Coms.Progress = 5
+        # Download and install Chrome from the latest sources
+        $chromeInstallerUrl = "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi"
+        $installerPath = Join-Path -Path $env:USERPROFILE "\Downloads\googlechromestandaloneenterprise64.msi"
+        $InstallerComs = @{}
+        $Coms.Comment = "Trying to download Chrome installer from $chromeInstallerUrl"
+        $Coms.Progress = 10
+        . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeInstallerUrl -OutputFile $installerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+        if ($InstallerComs.Status -eq "Completed" -and (Test-Path $installerPath)) {
+            $Coms.Comment = "Download completed. Starting Chrome installation."
+            $Coms.Progress = 50
+            $installProcess = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installerPath`" /qn /norestart" -Wait -PassThru -Verb RunAs
+            if ($installProcess.ExitCode -eq 0) {
+                $InstallSuccess = $true
+                $Coms.Progress = 80
+                $Coms.Comment = "Google Chrome installed successfully."
+            } else {
+                $Coms.Comment = "Chrome installation failed with exit code $($installProcess.ExitCode)."
+                $firstTryFailed = $true
+            }
+        } else {
+            $Coms.Comment = "Failed to download Chrome installer from primary URL."
+            $firstTryFailed = $true
+        }
+        # Try second option to download Chrome installer
+        if ($firstTryFailed) {
+            $Coms.Comment = "Failed to download Chrome installer, trying alternative URL."
+            $chromeInstallerUrl = "https://dl.google.com/chrome/install/latest/chrome_installer.exe"
+            $installerPath2 = Join-Path -Path $env:USERPROFILE "\Downloads\chrome_installer.exe"
+            $InstallerComs = @{}
+            $Coms.Progress = 10
+            . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeInstallerUrl -OutputFile $installerPath2 -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+            if ($InstallerComs.Status -eq "Completed" -and (Test-Path $installerPath2)) {
+                $Coms.Comment = "Download completed. Starting Chrome installation."
+                $Coms.Progress = 50
+                $installProcess = Start-Process -FilePath $installerPath2 -ArgumentList "/silent /install" -Wait -PassThru -Verb RunAs
+                if ($installProcess.ExitCode -eq 0) {
+                    $InstallSuccess = $true
+                    $Coms.Progress = 80
+                    $Coms.Comment = "Google Chrome installed successfully."
+                } else {
+                    $Coms.Comment = "Chrome installation failed with exit code $($installProcess.ExitCode)."
+                    $Coms.Progress = 0
+                    $Coms.Status = "Failed"
                 }
-                
-                if ($chromeExe) {
-                    $WshShell = New-Object -ComObject WScript.Shell
-                    $Shortcut = $WshShell.CreateShortcut($shortcutPath)
-                    $Shortcut.TargetPath = $chromeExe
-                    $Shortcut.Description = "Google Chrome"
-                    $Shortcut.Save()
-                    Write-Host "Desktop shortcut created: $shortcutPath"
-                }
-            } catch {
-                Write-Host "Failed to create desktop shortcut: $($_.Exception.Message)"
+            } else {
+                $Coms.Comment = "Failed to download Chrome installer from alternative URL."
+                $Coms.Progress = 0
+                $Coms.Status = "Failed"
             }
         }
-        
-        # Set as default browser reminder
-        if ($TaskSettings -and $TaskSettings.ContainsKey('RemindDefault') -and $TaskSettings.RemindDefault -eq $true) {
-            $Coms.Comment = "Chrome installed. Remember to set as default browser if desired."
-        }
-        
-        $Coms.Progress = 100
-        $Coms.Comment = "Chrome installation completed successfully. Version: $installedVersion (Method: $installationMethod)"
-        $Coms.Status = "Completed"
-        
-        Write-Host "Google Chrome installation completed successfully!"
-        Write-Host "Installation Method: $installationMethod"
-        Write-Host "Version: $installedVersion"
     }
-    
-} catch {
-    Write-Host "Error during Chrome installation: $($_.Exception.Message)" -ForegroundColor Red
-    $Coms.Status = "Failed"
-    $Coms.ErrorMessage = $_.Exception.Message
+} Catch {
+    $Coms.ErrorMessage = "An error occurred: $_"
     $Coms.Progress = 0
-    $Coms.Comment = "Chrome installation failed: $($_.Exception.Message)"
-} finally {
-    # Cleanup: Remove temporary files
-    if ($tempDownloadPath -and (Test-Path (Split-Path $tempDownloadPath -Parent))) {
-        try {
-            Write-Host "Cleaning up temporary files..."
-            Remove-Item (Split-Path $tempDownloadPath -Parent) -Recurse -Force -ErrorAction SilentlyContinue
-        } catch {
-            Write-Host "Warning: Could not clean up temporary files: $($_.Exception.Message)"
+    $Coms.Status = "Failed"
+} Finally {
+    if (Test-Path -Path $installerPath) {
+        Remove-Item -Path $installerPath -Force -ErrorAction SilentlyContinue
+    }
+    if (Test-Path -Path $installerPath2) {
+        Remove-Item -Path $installerPath2 -Force -ErrorAction SilentlyContinue
+    }
+    if ($InstallSuccess) {
+        $Coms.Comment = "Finalizing Chrome installation according to settings."
+        if ($TaskSettings.ContainsKey('RemindDefault') -and $TaskSettings.RemindDefault -eq $true) {
+            $Coms.Comment = "Setting Reminder for chrome"
+            $Coms.RemindDefault = $true
         }
+        if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $true) {
+            $Coms.Comment = "Creating Desktop Shortcut for Chrome"
+            $shortcutPath = Join-Path -Path ([Environment]::GetFolderPath('Desktop')) -ChildPath "Google Chrome.lnk"
+            $targetPath = "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
+            if (-not (Test-Path -Path $targetPath)) {
+                $targetPath = "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe"
+            }
+            if (Test-Path -Path $targetPath) {
+                $WScriptShell = New-Object -ComObject WScript.Shell
+                $shortcut = $WScriptShell.CreateShortcut($shortcutPath)
+                $shortcut.TargetPath = $targetPath
+                $shortcut.IconLocation = "$targetPath, 0"
+                $shortcut.Save()
+                $Coms.Comment = "Desktop shortcut for Chrome created."
+            } else {
+                $Coms.Comment = "Could not find Chrome executable to create shortcut."
+            }
+        }
+        $Coms.Progress = 100
+        $Coms.Status = "Completed"
     }
 }
-
-Write-Host "Install-Chrome script completed with status: $($Coms.Status)"
-
