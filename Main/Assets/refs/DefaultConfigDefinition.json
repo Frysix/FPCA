@@ -156,7 +156,7 @@
                 "RequireInternet": "false"
             },
             "RENAMEDISK": {
-                "DisplayName": "Rename C: Disk",
+                "DisplayName": "Rename Disk C",
                 "Description": "Rename the primary disk to chosen name",
                 "DefaultState": "true",
                 "Type": "TextBox",

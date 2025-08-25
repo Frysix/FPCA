@@ -516,23 +516,116 @@ $Null = $UpdaterPowershell.AddScript({
         }
         $Global:UpdaterHash.Progress = 75
 
-        # Delete the old installation
-        $Global:UpdaterHash.LatestLog += "Deleting old installation...`r`n"
-        if (Test-Path -Path $InstallPath) {
-            Remove-Item -Path $InstallPath -Recurse -Force
-            $Global:UpdaterHash.LatestLog += "Old installation deleted successfully`r`n"
-        } else {
-            $Global:UpdaterHash.LatestLog += "Old installation path does not exist, skipping deletion`r`n"
+        # Completely delete the old installation with retry logic
+        $Global:UpdaterHash.LatestLog += "Completely removing old installation...`r`n"
+        $maxRetries = 3
+        $retryCount = 0
+        $deletionSuccess = $false
+        
+        while (-not $deletionSuccess -and $retryCount -lt $maxRetries) {
+            try {
+                if (Test-Path -Path $InstallPath) {
+                    # First, stop any potential FPCA processes that might lock files
+                    $Global:UpdaterHash.LatestLog += "Stopping any running FPCA processes...`r`n"
+                    Get-Process | Where-Object { $_.ProcessName -like "*FPCA*" -or $_.Path -like "*$InstallPath*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+                    Start-Sleep -Seconds 2
+                    
+                    # Force unlock any locked files by removing read-only attributes
+                    $Global:UpdaterHash.LatestLog += "Removing read-only attributes from all files...`r`n"
+                    Get-ChildItem -Path $InstallPath -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+                        try {
+                            $_.Attributes = $_.Attributes -band -bnot [System.IO.FileAttributes]::ReadOnly
+                        } catch {
+                            # Ignore individual file attribute errors
+                        }
+                    }
+                    
+                    # Delete all contents first, then the directory
+                    $Global:UpdaterHash.LatestLog += "Deleting all files and subdirectories...`r`n"
+                    Get-ChildItem -Path $InstallPath -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+                    
+                    # Wait a moment for file system to process
+                    Start-Sleep -Seconds 1
+                    
+                    # Remove the main directory
+                    Remove-Item -Path $InstallPath -Force -ErrorAction Stop
+                    
+                    # Verify deletion
+                    if (-not (Test-Path -Path $InstallPath)) {
+                        $Global:UpdaterHash.LatestLog += "Old installation completely deleted successfully`r`n"
+                        $deletionSuccess = $true
+                    } else {
+                        throw "Directory still exists after deletion attempt"
+                    }
+                } else {
+                    $Global:UpdaterHash.LatestLog += "Old installation path does not exist, skipping deletion`r`n"
+                    $deletionSuccess = $true
+                }
+            } catch {
+                $retryCount++
+                $Global:UpdaterHash.LatestLog += "Deletion attempt $retryCount failed: $($_.Exception.Message)`r`n"
+                if ($retryCount -lt $maxRetries) {
+                    $Global:UpdaterHash.LatestLog += "Retrying deletion in 3 seconds...`r`n"
+                    Start-Sleep -Seconds 3
+                } else {
+                    throw "Failed to completely delete old installation after $maxRetries attempts: $($_.Exception.Message)"
+                }
+            }
         }
+        
         $Global:UpdaterHash.Progress = 80
-        # Move the new installation to the old installation path
-        $Global:UpdaterHash.LatestLog += "Moving new installation to old installation path...`r`n"
+        
+        # Copy the new installation to the old installation path
+        $Global:UpdaterHash.LatestLog += "Installing new version to target location...`r`n"
         if (Test-Path -Path "$ExtractPath\FPCA") {
-            $InstallPathParent = Split-Path -Path $InstallPath -Parent
-            Move-Item -Path "$ExtractPath\FPCA" -Destination $InstallPathParent -Force
-            $Global:UpdaterHash.LatestLog += "New installation moved successfully to $InstallPath`r`n"
+            try {
+                # Get the parent directory of the install path
+                $InstallPathParent = Split-Path -Path $InstallPath -Parent
+                
+                # Ensure parent directory exists
+                if (-not (Test-Path -Path $InstallPathParent)) {
+                    New-Item -Path $InstallPathParent -ItemType Directory -Force | Out-Null
+                    $Global:UpdaterHash.LatestLog += "Created parent directory: $InstallPathParent`r`n"
+                }
+                
+                # Copy instead of move to ensure complete transfer
+                $Global:UpdaterHash.LatestLog += "Copying new installation files...`r`n"
+                Copy-Item -Path "$ExtractPath\FPCA" -Destination $InstallPathParent -Recurse -Force
+                
+                # Verify the installation was copied correctly
+                if (Test-Path -Path $InstallPath) {
+                    # Verify key files exist
+                    $keyFiles = @("FPCA-Main.ps1", "Start.bat", "Settings.ini")
+                    $missingFiles = @()
+                    foreach ($file in $keyFiles) {
+                        if (-not (Test-Path -Path "$InstallPath\$file")) {
+                            $missingFiles += $file
+                        }
+                    }
+                    
+                    if ($missingFiles.Count -eq 0) {
+                        $Global:UpdaterHash.LatestLog += "New installation copied successfully to $InstallPath`r`n"
+                        $Global:UpdaterHash.LatestLog += "All key files verified present`r`n"
+                    } else {
+                        throw "Installation incomplete - missing files: $($missingFiles -join ', ')"
+                    }
+                } else {
+                    throw "Installation directory not found after copy operation"
+                }
+                
+                # Clean up the extracted files
+                try {
+                    Remove-Item -Path "$ExtractPath\FPCA" -Recurse -Force -ErrorAction SilentlyContinue
+                    $Global:UpdaterHash.LatestLog += "Temporary extraction files cleaned up`r`n"
+                } catch {
+                    $Global:UpdaterHash.LatestLog += "Warning: Could not clean up temporary files: $($_.Exception.Message)`r`n"
+                }
+                
+            } catch {
+                throw "Failed to install new version: $($_.Exception.Message)"
+            }
         } else {
-            Throw "New installation folder not found at $ExtractPath\FPCA"
+            throw "New installation folder not found at $ExtractPath\FPCA"
         }
         $Global:UpdaterHash.Progress = 90
         # Create a new fpca.info file
