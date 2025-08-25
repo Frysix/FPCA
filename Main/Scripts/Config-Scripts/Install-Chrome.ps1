@@ -74,10 +74,49 @@ Try {
         $chromeExeUrl = "https://dl.google.com/chrome/install/latest/chrome_installer.exe"
         $msiInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\googlechromestandaloneenterprise64.msi"
         $exeInstallerPath = Join-Path -Path $env:USERPROFILE "\Downloads\chrome_installer.exe"
-        $InstallerComs = @{}
+        $InstallerComs = [hashtable]::Synchronized(@{})
         $Coms.Comment = "Trying to download Chrome installer from Google's MSI source"
         $Coms.Progress = 10
-        . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeMsiUrl -OutputFile $msiInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+        
+        Write-Host "Starting Chrome MSI download from: $chromeMsiUrl"
+        Write-Host "Target path: $msiInstallerPath"
+        
+        # Call the threaded installer with error handling
+        try {
+            . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeMsiUrl -OutputFile $msiInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+            
+            # Wait for completion with timeout
+            $timeout = 300  # 5 minutes timeout
+            $elapsed = 0
+            $checkInterval = 5  # Check every 5 seconds
+            
+            while ($InstallerComs.Status -ne "Completed" -and $InstallerComs.Status -ne "Failed" -and $elapsed -lt $timeout) {
+                Start-Sleep -Seconds $checkInterval
+                $elapsed += $checkInterval
+                Write-Host "Waiting for download completion... ($elapsed/$timeout seconds)"
+                $Coms.Comment = "Downloading Chrome installer... ($elapsed/$timeout seconds)"
+                
+                # Update progress based on installer progress if available
+                if ($InstallerComs.ContainsKey('Progress') -and $InstallerComs.Progress -gt 0) {
+                    $downloadProgress = [Math]::Max(10, [Math]::Min(45, 10 + ($InstallerComs.Progress * 0.35)))
+                    $Coms.Progress = $downloadProgress
+                }
+            }
+            
+            if ($elapsed -ge $timeout) {
+                Write-Host "Download timed out after $timeout seconds"
+                $Coms.Comment = "Download timed out - trying alternative method"
+                $firstTryFailed = $true
+            } else {
+                Write-Host "Download completed with status: $($InstallerComs.Status)"
+            }
+            
+        } catch {
+            Write-Host "Error during download: $($_.Exception.Message)"
+            $Coms.Comment = "Download error - trying alternative method"
+            $firstTryFailed = $true
+        }
+        
         if ($InstallerComs.Status -eq "Completed" -and (Test-Path -Path $msiInstallerPath)) {
             $Coms.Comment = "Download completed. Starting Chrome installation."
             $Coms.Progress = 50
@@ -99,7 +138,47 @@ Try {
             $Coms.Comment = "Failed to download Chrome installer, trying alternative EXE URL."
             $InstallerComs = @{}  # Reset the communications hashtable
             $Coms.Progress = 10
-            . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeExeUrl -OutputFile $exeInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+            
+            Write-Host "Starting Chrome EXE download from: $chromeExeUrl"
+            Write-Host "Target path: $exeInstallerPath"
+            
+            try {
+                . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeExeUrl -OutputFile $exeInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
+                
+                # Wait for completion with timeout
+                $timeout = 300  # 5 minutes timeout
+                $elapsed = 0
+                $checkInterval = 5  # Check every 5 seconds
+                
+                while ($InstallerComs.Status -ne "Completed" -and $InstallerComs.Status -ne "Failed" -and $elapsed -lt $timeout) {
+                    Start-Sleep -Seconds $checkInterval
+                    $elapsed += $checkInterval
+                    Write-Host "Waiting for EXE download completion... ($elapsed/$timeout seconds)"
+                    $Coms.Comment = "Downloading Chrome EXE installer... ($elapsed/$timeout seconds)"
+                    
+                    # Update progress based on installer progress if available
+                    if ($InstallerComs.ContainsKey('Progress') -and $InstallerComs.Progress -gt 0) {
+                        $downloadProgress = [Math]::Max(10, [Math]::Min(45, 10 + ($InstallerComs.Progress * 0.35)))
+                        $Coms.Progress = $downloadProgress
+                    }
+                }
+                
+                if ($elapsed -ge $timeout) {
+                    Write-Host "EXE download timed out after $timeout seconds"
+                    $Coms.Comment = "EXE download timed out"
+                    $Coms.Progress = 0
+                    $Coms.Status = "Failed"
+                } else {
+                    Write-Host "EXE download completed with status: $($InstallerComs.Status)"
+                }
+                
+            } catch {
+                Write-Host "Error during EXE download: $($_.Exception.Message)"
+                $Coms.Comment = "EXE download error"
+                $Coms.Progress = 0
+                $Coms.Status = "Failed"
+            }
+            
             if ($InstallerComs.Status -eq "Completed" -and (Test-Path -Path $exeInstallerPath)) {
                 $Coms.Comment = "Download completed. Starting Chrome installation."
                 $Coms.Progress = 50
