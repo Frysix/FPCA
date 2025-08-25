@@ -342,6 +342,7 @@ $Null = $UiPowershell.AddScript({
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Minimum = 0
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Maximum = $UiHash.ActiveTasks.Count
     $MAIN_TASKACTIVECOUNT_LABEL.Text = $UiHash.ActiveTasks.Count.ToString()
+    $Global:UiHash.MAIN_TASKACTIVECOUNT_LABEL = $MAIN_TASKACTIVECOUNT_LABEL
     $Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR = $MAIN_TOTALPROGRESS_PROGRESSBAR
 
     # Show the task form dialog.
@@ -470,6 +471,7 @@ While ($Global:TaskHash.TaskListener) {
         Stop-AllTaskRunspaces
         $Global:UiHash.UiTimer.Stop()
         $Global:UiHash.ElapsedTimer.Stop()
+        $Global:UiHash.MAIN_TASKACTIVECOUNT_LABEL.Text = "0"
         $Global:TaskHash.ExitMessages = @()
         # Verify for end of Configuration scripts
         foreach ($taskName in $Global:TaskHash.CompletedTasks.Keys) {
