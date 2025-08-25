@@ -140,12 +140,12 @@
                 "RequireInternet": "false"
             },
             "RENAMEDISK": {
-                "DisplayName": "Rename Disk",
+                "DisplayName": "Rename C: Disk",
                 "Description": "Rename the primary disk to chosen name",
                 "DefaultState": "true",
                 "Type": "TextBox",
                 "DefaultText": "OS",
-                "Script": "RenameDisk.ps1",
+                "Script": "Rename-Disk.ps1",
                 "RequireInternet": "false"
             },
             "REMOVEBITLOCKER": {
