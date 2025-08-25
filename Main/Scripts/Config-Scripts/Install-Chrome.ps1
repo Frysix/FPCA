@@ -12,6 +12,8 @@ Param(
 $chromeInstalled = $false
 $firstTryFailed = $false
 $InstallSuccess = $false
+$msiInstallerPath = $null
+$exeInstallerPath = $null
 $Coms.Status = "Running"
 $Coms.Comment = "Starting Chrome Installation Script"
 $Coms.Progress = 1
@@ -123,10 +125,10 @@ Try {
     $Coms.Progress = 0
     $Coms.Status = "Failed"
 } Finally {
-    if (Test-Path -Path $msiInstallerPath -ErrorAction SilentlyContinue) {
+    if ($msiInstallerPath -and (Test-Path -Path $msiInstallerPath -ErrorAction SilentlyContinue)) {
         Remove-Item -Path $msiInstallerPath -Force -ErrorAction SilentlyContinue
     }
-    if (Test-Path -Path $exeInstallerPath -ErrorAction SilentlyContinue) {
+    if ($exeInstallerPath -and (Test-Path -Path $exeInstallerPath -ErrorAction SilentlyContinue)) {
         Remove-Item -Path $exeInstallerPath -Force -ErrorAction SilentlyContinue
     }
     if ($InstallSuccess) {
