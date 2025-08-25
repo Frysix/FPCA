@@ -85,16 +85,39 @@ Try {
         try {
             . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeMsiUrl -OutputFile $msiInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
             
-            # Wait for completion with timeout
-            $timeout = 300  # 5 minutes timeout
+            # Wait for completion with timeout and better status checking
+            $timeout = 60  # 1 minute timeout - more reasonable
             $elapsed = 0
-            $checkInterval = 5  # Check every 5 seconds
+            $checkInterval = 2  # Check every 2 seconds
             
-            while ($InstallerComs.Status -ne "Completed" -and $InstallerComs.Status -ne "Failed" -and $elapsed -lt $timeout) {
+            while ($elapsed -lt $timeout) {
                 Start-Sleep -Seconds $checkInterval
                 $elapsed += $checkInterval
-                Write-Host "Waiting for download completion... ($elapsed/$timeout seconds)"
+                
+                # Debug: Show what's in the communication hashtable
+                Write-Host "InstallerComs Status: '$($InstallerComs.Status)'"
+                Write-Host "InstallerComs Keys: $($InstallerComs.Keys -join ', ')"
+                
                 $Coms.Comment = "Downloading Chrome installer... ($elapsed/$timeout seconds)"
+                
+                # Check if the file exists (more reliable than waiting for status)
+                if (Test-Path -Path $msiInstallerPath) {
+                    $fileSize = (Get-Item $msiInstallerPath).Length
+                    Write-Host "Downloaded file size: $([math]::Round($fileSize/1MB, 2)) MB"
+                    
+                    # If file is reasonable size (>1MB), consider download complete
+                    if ($fileSize -gt 1MB) {
+                        Write-Host "File download appears complete based on size"
+                        $InstallerComs.Status = "Completed"  # Force completion status
+                        break
+                    }
+                }
+                
+                # Also check if InstallerComs reports completion
+                if ($InstallerComs.Status -eq "Completed" -or $InstallerComs.Status -eq "Failed") {
+                    Write-Host "Download completed with status: $($InstallerComs.Status)"
+                    break
+                }
                 
                 # Update progress based on installer progress if available
                 if ($InstallerComs.ContainsKey('Progress') -and $InstallerComs.Progress -gt 0) {
@@ -103,12 +126,22 @@ Try {
                 }
             }
             
+            # Final check after timeout
             if ($elapsed -ge $timeout) {
-                Write-Host "Download timed out after $timeout seconds"
-                $Coms.Comment = "Download timed out - trying alternative method"
-                $firstTryFailed = $true
-            } else {
-                Write-Host "Download completed with status: $($InstallerComs.Status)"
+                Write-Host "Timeout reached, checking file existence..."
+                if (Test-Path -Path $msiInstallerPath) {
+                    $fileSize = (Get-Item $msiInstallerPath).Length
+                    if ($fileSize -gt 1MB) {
+                        Write-Host "File exists and is valid size, treating as successful download"
+                        $InstallerComs.Status = "Completed"
+                    } else {
+                        Write-Host "File too small ($fileSize bytes), download likely failed"
+                        $firstTryFailed = $true
+                    }
+                } else {
+                    Write-Host "No file found after timeout, download failed"
+                    $firstTryFailed = $true
+                }
             }
             
         } catch {
@@ -117,7 +150,8 @@ Try {
             $firstTryFailed = $true
         }
         
-        if ($InstallerComs.Status -eq "Completed" -and (Test-Path -Path $msiInstallerPath)) {
+        # Final decision based on file existence rather than just status
+        if (($InstallerComs.Status -eq "Completed" -or (Test-Path -Path $msiInstallerPath)) -and -not $firstTryFailed) {
             $Coms.Comment = "Download completed. Starting Chrome installation."
             $Coms.Progress = 50
             $installProcess = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$msiInstallerPath`" /qn /norestart" -Wait -PassThru -Verb RunAs
@@ -136,7 +170,7 @@ Try {
         # Try second option to download Chrome installer
         if ($firstTryFailed) {
             $Coms.Comment = "Failed to download Chrome installer, trying alternative EXE URL."
-            $InstallerComs = @{}  # Reset the communications hashtable
+            $InstallerComs = [hashtable]::Synchronized(@{})  # Reset with synchronized hashtable
             $Coms.Progress = 10
             
             Write-Host "Starting Chrome EXE download from: $chromeExeUrl"
@@ -145,16 +179,36 @@ Try {
             try {
                 . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Url $chromeExeUrl -OutputFile $exeInstallerPath -Coms $InstallerComs -TaskName $TaskName -ChunkNumber 1
                 
-                # Wait for completion with timeout
-                $timeout = 300  # 5 minutes timeout
+                # Wait for completion with file-based checking
+                $timeout = 60  # 1 minute timeout
                 $elapsed = 0
-                $checkInterval = 5  # Check every 5 seconds
+                $checkInterval = 2  # Check every 2 seconds
                 
-                while ($InstallerComs.Status -ne "Completed" -and $InstallerComs.Status -ne "Failed" -and $elapsed -lt $timeout) {
+                while ($elapsed -lt $timeout) {
                     Start-Sleep -Seconds $checkInterval
                     $elapsed += $checkInterval
-                    Write-Host "Waiting for EXE download completion... ($elapsed/$timeout seconds)"
+                    
+                    Write-Host "EXE InstallerComs Status: '$($InstallerComs.Status)'"
                     $Coms.Comment = "Downloading Chrome EXE installer... ($elapsed/$timeout seconds)"
+                    
+                    # Check if the file exists (more reliable than waiting for status)
+                    if (Test-Path -Path $exeInstallerPath) {
+                        $fileSize = (Get-Item $exeInstallerPath).Length
+                        Write-Host "Downloaded EXE file size: $([math]::Round($fileSize/1MB, 2)) MB"
+                        
+                        # If file is reasonable size (>500KB), consider download complete
+                        if ($fileSize -gt 500KB) {
+                            Write-Host "EXE file download appears complete based on size"
+                            $InstallerComs.Status = "Completed"  # Force completion status
+                            break
+                        }
+                    }
+                    
+                    # Also check if InstallerComs reports completion
+                    if ($InstallerComs.Status -eq "Completed" -or $InstallerComs.Status -eq "Failed") {
+                        Write-Host "EXE download completed with status: $($InstallerComs.Status)"
+                        break
+                    }
                     
                     # Update progress based on installer progress if available
                     if ($InstallerComs.ContainsKey('Progress') -and $InstallerComs.Progress -gt 0) {
@@ -163,13 +217,24 @@ Try {
                     }
                 }
                 
+                # Final check after timeout
                 if ($elapsed -ge $timeout) {
-                    Write-Host "EXE download timed out after $timeout seconds"
-                    $Coms.Comment = "EXE download timed out"
-                    $Coms.Progress = 0
-                    $Coms.Status = "Failed"
-                } else {
-                    Write-Host "EXE download completed with status: $($InstallerComs.Status)"
+                    Write-Host "EXE timeout reached, checking file existence..."
+                    if (Test-Path -Path $exeInstallerPath) {
+                        $fileSize = (Get-Item $exeInstallerPath).Length
+                        if ($fileSize -gt 500KB) {
+                            Write-Host "EXE file exists and is valid size, treating as successful download"
+                            $InstallerComs.Status = "Completed"
+                        } else {
+                            Write-Host "EXE file too small ($fileSize bytes), download likely failed"
+                            $Coms.Progress = 0
+                            $Coms.Status = "Failed"
+                        }
+                    } else {
+                        Write-Host "No EXE file found after timeout, download failed"
+                        $Coms.Progress = 0
+                        $Coms.Status = "Failed"
+                    }
                 }
                 
             } catch {
@@ -179,7 +244,8 @@ Try {
                 $Coms.Status = "Failed"
             }
             
-            if ($InstallerComs.Status -eq "Completed" -and (Test-Path -Path $exeInstallerPath)) {
+            # Final decision based on file existence rather than just status
+            if (($InstallerComs.Status -eq "Completed" -or (Test-Path -Path $exeInstallerPath)) -and $Coms.Status -ne "Failed") {
                 $Coms.Comment = "Download completed. Starting Chrome installation."
                 $Coms.Progress = 50
                 $installProcess = Start-Process -FilePath $exeInstallerPath -ArgumentList "/silent /install" -Wait -PassThru -Verb RunAs

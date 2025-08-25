@@ -22,6 +22,100 @@ try {
     Write-Host "Starting multi-threaded download for: $Url"
     $Coms.Comment = "Initializing download..."
     
+    # Check if we're already running in a runspace pool (nested scenario)
+    $IsInRunspacePool = $false
+    try {
+        $CurrentRunspace = [System.Management.Automation.Runspaces.Runspace]::DefaultRunspace
+        if ($CurrentRunspace -and $CurrentRunspace.GetType().Name -eq "RemoteRunspace") {
+            $IsInRunspacePool = $true
+            Write-Host "Detected we're running inside a runspace pool - using simple download method"
+        }
+    } catch {
+        # Ignore errors in runspace detection
+    }
+    
+    # If we're in a runspace pool, use simple download to avoid nested runspace issues
+    if ($IsInRunspacePool) {
+        Write-Host "Using simple download method to avoid runspace nesting issues"
+        $Coms.Comment = "Downloading file (simple method)..."
+        
+        # Simple WebClient download
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        
+        # Get file size first
+        try {
+            $Coms.Progress = 10
+            $Request = [System.Net.WebRequest]::Create($Url)
+            $Request.Method = "HEAD"
+            $Response = $Request.GetResponse()
+            $FileLength = $Response.ContentLength
+            $Response.Close()
+            Write-Host "File size: $([math]::Round($FileLength/1MB, 2)) MB"
+        } catch {
+            Write-Host "Could not determine file size, proceeding with download"
+            $FileLength = 0
+        }
+        
+        # Download with progress tracking
+        $Coms.Progress = 20
+        $Coms.Comment = "Downloading file..."
+        
+        # Use DownloadFileAsync for better progress tracking
+        $DownloadComplete = $false
+        $WebClient.add_DownloadProgressChanged({
+            param($sender, $e)
+            if ($FileLength -gt 0) {
+                $Coms.Progress = [math]::Min(90, 20 + ($e.ProgressPercentage * 0.7))
+                $Coms.Comment = "Downloading... $($e.ProgressPercentage)%"
+            }
+        })
+        
+        $WebClient.add_DownloadFileCompleted({
+            param($sender, $e)
+            $DownloadComplete = $true
+            if ($e.Error) {
+                throw $e.Error
+            }
+        })
+        
+        # Ensure output directory exists
+        $OutputDir = Split-Path $OutputFile -Parent
+        if (-not (Test-Path $OutputDir)) {
+            New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+        }
+        
+        # Start async download
+        $WebClient.DownloadFileAsync($Url, $OutputFile)
+        
+        # Wait for completion with timeout
+        $Timeout = 300 # 5 minutes
+        $Elapsed = 0
+        while (-not $DownloadComplete -and $Elapsed -lt $Timeout) {
+            Start-Sleep -Milliseconds 500
+            $Elapsed += 0.5
+        }
+        
+        $WebClient.Dispose()
+        
+        if (-not $DownloadComplete) {
+            throw "Download timed out after $Timeout seconds"
+        }
+        
+        # Verify file was created
+        if (Test-Path $OutputFile) {
+            $FinalSize = (Get-Item $OutputFile).Length
+            Write-Host "Download completed. File size: $([math]::Round($FinalSize/1MB, 2)) MB"
+            $Coms.Status = "Completed"
+            $Coms.Progress = 100
+            $Coms.Comment = "Download completed successfully (simple method)"
+        } else {
+            throw "Downloaded file not found at: $OutputFile"
+        }
+        
+        return # Exit early, skip the threaded download
+    }
+    
     # Import required assemblies
     Add-Type -AssemblyName System.Net.Http, System.IO, System.Threading, System.Collections
     
