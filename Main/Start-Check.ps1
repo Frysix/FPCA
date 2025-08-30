@@ -14,33 +14,39 @@ if (-not (test-path -path "$Psscriptroot\fpca.info")) {
 
 # Gather the app info from fpca.info
 # This segment reads the fpca.info file, which contains relevant information about the application.
-$rawinfo = Get-Content -Path "$PSScriptRoot\fpca.info" 
-$info = $rawinfo | ConvertFrom-StringData
+$info = Get-Content -Path "$PSScriptRoot\fpca.info" | ConvertFrom-StringData
 
 # This part only executes if the application is launched for the first time.
 # It sets the firstlaunch flag to false and records the installation date.
 $IsFirstLaunch = $false
 $WasUpdated = $false
-if ($info['firstlaunch'] -eq "true") {
+if ($info.firstlaunch -eq "true") {
     # Update the fpca.info file to set firstlaunch to false and record the installation date.
-    $info['firstlaunch'] = "false"
-    $info['installdate'] = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    $installdate = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     $infoContent = [System.Collections.Generic.List[string]]::new()
     foreach ($key in $info.Keys) {
-        $infoContent.Add("$key=$($info[$key])")
+        if ($key -eq "firstlaunch") {
+            $infoContent.Add("$key=false")
+        } elseif ($key -eq "installdate") {
+            $infoContent.Add("$key=$installdate")
+        } else {
+            $infoContent.Add("$key=$($info.$key)")
+        }
     }
     # Write the updated info back to fpca.info file.
     Set-Content -Path "$PSScriptRoot\fpca.info" -Value $infoContent -Encoding UTF8 -Force
     # Set the IsFirstLaunch flag to true for further processing.
     $IsFirstLaunch = $true
-} elseif ($info['firstlaunch'] -eq "update") {
+} elseif ($info.firstlaunch -eq "update") {
     # If the firstlaunch is set to "update", it means the application was updated.
     # Set the firstlaunch flag to false and record the installation date.
-    $info['firstlaunch'] = "false"
-    $info['installdate'] = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
     $infoContent = [System.Collections.Generic.List[string]]::new()
     foreach ($key in $info.Keys) {
-        $infoContent.Add("$key=$($info[$key])")
+        if ($key -eq "firstlaunch") {
+            $infoContent.Add("$key=false")
+        } else {
+            $infoContent.Add("$key=$($info.$key)")
+        }
     }
     # Write the updated info back to fpca.info file.
     Set-Content -Path "$PSScriptRoot\fpca.info" -Value $infoContent -Encoding UTF8 -Force

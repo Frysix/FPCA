@@ -299,6 +299,7 @@ Try {
     
     if ($InstallSuccess) {
         $Coms.Comment = "Finalizing Adobe Reader installation according to settings."
+        Start-Sleep -Seconds 5
         if ($TaskSettings.ContainsKey('SetAsDefault') -and $TaskSettings.SetAsDefault -eq $true) {
             $Coms.Comment = "Setting Adobe Reader as default PDF reader"
             # Set file associations for PDF files
@@ -323,10 +324,10 @@ Try {
             }
         }
         if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $true) {
-            $DesktopIcons = Get-ChildItem -Path ([Environment]::GetFolderPath('Desktop')) -ErrorAction SilentlyContinue
+            $DesktopIcons = Get-ChildItem -Path "$env:USERPROFILE\Desktop" -ErrorAction SilentlyContinue
             if ($DekstopIcons) {
                 foreach ($icon in $DesktopIcons) {
-                    if ($icon.Name -like "Adobe Acrobat Reader DC.lnk" -or $icon.Name -like "Adobe Reader.lnk") {
+                    if ($icon.Name -match "Acrobat") {
                         Write-Host "Desktop shortcut already exists: $($icon.FullName)"
                         $Coms.Comment = "Desktop shortcut already exists."
                         $ShortCutExists = $true

@@ -22,6 +22,19 @@ Try {
     Exit 1
 }
 
+if ($LaunchType -ne "test") {
+    # Before doing anything, create run the lockfile manager to ensure lockfile creation
+    $Result = . "$PSScriptRoot\FPCA-LockManager.ps1" -Create -ProcessID $PID -ScriptPath $PSScriptRoot -LockName "FPCA_Main"
+    # Compare the result and handle accordingly
+    if ($Result.Status -eq "Running") {
+        Show-TopMostMessageBox -Message "An instance of FPCA is already running. Please close it before starting a new one." -Title "FPCA - Instance Running" -Icon "Warning"
+        Exit 1
+    } elseif ($Result.Status -eq "Failed") {
+        Show-TopMostMessageBox -Message "Failed to create lock file. Error: $($Result.Message).`nIf this issue continues, please reinstall the app." -Title "FPCA - Lock Creation Failed" -Icon "Error"
+        Exit 1
+    }
+}
+
 # Get info from the fpca.info file
 $Global:MainHash.FPCAInfo = Get-Content -Path "$PSScriptRoot\fpca.info" | ConvertFrom-StringData
 # Get settings from the Settings.ini file
@@ -358,9 +371,9 @@ $Null = $UiPowershell.AddScript({
             $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::Green
             # Check the launch type and display a welcome or update message accordingly.
             if ($Global:UiHash.LaunchType -eq 'FirstLaunch') {
-                Show-TopMostMessageBox -Message "Welcome to FPCA!`nVersion: $($Global:UiHash['FPCAInfo']['Version'])`nIf you encounter any bugs, please report them!" -Title "FPCA - Welcome!" -Owner $MAIN_FORM -Icon "Information"
+                Show-TopMostMessageBox -Message "Welcome to FPCA!`nVersion: $($Global:UiHash.FPCAInfo.version)`nIf you encounter any bugs, please report them!" -Title "FPCA - Welcome!" -Owner $MAIN_FORM -Icon "Information"
             } elseif ($Global:UiHash.LaunchType -eq 'UpdatedLaunch') {
-                Show-TopMostMessageBox -Message "FPCA has been updated to Version: $($Global:UiHash['FPCAInfo']['Version'])!`nPlease check the changelog for more information." -Title "FPCA - Update" -Owner $MAIN_FORM -Icon "Information"
+                Show-TopMostMessageBox -Message "FPCA has been updated to Version: $($Global:UiHash.FPCAInfo.version)!`nPlease check the changelog for more information." -Title "FPCA - Update" -Owner $MAIN_FORM -Icon "Information"
             } elseif ($Global:UiHash.LaunchType -eq 'OutdatedLaunch') {
                 # If the launch type is OutdatedLaunch, it means the version is outdated.
                 # Change color of the version label to red to indicate an outdated version.
@@ -371,6 +384,10 @@ $Null = $UiPowershell.AddScript({
             # This is used to control the main loop in the script.
             $Global:UiHash.MainFormLoaded = $true
         })
+        # Check for icon presence and set it if available.
+        if (Test-Path -Path "$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico") {
+            $MAIN_FORM.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico")
+        }
         # Add main form controls to the UiHash for later access.
         $Global:UiHash.MainForm = $MAIN_FORM
         # Display the main form of the application.
@@ -509,6 +526,7 @@ While ($Global:MainHash.MainListener) {
                 Start-Process -FilePath $bat
             }
         }
+
         Break
     }
 

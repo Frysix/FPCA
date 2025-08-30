@@ -168,8 +168,7 @@ While ($NotInstalled) {
 # Read the fpca.info file from the installed directory to prevent issues with version mismatches
 # and to get the start file path and version information.
 Write-Host "Reading fpca.info file from the installed directory..." -ForegroundColor Cyan
-$newrawinfo = Get-Content -Path "$InstallPath\FPCA\fpca.info"
-$newinfo = $newrawinfo | ConvertFrom-StringData
+$newinfo = Get-Content -Path "$InstallPath\FPCA\fpca.info" | ConvertFrom-StringData
 
 # Writes the installation log for the files used in the installation
 # This segment creates a log file in the TEMP directory with the paths of the files used during the installation.
@@ -190,7 +189,7 @@ New-Item -Path $LogFilePath -ItemType File -Force | Out-Null
 Set-Content -Path $LogFilePath -Value $LogContent -Encoding UTF8
 
 # Start the installed script
-Write-Host "Starting installed App Version: $($newinfo['version'])" -ForegroundColor Cyan
+Write-Host "Starting installed App Version: $($newinfo.version)" -ForegroundColor Cyan
 $LaunchFailed = $false
 Try {
     Start-Process -WindowStyle Hidden -FilePath "$InstallPath\FPCA\Start.bat" -WorkingDirectory "$InstallPath\FPCA" -Verb Runas

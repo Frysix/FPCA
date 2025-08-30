@@ -213,6 +213,7 @@ $Global:TaskHash.ExitType = "Default"
 $Global:TaskHash.TaskListener = $true
 $Global:UiHash.ActiveTasks = @{}
 $Global:UiHash.StartTime = $null
+$UiHash.TaskPanelInitialized = $false
 $Global:UiHash.ClosedByUser = $false
 $Global:UiHash.ClosedByError = $false
 $Global:UiHash.TaskPanelInitialized = $false
@@ -299,14 +300,36 @@ $Null = $UiPowershell.AddScript({
     # Import the UI script for the configuration
     . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\UI-Scripts\Config-Ui.ps1')
 
+    # Define function to initialize the configuration UI panel
+    function Initialize-ConfigUiPanel {
+        Param (
+            [Parameter(Mandatory=$true)]
+            [hashtable]$UiHash,
+            [Parameter(Mandatory=$true)]
+            [System.Windows.Forms.Panel]$MainPanel
+        )
+        # Generate the configuration window UI elements
+        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ConfigurationWindow-Ui.ps1" -UiHash $Global:UiHash -Generate
+        $UiHash.TaskPanelInitialized = $true
+        # Add the generated UI elements to the main panel
+        foreach ($task in $UiHash.TaskControls.Keys) {
+            foreach ($element in $UiHash.TaskControls[$task].Keys) {
+                if ($element -eq 'TaskPanel') {
+                    $MainPanel.Controls.Add($UiHash.TaskControls[$task][$element])
+                }
+            }
+        }
+    }
+
     # Define Timers
     $UiTimer = New-Object System.Windows.Forms.Timer
     $UiTimer.Interval = 500 # Set the timer interval to 500 milliseconds (0.5 seconds).
     $UiTimer.Add_Tick({
         if ($MAIN_TASKACTIVECOUNT_LABEL.Text -ne $Global:UiHash.ActiveTasks.Count.ToString()) {
             # Update the active task count label if it has changed.
-            $MAIN_TASKACTIVECOUNT_LABEL.Text = $Global:UiHash.ActiveTasks.Count.ToString()
+            $MAIN_TASKACTIVECOUNT_LABEL.Text = "$($Global:UiHash.ActiveTasks.Count.ToString()) / $($Global:UiHash.TotalTasks)"
         }
+
     })
     $ElapsedTimer = New-Object System.Windows.Forms.Timer
     $ElapsedTimer.Interval = 1000 # 1 second
@@ -337,13 +360,17 @@ $Null = $UiPowershell.AddScript({
     # Assign the TaskForm to the global UiHash variable for later access.
     $Global:UiHash.TaskForm = $TASK_FORM
     # Initialize the main task panel and other UI elements before loading the form.
-    Initialize-ConfigUiPanel -UiHash $Global:UiHash -MainPanel $MAIN
+    Initialize-ConfigUiPanel -UiHash $Global:UiHash -MainPanel $MAIN_TASK_PANEL
+
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Value = 0
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Minimum = 0
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Maximum = $UiHash.ActiveTasks.Count
     $MAIN_TASKACTIVECOUNT_LABEL.Text = $UiHash.ActiveTasks.Count.ToString()
     $Global:UiHash.MAIN_TASKACTIVECOUNT_LABEL = $MAIN_TASKACTIVECOUNT_LABEL
     $Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR = $MAIN_TOTALPROGRESS_PROGRESSBAR
+    if (Test-Path -Path "$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico") {
+        $TASK_FORM.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico")
+    }
 
     # Show the task form dialog.
     $TASK_FORM.ShowDialog()
@@ -386,6 +413,7 @@ While ($Global:UiHash.TaskFormLoaded -eq $false) {
 
 # If the main form is loaded, set the start time for the task execution.
 $Global:UiHash.StartTime = Get-Date
+$Global:UiHash.TotalTasks = $Global:UiHash.ActiveTasks.Count.ToString()
 # Proceed with task execution
 
 # Start the task execution in the runspace pool
@@ -489,7 +517,7 @@ While ($Global:TaskHash.TaskListener) {
                 Write-Host "No custom exit type defined for task '$taskName'. Using default exit type."
             }
             if ($TaskStatus.ContainsKey('RemindDefault') -and $TaskStatus.RemindDefault -eq $true) {
-                if ($ToRemindDefault -eq $null) {
+                if ($null -eq $ToRemindDefault) {
                     $ToRemindDefault = @()
                 }
                 $ToRemindDefault += $taskName

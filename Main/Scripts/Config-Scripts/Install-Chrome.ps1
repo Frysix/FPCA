@@ -219,15 +219,16 @@ Try {
     }
     if ($InstallSuccess) {
         $Coms.Comment = "Finalizing Chrome installation according to settings."
+        Start-Sleep -Seconds 5
         if ($TaskSettings.ContainsKey('RemindDefault') -and $TaskSettings.RemindDefault -eq $true) {
             $Coms.Comment = "Setting Reminder for chrome"
             $Coms.RemindDefault = $true
         }
         if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $true) {
-            $DesktopIcons = Get-ChildItem -Path ([Environment]::GetFolderPath('Desktop')) -ErrorAction SilentlyContinue
+            $DesktopIcons = Get-ChildItem -Path "$env:USERPROFILE\Desktop" -ErrorAction SilentlyContinue
             if ($DesktopIcons) {
                 foreach ($icon in $DesktopIcons) {
-                    if ($icon.Name -like "Google Chrome.lnk") {
+                    if ($icon.Name -match "Chrome") {
                         Write-Host "Desktop shortcut already exists: $($icon.FullName)"
                         $Coms.Comment = "Desktop shortcut already exists."
                         $ShortCutExists = $true
@@ -237,7 +238,7 @@ Try {
             }
             if (-not ($ShortCutExists)) {
                 $Coms.Comment = "Creating Desktop Shortcut for Chrome"
-                $shortcutPath = Join-Path -Path ([Environment]::GetFolderPath('Desktop')) -ChildPath "Google Chrome.lnk"
+                $shortcutPath = Join-Path -Path "$env:USERPROFILE\Desktop" -ChildPath "Google Chrome.lnk"
                 $targetPath = "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
                 if (-not (Test-Path -Path $targetPath)) {
                     $targetPath = "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe"
