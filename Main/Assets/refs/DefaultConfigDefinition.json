@@ -14,7 +14,7 @@
                 "DefaultState": "true",
                 "Type": "CheckBox",
                 "OptionsDefaults": {
-                    "CreateShortcut": "true",
+                    "CreateShortcut": "false",
                     "RemindDefault": "true"
                 },
                 "Script": "Install-Chrome.ps1",
@@ -34,7 +34,7 @@
                 "DefaultState": "true",
                 "Type": "CheckBox",
                 "OptionsDefaults": {
-                    "CreateShortcut": "true",
+                    "CreateShortcut": "false",
                     "RemindDefault": "true"
                 },
                 "Script": "Install-Acrobat.ps1",
@@ -276,7 +276,9 @@
                 "DisplayName": "Quick Assist to Desktop",
                 "Description": "Pin Quick Assist to desktop for easy access",
                 "DefaultState": "true",
-                "Type": "CheckBox",
+                "Type": "ComboBox",
+                "Options": ["French", "English"],
+                "DefaultOption": "French",
                 "Script": "QuickAssistToDesktop.ps1",
                 "RequireInternet": "false"
             },
@@ -304,6 +306,14 @@
                 "DefaultState": "true",
                 "Type": "CheckBox",
                 "Script": "Show-CommonDesktopIcons.ps1",
+                "RequireInternet": "false"
+            },
+            "SELFDELETEONRESTART": {
+                "DisplayName": "Self Delete on Restart",
+                "Description": "Delete the application after a restart",
+                "DefaultState": "true",
+                "Type": "CheckBox",
+                "Script": "SelfDeleteOnRestart.ps1",
                 "RequireInternet": "false"
             }
         }
