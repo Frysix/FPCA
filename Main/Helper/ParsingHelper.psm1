@@ -1,9 +1,9 @@
 # This module contains functions to parse and validate various data formats.
 
 
-# This function parses a UTF-8 encoded file and returns its content as a hashtable in ini format.
+# This function parses a ini file and returns its content as a hashtable.
 # It reads the file line by line, ignoring comments and empty lines, and extracts sections and key-value pairs.
-function Get-FromUTF8File {
+function Get-FromIniFile {
     Param(
         [Parameter(Mandatory=$true)]
         [string]$FilePath
@@ -87,4 +87,34 @@ function Convert-JsonToHashtable {
     }
     # Start the conversion process
     & $toHash $json
+}
+
+# function to convert hashtable to ini format string
+function Convert-HashtableToIniString {
+    param(
+        [hashtable]$Hashtable
+    )
+    
+    $iniContent = @()
+    
+    foreach ($category in $Hashtable.Keys | Sort-Object) {
+        # Add category header
+        $iniContent += "[$category]"
+        
+        # Add settings for this category
+        foreach ($setting in $Hashtable[$category].Keys | Sort-Object) {
+            $value = $Hashtable[$category][$setting]
+            $iniContent += "$setting=$value"
+        }
+        
+        # Add blank line between categories (except for the last one)
+        $iniContent += ""
+    }
+    
+    # Remove the last empty line
+    if ($iniContent[-1] -eq "") {
+        $iniContent = $iniContent[0..($iniContent.Length - 2)]
+    }
+    
+    return $iniContent
 }

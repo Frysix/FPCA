@@ -1,3 +1,5 @@
+$TASK_FORM_Load = {
+}
 $MAIN_TASKACTIVECOUNT_LABEL_Click = {
 }
 Add-Type -AssemblyName System.Windows.Forms

@@ -63,3 +63,4 @@ function Get-RAMInfo {
         Amount    = $amountStr
     }
 }
+

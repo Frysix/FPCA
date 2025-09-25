@@ -17,6 +17,7 @@ Try {
     Import-Module -Name "$PSScriptRoot\Helper\FormHelper.psm1" -Force
     Import-Module -Name "$PSScriptRoot\Helper\InternetHelper.psm1" -Force
     Import-Module -Name "$PSScriptRoot\Helper\InfoHelper.psm1" -Force
+    Import-Module -Name "$PSScriptRoot\Helper\PowerHelper.psm1" -Force
 } Catch {
     Write-Host "Failed to import required modules. Please ensure they are present in the Helper directory."
     Exit 1
@@ -37,8 +38,7 @@ if ($LaunchType -ne "test") {
 
 # Get info from the fpca.info file
 $Global:MainHash.FPCAInfo = Get-Content -Path "$PSScriptRoot\fpca.info" | ConvertFrom-StringData
-# Get settings from the Settings.ini file
-$Global:MainHash.FPCASettings = Get-FromUTF8File -FilePath "$PSScriptRoot\Settings.ini"
+
 # Set default values in the HashTables.
 $Global:UiHash.LaunchType = $LaunchType
 $Global:UiHash.FPCAInfo = $Global:MainHash.FPCAInfo
@@ -50,6 +50,9 @@ $Global:MainHash.PreviousTab = $null
 $Global:UiHash.UIClosedFor = ""
 $Global:UiHash.AppButtonsFlags = @{}
 $Global:UiHash.EnabledMods = @{}
+$Global:UiHash.ActiveSettingsValues = @{}
+$Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_COUNTER = 0
+$InternetCheckUpdateCounter = 0
 # Initialize bool variable to initial state.
 $Global:UiHash.UIClosedByUser = $false
 $Global:UiHash.StartConfigClosingRunning = $false
@@ -62,26 +65,49 @@ $Global:UiHash.LinkLabelClicked = $false
 $Global:UiHash.AppButtonClicked = $false
 $Global:UiHash.ModEnabledAppCheckBoxChanged = $false
 $Global:UiHash.ModEnabledConfigCheckBoxChanged = $false
+$Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG = $false
 $Global:UiHash.REFRESH_CONFIG_MODPANEL = $false
 $Global:UiHash.REFRESH_APP_PANEL = $false
+$Global:UiHash.REFRESH_SETTINGS_TAB = $false
 $Global:UiHash.REFRESH_APP_MODPANEL = $false
-$Global:UiHash.SETTINGS_BUTTON_CLICKED = $false
 $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
 $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
 $Global:UiHash.REFRESH_CONFIG_PANEL = $false
 $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $false
-# Initialize settings related variables.
-$Global:MainHash.AutoRefreshApp = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshApp
-$Global:MainHash.AutoRefreshConfig = $Global:MainHash.FPCASettings.General.DefaultAutoRefreshConfig
-[int32]$MainLoopRefreshRate = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainLoopRefreshRate -Default 50
-[int32]$InternetCheckUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.InternetCheckUpdateCounter -Default 100
-[int32]$MainUiTimerInterval = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainUiTimerInterval -Default 100
-[int32]$ConfigPanelUpdateCounter = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.ConfigPanelUpdateCounter -Default 150
-[int32]$MainFormLoadLoopCounter_Max = Convert-StringToInt -InputString $Global:MainHash.FPCASettings.Advanced.MainFormLoadLoopCounter -Default 500
-[int32]$InternetCheckUpdateCounter_Max = [int32]$InternetCheckUpdateCounter
-$Global:UiHash.MainUiTimerInterval = [int32]$MainUiTimerInterval
+$Global:UiHash.SAVESETTINGSBUTTON_CLICKED = $false
+$Global:UiHash.RESETSETTINGSBUTTON_CLICKED = $false
+$Global:UiHash.StartPopUpRunning = $false
+
+# Run Settings Manager to load settings into the ActiveSettingsValues hashtable.
+if (Test-Path -Path "$PSScriptRoot\FPCA-SettingsManager.ps1") {
+    Write-Host "Loading settings from Settings.ini file..." -ForegroundColor Cyan
+    $Result = . "$PSScriptRoot\FPCA-SettingsManager.ps1" -Reload -FirstLoad -UiHash $Global:UiHash
+} else {
+    Show-TopMostMessageBox -Message "SettingsManager script not found at path: $PSScriptRoot\FPCA-SettingsManager.ps1. Please ensure the file exists." -Title "FPCA - Settings Load Failed" -Icon "Error"
+    # Clean up lockfile if created
+    if ($LaunchType -ne "test") {
+        . "$PSScriptRoot\FPCA-LockManager.ps1" -Remove -ProcessID $PID -ScriptPath $PSScriptRoot -LockName "FPCA_Main"
+    }
+    Exit 1
+}
+
+if ($Result.Result) {
+    Write-Host "Settings loaded successfully." -ForegroundColor Green
+} else {
+    Show-TopMostMessageBox -Message "Failed to load settings. $($Result.Message).`nIf this issue continues, please reinstall the app." -Title "FPCA - Settings Load Failed" -Icon "Error"
+    # Clean up lockfile if created
+    if ($LaunchType -ne "test") {
+        . "$PSScriptRoot\FPCA-LockManager.ps1" -Remove -ProcessID $PID -ScriptPath $PSScriptRoot -LockName "FPCA_Main"
+    }
+    Exit 1
+}
+
+$Result = $null
+
 # Run the modloader script to parse and enable mods.
-. "$PSScriptRoot\Mod-Loader.ps1" -UiHash $Global:UiHash
+if (Test-Path -Path "$PSScriptRoot\Mod-Loader.ps1") {
+    . "$PSScriptRoot\Mod-Loader.ps1" -UiHash $Global:UiHash
+}
 
 # Create a runspace for the UI
 # This runspace will be used to execute the UI script in a separate thread.
@@ -117,15 +143,22 @@ $Null = $UiPowershell.AddScript({
                 $Global:UiHash.ConfigButtonClicked = $true
             }
         })
-        $SETTINGS_BUTTON.Add_Click({
-            if ($Global:UiHash.SETTINGS_BUTTON_CLICKED -eq $false) {
-                $Global:UiHash.SETTINGS_BUTTON_CLICKED = $true
-                $Global:UiHash.PermanentButtonClicked = $true
+
+        # Add Button click event handlers.
+        $SAVE_SETTINGS_BUTTON.Add_Click({
+            if ($Global:UiHash.SAVESETTINGSBUTTON_CLICKED -eq $false) {
+                $Global:UiHash.SAVESETTINGSBUTTON_CLICKED = $true
             }
         })
+        # Add Button click event handlers.
+        $RESET_SETTINGS_BUTTON.Add_Click({
+            if ($Global:UiHash.RESETSETTINGSBUTTON_CLICKED -eq $false) {
+                $Global:UiHash.RESETSETTINGSBUTTON_CLICKED = $true
+            }
+        })
+
         # Add Button's control to the UiHash for later access.
         $Global:UiHash.CONFIG_START_BUTTON = $CONFIG_START_BUTTON
-        $Global:UiHash.SETTINGS_BUTTON = $SETTINGS_BUTTON
 
         # Add Label link click event handlers.
         $SYSTEMINFO_LINK_LABEL.Add_Click({
@@ -137,6 +170,7 @@ $Null = $UiPowershell.AddScript({
     
         # Add Labels to the UiHash for later access.
         $Global:UiHash.SYSTEMINFO_LINK_LABEL = $SYSTEMINFO_LINK_LABEL
+        $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL = $SETTINGS_OPERATIONRESULT_LABEL
 
         # Add label controls to the UiHash for later access.
         $Global:UiHash.CONNECTION_TITLE_LABEL = $CONNECTION_TITLE_LABEL
@@ -151,9 +185,18 @@ $Null = $UiPowershell.AddScript({
         $Global:UiHash.MAIN_TAB_CONTROL = $MAIN_TAB_CONTROL
 
         $Timer = New-Object System.Windows.Forms.Timer
-        $Timer.Interval = $Global:UiHash.MainUiTimerInterval # Set the timer interval to the value defined in the settings.
+        $Timer.Interval = $Global:UiHash.ActiveSettingsValues.MainUiTimerInterval # Set the timer interval to the value defined in the settings.
         $Timer.Add_Tick({
-            # This block is executed every second when the timer ticks.
+            # This block is executed every time the timer ticks.
+            
+            # Check if the timer interval needs to be updated
+            if ($Global:UiHash.ActiveSettingsValues.MainUiTimerInterval -ne $Timer.Interval) {
+                Write-Host "Updating timer interval from $($Timer.Interval) to $($Global:UiHash.ActiveSettingsValues.MainUiTimerInterval)" -ForegroundColor Cyan
+                $Timer.Stop()
+                $Timer.Interval = $Global:UiHash.ActiveSettingsValues.MainUiTimerInterval
+                $Timer.Start()
+            }
+            
             if ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "CONFIG_TAB") {
 
                 ### CONFIG TAB HANDLING ###
@@ -276,18 +319,21 @@ $Null = $UiPowershell.AddScript({
 
                         . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ApplicationTab-Ui.ps1" -UiHash $Global:UiHash
 
-                        foreach ($type in $UiHash.AppTabUIElements.Keys) {
-                            foreach ($element in $UiHash.AppTabUIElements[$type].Keys) {
+                        foreach ($type in $Global:UiHash.AppTabUIElements.Keys) {
+                            foreach ($element in $Global:UiHash.AppTabUIElements[$type].Keys) {
                                 if ($type -eq "Buttons") {
-                                    if (-not ($Global:UiHash.AppButtonsFlags.ContainsKey($element))) {
-                                        $Global:UiHash.AppButtonsFlags[$element] = $false
-                                    }
+                                    $Global:UiHash.AppButtonsFlags[$element] = $false
+                                    # Capture the element variable in a local scope for the closure
+                                    $elementCapture = $element
                                     $Global:UiHash.AppTabUIElements[$type][$element].Add_Click({
-                                        if ($Global:UiHash.AppButtonsFlags[$element] -eq $false) {
-                                            $Global:UiHash.AppButtonsFlags[$element] = $true
-                                            $Global:UiHash.AppButtonClicked = $true
+                                        param($sender, $e)
+                                        if ($Global:UiHash.AppButtonsFlags -and $Global:UiHash.AppButtonsFlags.ContainsKey($elementCapture)) {
+                                            if ($Global:UiHash.AppButtonsFlags[$elementCapture] -eq $false) {
+                                                $Global:UiHash.AppButtonsFlags[$elementCapture] = $true
+                                                $Global:UiHash.AppButtonClicked = $true
+                                            }
                                         }
-                                    })
+                                    }.GetNewClosure())
                                 }
                                 $SCROLL_APP_PANEL.Controls.Add($Global:UiHash.AppTabUIElements[$type][$element])
                             }
@@ -358,6 +404,26 @@ $Null = $UiPowershell.AddScript({
                 }
             } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "TOOLS_TAB") {
                
+            } elseif ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "SETTINGS_TAB") {
+                if ($Global:UiHash.REFRESH_SETTINGS_TAB) {
+                    $SETTINGS_TAB_CONTROL.Controls.Clear()
+                    . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-SettingsTab-Ui.ps1" -UiHash $Global:UiHash
+                    foreach ($category in $Global:UiHash.SettingsTabUIElements.Keys) {
+                        foreach ($element in $Global:UiHash.SettingsTabUIElements[$category].Keys) {
+                            if ($element -eq "CategoryTab") {
+                                if ($category -eq "General") {
+                                    $SETTINGS_TAB_CONTROL.TabPages.Insert(0, $Global:UiHash.SettingsTabUIElements[$category][$element])
+                                } else {
+                                    $SETTINGS_TAB_CONTROL.TabPages.Add($Global:UiHash.SettingsTabUIElements[$category][$element])
+                                }
+                            }
+                        }
+                    }
+                    if ($Global:UiHash.SettingsTabUIElements.Count -gt 0) {
+                        $SETTINGS_TAB_CONTROL.SelectedTab = $SETTINGS_TAB_CONTROL.TabPages[0]
+                    }
+                    $Global:UiHash.REFRESH_SETTINGS_TAB = $false
+                }
             }
         })
         $Timer.Start()  # Start the timer to trigger the tick event every second.
@@ -369,6 +435,7 @@ $Null = $UiPowershell.AddScript({
             $VERSION_NUMBER_LABEL.Text = $Global:UiHash.FPCAInfo.version
             $VERSION_LABEL.ForeColor = [System.Drawing.Color]::Green
             $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::Green
+            $Global:UiHash.StartPopUpRunning = $true
             # Check the launch type and display a welcome or update message accordingly.
             if ($Global:UiHash.LaunchType -eq 'FirstLaunch') {
                 Show-TopMostMessageBox -Message "Welcome to FPCA!`nVersion: $($Global:UiHash.FPCAInfo.version)`nIf you encounter any bugs, please report them!" -Title "FPCA - Welcome!" -Owner $MAIN_FORM -Icon "Information"
@@ -382,12 +449,15 @@ $Null = $UiPowershell.AddScript({
             }
             # Set the MainFormLoaded variable to true to indicate that the main form has been loaded.
             # This is used to control the main loop in the script.
+            $Global:UiHash.StartPopUpRunning = $false
             $Global:UiHash.MainFormLoaded = $true
         })
         # Check for icon presence and set it if available.
         if (Test-Path -Path "$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico") {
             $MAIN_FORM.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico")
         }
+        # Add timer to the UiHash for later access.
+        $Global:UiHash.MainFormTimer = $Timer
         # Add main form controls to the UiHash for later access.
         $Global:UiHash.MainForm = $MAIN_FORM
         # Display the main form of the application.
@@ -446,19 +516,21 @@ $Raminfo = Get-RAMInfo
 $MainFormLoadLoopCounter = 0
 $Global:MainHash.MainListener = $true
 While ($Global:UiHash.MainFormLoaded -eq $false) {
-    if ($MainFormLoadLoopCounter -gt [int32]$MainFormLoadLoopCounter_Max) {
-        # If the main form is not loaded after 500 iterations, display an error message and exit.
-        [System.Windows.Forms.MessageBox]::Show("Main form failed to load. Please try again or contact support.", "FPCA - Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
-        $Global:MainHash.MainListener = $false
-        # Clean up the runspace and PowerShell instance to prevent memory leaks.
-        $UiPowershell.EndInvoke($UiHandle)
-        $UiPowershell.Runspace.Dispose()
-        Break
+    if ($Global:UiHash.StartPopUpRunning -eq $false) {
+        if ($MainFormLoadLoopCounter -gt $Global:UiHash.ActiveSettingsValues.MainFormLoadLoopCounter) {
+            # If the main form is not loaded after 500 iterations, display an error message and exit.
+            [System.Windows.Forms.MessageBox]::Show("Main form failed to load. Please try again or contact support.", "FPCA - Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+            $Global:MainHash.MainListener = $false
+            # Clean up the runspace and PowerShell instance to prevent memory leaks.
+            $UiPowershell.EndInvoke($UiHandle)
+            $UiPowershell.Runspace.Dispose()
+            Break
+        }
+        # Increment the loop counter to track how many times we've checked for the main form load.
+        $MainFormLoadLoopCounter++
     }
     # Sleep for a short duration to prevent high CPU usage while waiting for the main form to load.
-    Start-Sleep -Milliseconds 100
-    # Increment the loop counter to track how many times we've checked for the main form load.
-    $MainFormLoadLoopCounter++
+    Start-Sleep -Milliseconds 300
 }
 # Set the MainListener to true to indicate that the main loop should start.
 
@@ -483,50 +555,22 @@ While ($Global:MainHash.MainListener) {
     # Increment counters to track the number of iterations in the main loop.
     $ConfigLinkUpdateCounter++
     $InternetCheckUpdateCounter++
-    $ConfigPanelUpdateCounter++
 
     # Check if the UI is closed by checking the UIClosed variable in the UiHash.
     # If the UI is closed, set the MainListener to false to exit the loop.
     if ($Global:UiHash.UIClosedByUser) {
         # If the UI is closed, break the loop and exit the script.
         # Display a message box to inform the user that the application is closing and if they want to delete the application
-        if ($Global:MainHash.FPCASettings.General.DeleteOnExit -eq "true") {
+        $result = [System.Windows.Forms.DialogResult]::No
+        if ($Global:UiHash.ActiveSettingsValues.DeleteOnExit -eq "Auto") {
             $result = [System.Windows.Forms.DialogResult]::Yes
-        } elseif ($Global:MainHash.FPCASettings.General.DeleteOnExit -eq "prompt") {
+        } elseif ($Global:UiHash.ActiveSettingsValues.DeleteOnExit -eq "Prompt") {
             $result = Show-TopMostMessageBox -Message "Do you want to delete FPCA?" -Title "FPCA - Delete Application" -Icon "Question" -Buttons "YesNo"
         }
         # If the user chooses to delete the application, create a scheduled task to delete the application folder.
         if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-            try {
-                # Create a scheduled task that runs once and deletes itself
-                $taskName = "DeleteFPCA_$(Get-Random)"
-                Write-Host "Creating task: $taskName"
-                    
-                $action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"Write-Host 'Task Started'; Start-Sleep -Seconds 5; Write-Host 'Deleting $PSScriptRoot'; Remove-Item -Path '$PSScriptRoot' -Recurse -Force; Write-Host 'Done'; Unregister-ScheduledTask -TaskName '$taskName' -Confirm:`$false; Write-Host 'Task Unregistered'; Start-Sleep -Seconds 2; Write-Host 'Exiting PowerShell'`""
-                $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(3)
-                $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-                    
-                $task = Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest
-                Write-Host "Task created successfully: $($task.TaskName)"
-                    
-                # Verify the task was created
-                $createdTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-                if ($createdTask) {
-                    Write-Host "Task verified in scheduler"
-                } else {
-                    Write-Host "Task NOT found in scheduler"
-                }
-                    
-            } catch {
-                Write-Host "Error creating task: $($_.Exception.Message)"
-                # Fallback to batch file
-                $bat = [System.IO.Path]::GetTempFileName() + ".bat"
-                $batContent = "@echo off`necho Waiting...`ntimeout /t 3 /nobreak`necho Deleting $PSScriptRoot`nrmdir /s /q `"$PSScriptRoot`"`necho Done`npause`ndel `"%~f0`""
-                Set-Content -Path $bat -Value $batContent
-                Start-Process -FilePath $bat
-            }
+            New-ScheduledSelfDelete -OnTime -DelaySecs 10 -ScriptPath $PSScriptRoot
         }
-
         Break
     }
 
@@ -552,13 +596,17 @@ While ($Global:MainHash.MainListener) {
         if ($GLobal:UiHash.REFRESH_CONFIG_MODPANEL -eq $false) {
             $Global:UiHash.REFRESH_CONFIG_MODPANEL = $true
         }
+    } elseif ($Global:MainHash.CurrentTab -eq "SETTINGS_TAB" -and $Global:MainHash.PreviousTab -ne "SETTINGS_TAB") {
+        if ($Global:UiHash.REFRESH_SETTINGS_TAB -eq $false) {
+            $Global:UiHash.REFRESH_SETTINGS_TAB = $true
+        }
     }
     # Update previous tab for next iteration
     $Global:MainHash.PreviousTab = $Global:MainHash.CurrentTab
 
 
     # Check if the InternetCheckUpdateCounter has reached the max defined counter of iterations.
-    if ($InternetCheckUpdateCounter -gt $InternetCheckUpdateCounter_Max) {
+    if ($InternetCheckUpdateCounter -gt $Global:UiHash.ActiveSettingsValues.InternetCheckUpdateCounter) {
         # Reset the InternetCheckUpdateCounter to 0.
         [int32]$InternetCheckUpdateCounter = 0
         # Check if the internet connection is available.
@@ -593,21 +641,6 @@ While ($Global:MainHash.MainListener) {
             # Reset the SYSTEMINFO_LINK_LABEL_CLICKED flag to false after processing the link label click.
             $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
         }
-
-        # Check if the SETTINGS_BUTTON_CLICKED flag is set to true in the UiHash.
-        # If it is set, it means that the user has clicked the settings button.
-        if ($Global:UiHash.SETTINGS_BUTTON_CLICKED) {
-            # Set the UIClosedFor variable to "Settings" to indicate that the UI is being closed for settings.
-            $Global:UiHash.UIClosedFor = "Settings"
-            # Close the main form to prevent further interaction.
-            $Global:UiHash.MainForm.Close()
-            
-            Start-Process -FilePath "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$PSScriptRoot\FPCA-Settings.ps1`""
-
-            # Break the loop to prevent further processing in this iteration.
-            Break
-        }
-
     }
 
     ###########################################################################################################################
@@ -665,32 +698,124 @@ While ($Global:MainHash.MainListener) {
                     # Close the main form to prevent further interaction.
                     $Global:UiHash.MainForm.Close()
                     # Launch the configuration script with the selected tasks.
-                    . "$PSScriptRoot\FPCA-Config.ps1" -SelectedTasks $selectedTasks -SelectedTasksSettings $configSettings
+                    . "$PSScriptRoot\FPCA-Config.ps1" -SelectedTasks $selectedTasks -SelectedTasksSettings $configSettings -AppSettings $Global:UiHash.ActiveSettingsValues
 
-                    if ($ExitCode -eq 0) {
-                        # Exit according to settings if the exit code is 0.
-                        Break
-                    } elseif ($ExitCode -eq 1) {
-                        # If the exit code is 1, it means that the user has cancelled the configuration process.
-                        # Display a message box to inform the user that the configuration process has been cancelled.
-                        Show-TopMostMessageBox -Message "Configuration process has been cancelled. Exitting..." -Title "FPCA - Configuration Cancelled" -Icon "Information"
-                        Break
-                    } elseif ($ExitCode -eq 2) {
-                        # If the exit code is 2, it means that the configuration process has completed successfully.
-                        Show-TopMostMessageBox -Message "Configuration process completed successfully." -Title "FPCA - Configuration Completed" -Icon "Information"
-                        Break
-                    } elseif ($ExitCode -eq 3) {
-                        # If the exit code is 3, it means that the configuration process requires a Bios Restart.
-                        Try {
-                            shutdown /r /fw /t 5
-                        } Catch {
-                            Show-TopMostMessageBox -Message "Failed to initiate BIOS restart. Please restart the computer manually." -Title "FPCA - BIOS Restart Failed" -Icon "Error"
+                    # Check the ExitData for the status on exit of the configuration process.
+                    if ($ExitData -eq $null) {
+                        Write-Host "Configuration script returned null data." -ForegroundColor Red
+                        Show-TopMostMessageBox -Message "Configuration process failed to return status data. The process may have been interrupted." -Title "FPCA - Configuration Error" -Icon "Error"
+                    } elseif (-not $ExitData.ContainsKey('Status')) {
+                        Write-Host "Configuration script returned incomplete data: Status key missing." -ForegroundColor Red
+                        Show-TopMostMessageBox -Message "Configuration process returned incomplete data. Please check the logs." -Title "FPCA - Configuration Error" -Icon "Error"
+                    } elseif ($ExitData.Status -eq "Error") {
+                        $errorMessage = if ($ExitData.ContainsKey('Message')) { $ExitData.Message } else { "Unknown error occurred" }
+                        Write-Host "Configuration script reported error: $errorMessage" -ForegroundColor Red
+                        Show-TopMostMessageBox -Message "Configuration process encountered an error: $errorMessage" -Title "FPCA - Configuration Error" -Icon "Error"
+                    } elseif ($ExitData.ContainsKey('Status')) {
+                        if ($ExitData.Status -eq "Success") {
+                            if ($ExitData.ContainsKey('Type')) {
+                                Switch ($ExitData.Type) {
+                                    "BIOS" {
+                                        if ($ExitData.ContainsKey('Messages')) {
+                                            $JoinedMessages = $ExitData.Messages -join "`n"
+                                            $Result = Show-TopMostMessageBox -Message "Bios restart required because of: $JoinedMessages" -Title "FPCA - Configuration Completed" -Icon "Warning" -Buttons "YesNo"
+                                        }
+                                        if ($Result -eq [System.Windows.Forms.DialogResult]::No) {
+                                            # Do nothing, just exit the application.
+                                            Break
+                                        }
+                                        $Result = Restart-ComputerCustom -BIOS -DelaySecs 10 -MaxRestartAttempts 5
+                                    }
+                                    "RESTART" {
+                                        $Result = Restart-ComputerCustom -Normal -DelaySecs 10 -MaxRestartAttempts 3
+                                    }
+                                    "SHUTDOWN" {
+                                        $Result = Restart-ComputerCustom -Shutdown -DelaySecs 10 -MaxRestartAttempts 3
+                                    }
+                                }
+                                if ($Result.Result) {
+                                    Write-Host "System action '$($ExitData.Type)' initiated successfully."
+                                    Break
+                                }
+                            }
+                            # If it was a success but no restart/shutdown was required or worked out, fallback to default selected behavior.
+                            Switch ($Global:UiHash.ActiveSettingsValues.RestartAfterConfig) {
+                                "Prompt" {
+                                    $Result = Show-TopMostMessageBox -Message "Configuration completed successfully!`nDo you want to restart now?" -Title "FPCA - Configuration Completed" -Icon "Question" -Buttons "YesNoCancel"
+                                    if ($Result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                                        $Result = Restart-ComputerCustom -Normal -DelaySecs 10 -MaxRestartAttempts 3
+                                        if ($Result.Result) {
+                                            Write-Host "System restart initiated successfully."
+                                            Break
+                                        } else {
+                                            Show-TopMostMessageBox -Message "Failed to restart the computer. Please restart manually." -Title "FPCA - Restart Failed" -Icon "Error"
+                                            Break
+                                        }
+                                    } elseif ($Result -eq [System.Windows.Forms.DialogResult]::No) {
+                                        # Do nothing, just exit the application.
+                                        Break
+                                    } elseif ($Result -eq [System.Windows.Forms.DialogResult]::Cancel) {
+                                        # Relaunch the application by starting the Start.bat file with elevated privileges.
+                                        Start-Process -FilePath "$PSScriptRoot\Start.bat" -WindowStyle Hidden -Verb RunAs
+                                        Break
+                                    }
+                                }
+                                "Restart App" {
+                                    # Relaunch the application by starting the Start.bat file with elevated privileges.
+                                    Start-Process -FilePath "$PSScriptRoot\Start.bat" -WindowStyle Hidden -Verb RunAs
+                                    Break
+                                }
+                                "Restart Computer" {
+                                    $Result = Restart-ComputerCustom -Normal -DelaySecs 10 -MaxRestartAttempts 3
+                                    if ($Result.Result) {
+                                        Write-Host "System restart initiated successfully."
+                                        Break
+                                    } else {
+                                        Show-TopMostMessageBox -Message "Failed to restart the computer. Please restart manually." -Title "FPCA - Restart Failed" -Icon "Error"
+                                        Break
+                                    }
+                                }
+                                "Restart in WinRE" {
+                                    $Result = Restart-ComputerCustom -WinRE -DelaySecs 10 -MaxRestartAttempts 5
+                                    if ($Result.Result) {
+                                        Write-Host "System restart into WinRE initiated successfully."
+                                        Break
+                                    } else {
+                                        Show-TopMostMessageBox -Message "Failed to restart the computer into WinRE. Please restart manually." -Title "FPCA - Restart Failed" -Icon "Error"
+                                        Break
+                                    }
+                                }
+                                "Shutdown Computer" {
+                                    $Result = Restart-ComputerCustom -Shutdown -DelaySecs 10 -MaxRestartAttempts 3
+                                    if ($Result.Result) {
+                                        Write-Host "System shutdown initiated successfully."
+                                        Break
+                                    } else {
+                                        Show-TopMostMessageBox -Message "Failed to shutdown the computer. Please shutdown manually." -Title "FPCA - Shutdown Failed" -Icon "Error"
+                                        Break
+                                    }
+                                }
+                            }
+                            # If no valid option is selected, just exit the application.
+                            Break
+                        } elseif ($ExitData.Status -eq "Cancelled") {
+                            $Result = Show-TopMostMessageBox -Message "Configuration was cancelled by the user.`nDo you want to relaunch the application?" -Title "FPCA - Configuration Cancelled" -Icon "Warning" -Buttons "YesNo"
+                            if ($Result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                                # Relaunch the application by starting the Start.bat file with elevated privileges.
+                                Start-Process -FilePath "$PSScriptRoot\Start.bat" -WindowStyle Hidden -Verb RunAs
+                            }
+                            Break
+                        } else {
+                            # If the ExitData does not contain a valid status, display an error message and exit the application.
+                            Show-TopMostMessageBox -Message "A fatal error occurred during configuration... Please Report this issue!`nThe App will shutdown... " -Title "FPCA - Configuration Error" -Icon "Error"
+                            Break
                         }
-                        Break
                     } else {
+                        # If the configuration process failed, display an error message and exit the application.
+                        Show-TopMostMessageBox -Message "The configuration process failed to return a completion status... Please Report this issue!`nThe App will shutdown... " -Title "FPCA - Configuration Error" -Icon "Error"
                         Break
                     }
-
+                    Break
                 } else {
                     # If no tasks are selected, display a message box to inform the user.
                     Show-TopMostMessageBox -Message "No tasks selected. Please select at least one task to start." -Title "FPCA - No Tasks Selected" -Owner $Global:UiHash.MainForm -Icon "Warning"
@@ -794,13 +919,85 @@ While ($Global:MainHash.MainListener) {
             }
             $Global:UiHash.REFRESH_APP_PANEL = $true
         }
+        if ($Global:UiHash.AppButtonClicked) {
+            $Global:UiHash.AppButtonClicked = $false
+            # Handle application tab button clicks here.
+            # Create a copy of the keys to avoid collection modification during enumeration
+            $ButtonKeys = @($Global:UiHash.AppButtonsFlags.Keys)
+            foreach ($key in $ButtonKeys) {
+                if ($Global:UiHash.AppButtonsFlags[$key]) {
+                    if ($key -match "_InstallButton") {
+                        if ($key -match "Portable_") {
+                            Write-Host "Button: $key pressed, it is a Portable App installation"
+                        } elseif ($key -match "Installer_") {
+                            Write-Host "Button: $key pressed, it is and Installer App installation"
+                        }
+                    }
+                    $Global:UiHash.AppButtonsFlags[$key] = $false
+                }
+            }
+        }
     }
 
-
+    ###########################################################################################################################
+    #                                                                                                                         #
+    #                                           Settings Tab Ui Handles                                                       #
+    #                                                                                                                         #
     ###########################################################################################################################
 
+    if ($Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name -eq "SETTINGS_TAB") {
+        # UI interaction and event handling.
+        # Settings Update operation handling
+        # Saving Settings
+        if ($Global:UiHash.SAVESETTINGSBUTTON_CLICKED) {
+            Write-Host "Save Settings button clicked, saving settings..." -ForegroundColor Yellow
+            $result = . "$PSScriptRoot\FPCA-SettingsManager.ps1" -Save -UiHash $Global:UiHash
+            if ($result.Result) {
+                Write-Host "Operation Result: $($result.Message)" -ForegroundColor Green
+                $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.ForeColor = [System.Drawing.Color]::Green
+                $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.Text = $result.Message
+                $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG = $true
+            } else {
+                Write-Host "Operation Result: $($result.Message)" -ForegroundColor Red
+                $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.ForeColor = [System.Drawing.Color]::Red
+                $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.Text = $result.Message
+                $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG = $true
+            }
+            $Global:UiHash.SAVESETTINGSBUTTON_CLICKED = $false
+        }
+        # Resetting Settings
+        if ($Global:UiHash.RESETSETTINGSBUTTON_CLICKED) {
+            $confirm = Show-TopMostMessageBox -Message "Are you sure you want to reset all settings to default?" -Title "FPCA - Confirm Reset" -Icon "Warning" -Buttons "YesNo" -Owner $Global:UiHash.MainForm
+            if ($confirm -eq [System.Windows.Forms.DialogResult]::Yes) {
+                Write-Host "Reset Settings button clicked, resetting settings to default..." -ForegroundColor Yellow
+                $result = . "$PSScriptRoot\FPCA-SettingsManager.ps1" -Reset -UiHash $Global:UiHash
+                if ($result.Result) {
+                    Write-Host "Operation Result: $($result.Message)" -ForegroundColor Green
+                    $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.ForeColor = [System.Drawing.Color]::Green
+                    $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.Text = $result.Message
+                    $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG = $true
+                } else {
+                    Write-Host "Operation Result: $($result.Message)" -ForegroundColor Red
+                    $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.ForeColor = [System.Drawing.Color]::Red
+                    $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.Text = $result.Message
+                    $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG = $true
+                }
+            }
+            $Global:UiHash.RESETSETTINGSBUTTON_CLICKED = $false
+        }
+        if ($Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG) {
+            if ($Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_COUNTER -gt $Global:UiHash.ActiveSettingsValues.SettingsOpResultCounterThreshold) {
+                $Global:UiHash.SETTINGS_OPERATIONRESULT_LABEL.Text = ""
+                $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_COUNTER = 0
+                $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG = $false
+            } else {
+                $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_COUNTER++
+            }
+        }
+    }
+
     # Sleep for a short duration to prevent high CPU usage.
-    Start-Sleep -Milliseconds $MainLoopRefreshRate
+    Start-Sleep -Milliseconds $Global:UiHash.ActiveSettingsValues.MainLoopRefreshRate
 }
 
 # End of script.

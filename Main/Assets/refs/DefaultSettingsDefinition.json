@@ -1,0 +1,106 @@
+{
+    "Information": {
+        "Name": "Default App Settings",
+        "Description": "This is the default Settings manager definition file for FPCA.",
+        "Version": "0.1",
+        "Author": "Frysix"
+    },
+    "Settings": {
+        "General": {
+            "DeleteOnExit": {
+                "DisplayName": "Delete On Exit",
+                "Description": "Delete the application on exit",
+                "Type": "ComboBox",
+                "Options": ["Auto", "Disabled", "Prompt"],
+                "Default": "Prompt"
+            }
+        },
+        "Update": {
+            "AlwaysTryFirst": {
+                "DisplayName": "Always Try First",
+                "Description": "From where to always try to get updates first",
+                "Type": "ComboBox",
+                "Options": ["GitHub", "Frysix", "Nordicsrv", "Nyxsky", "Disabled"],
+                "Default": "Disabled"
+            },
+            "TransferSettings": {
+                "DisplayName": "Transfer Settings",
+                "Description": "Transfer settings to the new version during update",
+                "Type": "CheckBox",
+                "Default": "true"
+            },
+            "TransferMods": {
+                "DisplayName": "Transfer Mods",
+                "Description": "Transfer mods to the new version during update",
+                "Type": "CheckBox",
+                "Default": "false"
+            },
+            "TransferPortableApps": {
+                "DisplayName": "Transfer Portable Apps",
+                "Description": "Transfer portable apps to the new version during update",
+                "Type": "CheckBox",
+                "Default": "false"
+            },
+            "UpdateOnStartup": {
+                "DisplayName": "Update On Startup",
+                "Description": "Check for updates on startup",
+                "Type": "ComboBox",
+                "Options": ["Disabled", "Auto", "Prompt"],
+                "Default": "Prompt"
+            }
+        },
+        "Configuration": {
+            "RestartAfterConfig": {
+                "DisplayName": "Restart After Configuration",
+                "Description": "Restart the computer after running the configuration scripts",
+                "Type": "ComboBox",
+                "Options": ["Prompt", "Restart App", "Restart Computer", "Restart in WinRE", "Shutdown Computer", "Disabled"],
+                "Default": "Prompt"
+            },
+            "RunCaffeine": {
+                "DisplayName": "Run Caffeine",
+                "Description": "Aquire and Run Caffeine to prevent the system from sleeping during configuration",
+                "Type": "CheckBox",
+                "Default": "true"
+            }
+        },
+        "Advanced": {
+            "MainUiTimerInterval": {
+                "DisplayName": "Main UI Timer Interval",
+                "Description": "Interval in milliseconds for the main UI timer's tick event",
+                "Type": "IntTextBox",
+                "Default": "100"
+            },
+            "InternetCheckUpdateCounter": {
+                "DisplayName": "Internet Check Update Counter",
+                "Description": "Number of main loop iterations between internet connectivity checks",
+                "Type": "IntTextBox",
+                "Default": "100"
+            },
+            "MainFormLoadLoopCounter": {
+                "DisplayName": "Main Form Load Loop Counter",
+                "Description": "Maximum number of iterations to wait for the main form to load before timing out",
+                "Type": "IntTextBox",
+                "Default": "500"
+            },
+            "SettingsOpResultCounterThreshold": {
+                "DisplayName": "Settings Operation Result Label's Presence Counter Threshold",
+                "Description": "Number of main loop iterations to display the settings operation result message before clearing it",
+                "Type": "IntTextBox",
+                "Default": "60"
+            },
+            "ConfigMainLoopRefreshRate": {
+                "DisplayName": "Configuration Main Loop Refresh Rate",
+                "Description": "Delay in milliseconds for each iteration of the configuration main loop",
+                "Type": "IntTextBox",
+                "Default": "500"
+            },
+            "MainLoopRefreshRate": {
+                "DisplayName": "Main Loop Refresh Rate",
+                "Description": "Delay in milliseconds for each iteration of the main loop",
+                "Type": "IntTextBox",
+                "Default": "50"
+            }
+        }
+    }
+}

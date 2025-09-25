@@ -4,7 +4,7 @@
         "Description": "This is a demo mod for FPCA created by Frysix.",
         "Author": "Frysix",
         "ModVersion": "1.0.0",
-        "AppVersion": ["0.9.3", "0.9.4", "0.9.5", "0.9.6"]
+        "AppVersion": ["0.9.3", "0.9.4", "0.9.5", "0.9.6", "0.9.7" ]
     },
     "Mod_Data": {
         "Applications": {

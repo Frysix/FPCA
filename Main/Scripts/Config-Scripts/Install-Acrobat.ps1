@@ -300,28 +300,9 @@ Try {
     if ($InstallSuccess) {
         $Coms.Comment = "Finalizing Adobe Reader installation according to settings."
         Start-Sleep -Seconds 5
-        if ($TaskSettings.ContainsKey('SetAsDefault') -and $TaskSettings.SetAsDefault -eq $true) {
-            $Coms.Comment = "Setting Adobe Reader as default PDF reader"
-            # Set file associations for PDF files
-            try {
-                $acrobatPath = ""
-                foreach ($path in $acrobatPaths) {
-                    if (Test-Path $path) {
-                        $acrobatPath = $path
-                        break
-                    }
-                }
-                if ($acrobatPath) {
-                    # Register Adobe Reader as the default PDF handler
-                    cmd /c "assoc .pdf=AcroExch.Document"
-                    cmd /c "ftype AcroExch.Document=`"$acrobatPath`" `"%1`""
-                    $Coms.Comment = "Adobe Reader set as default PDF reader."
-                } else {
-                    $Coms.Comment = "Could not find Adobe Reader executable to set as default."
-                }
-            } catch {
-                Write-Host "Error setting Adobe Reader as default: $($_.Exception.Message)"
-            }
+        if ($TaskSettings.ContainsKey('RemindDefault') -and $TaskSettings.RemindDefault -eq $true) {
+            $Coms.Comment = "Setting Reminder for Acrobat"
+            $Coms.RemindDefault = $true
         }
         if ($TaskSettings.ContainsKey('CreateShortcut') -and $TaskSettings.CreateShortcut -eq $true) {
             $DesktopIcons = Get-ChildItem -Path "$env:USERPROFILE\Desktop" -ErrorAction SilentlyContinue

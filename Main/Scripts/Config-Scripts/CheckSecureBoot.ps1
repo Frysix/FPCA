@@ -27,17 +27,34 @@ try {
     $secureBootEnabled = $false
     $detectionMethod = ""
     
-    # Method 1: Try PowerShell Get-SecureBootUEFI (Windows 8+)
-    try {
-        $Coms.Comment = "Attempting PowerShell SecureBoot check..."
-        $secureBootStatus = Get-SecureBootUEFI -Name SetupMode -ErrorAction SilentlyContinue
-        if ($secureBootStatus -ne $null) {
-            # SetupMode = 0 means Secure Boot is enabled
-            $secureBootEnabled = ($secureBootStatus.Bytes -eq 0)
-            $detectionMethod = "PowerShell Get-SecureBootUEFI"
+    Try {
+        # Method 0: Get the information through Confirm-SecureBootUEFI if available (Windows 11+)
+        if (Get-Command -Name Confirm-SecureBootUEFI -ErrorAction SilentlyContinue) {
+            $Coms.Comment = "Attempting Confirm-SecureBootUEFI check..."
+            $secureBootEnabled = Confirm-SecureBootUEFI -ErrorAction SilentlyContinue
+            if ($secureBootEnabled) {
+                $detectionMethod = "PowerShell Confirm-SecureBootUEFI"
+            }
+        } else {
+            Throw "Confirm-SecureBootUEFI cmdlet not available."
         }
-    } catch {
-        Write-Host "PowerShell method failed: $($_.Exception.Message)"
+    } Catch {
+        Write-Host "Confirm-SecureBootUEFI method failed: $($_.Exception.Message)"
+    }
+
+    if (-not $secureBootEnabled -and $detectionMethod -eq "") {
+        # Method 1: Try PowerShell Get-SecureBootUEFI (Windows 8+)
+        try {
+            $Coms.Comment = "Attempting PowerShell SecureBoot check..."
+            $secureBootStatus = Get-SecureBootUEFI -Name SetupMode -ErrorAction SilentlyContinue
+            if ($secureBootStatus -ne $null) {
+                # SetupMode = 0 means Secure Boot is enabled
+                $secureBootEnabled = ($secureBootStatus.Bytes -eq 0)
+                $detectionMethod = "PowerShell Get-SecureBootUEFI"
+            }
+        } catch {
+            Write-Host "PowerShell method failed: $($_.Exception.Message)"
+        }
     }
     
     # Method 2: Try using full path to bcdedit if PowerShell method failed

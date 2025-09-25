@@ -3,6 +3,8 @@
 Param(
     [Parameter(Mandatory=$true)]
     [string[]]$SelectedTasks,
+    [Parameter(Mandatory=$true)]
+    [hashtable]$AppSettings,
     [Parameter(Mandatory=$false)]
     [hashtable]$SelectedTasksSettings,
     [Parameter(Mandatory=$false)]
@@ -40,6 +42,7 @@ if (-not $SelectedTasks) {
 # Import necessary modules for the script
 Import-Module -Name "$PSScriptroot\Helper\ParsingHelper.psm1" -Force
 Import-Module -Name "$PSScriptroot\Helper\FormHelper.psm1" -Force
+
 
 # Define function for stopping all task runspaces
 function Stop-AllTaskRunspaces {
@@ -90,7 +93,7 @@ function Start-TaskExecution {
     $Global:TaskHash.PowerShellInstances = @{}
     $Global:TaskHash.CommunicationChannel = [hashtable]::Synchronized(@{})
 
-    foreach ($task in $Global:UiHash.ActiveTasks.Keys) {
+    foreach ($task in $Global:ConfigUiHash.ActiveTasks.Keys) {
         # Create a new PowerShell instance for each task
         $Global:TaskHash.PowerShellInstances[$task] = [powershell]::Create()
         $Global:TaskHash.PowerShellInstances[$task].RunspacePool = $Global:TaskHash.RunspacePool
@@ -202,24 +205,36 @@ function Start-TaskExecution {
     }
 }
 
+# Run the Install-Caffeine script and check if caffeine needs to be started
+if (Test-Path -Path "$PSScriptroot\Scripts\Install-Scripts\Install-Caffeine.ps1") {
+    . "$PSScriptroot\Scripts\Install-Scripts\Install-Caffeine.ps1" -AppSettings $AppSettings -ScriptRoot $PSScriptroot
+}
+
+
 # Define synchronized hashtables for the script
-$Global:UiHash = [hashtable]::Synchronized(@{})
+$Global:ConfigUiHash = [hashtable]::Synchronized(@{})
 $Global:TaskHash = [hashtable]::Synchronized(@{})
+
+# Initialize ExitData with default values to prevent null array errors
+$ExitData = @{
+    Status = "Unknown"
+}
 # Initialize hashtables
-$Global:UiHash.PSScriptRoot = $PSScriptroot
+$Global:ConfigUiHash.PSScriptRoot = $PSScriptroot
 $Global:TaskHash.PSScriptRoot = $PSScriptroot
-$Global:UiHash.TaskFormLoaded = $false
+$Global:ConfigUiHash.CaffeineWasStarted = $CaffeineWasStarted
+$Global:ConfigUiHash.TaskFormLoaded = $false
 $Global:TaskHash.ExitType = "Default"
 $Global:TaskHash.TaskListener = $true
-$Global:UiHash.ActiveTasks = @{}
-$Global:UiHash.StartTime = $null
-$UiHash.TaskPanelInitialized = $false
-$Global:UiHash.ClosedByUser = $false
-$Global:UiHash.ClosedByError = $false
-$Global:UiHash.TaskPanelInitialized = $false
+$Global:ConfigUiHash.ActiveTasks = @{}
+$Global:ConfigUiHash.StartTime = $null
+$ConfigUiHash.TaskPanelInitialized = $false
+$Global:ConfigUiHash.ClosedByUser = $false
+$Global:ConfigUiHash.ClosedByError = $false
+$Global:ConfigUiHash.TaskPanelInitialized = $false
 $Global:TaskHash.CompletedTasks = [hashtable]::Synchronized(@{})
 
-$Global:TaskHash.TaskDefinitions = Convert-JsonToHashtable -FilePath "$($Global:UiHash.PSScriptRoot)\Assets\refs\DefaultConfigDefinition.json"
+$Global:TaskHash.TaskDefinitions = Convert-JsonToHashtable -FilePath "$($Global:ConfigUiHash.PSScriptRoot)\Assets\refs\DefaultConfigDefinition.json"
 
 Write-Host "Loaded task definitions from DefaultConfigDefinition.json"
 
@@ -227,7 +242,7 @@ if (-not $LoadedModConfigs -eq $null) {
     # Load task definitions from the provided configuration files
     foreach ($config in $LoadedModConfigs) {
         # Load additional configurations if provided
-        $configPath = Join-Path $Global:UiHash.PSScriptRoot "Mods\Configs\$config.json"
+        $configPath = Join-Path $Global:ConfigUiHash.PSScriptRoot "Mods\Configs\$config.json"
         if (Test-Path -Path $configPath) {
             $TaskDefinitions = Convert-JsonToHashtable -FilePath $configPath
             if ($TaskDefinitions -and $TaskDefinitions.ContainsKey('Configuration')) {
@@ -262,7 +277,7 @@ if (-not $LoadedModConfigs -eq $null) {
 foreach ($task in $SelectedTasks) {
     foreach ($category in $Global:TaskHash.TaskDefinitions.Configuration.Keys) {
         if ($Global:TaskHash.TaskDefinitions.Configuration[$category].ContainsKey($task)) {
-            $Global:UiHash.ActiveTasks[$task] = @{
+            $Global:ConfigUiHash.ActiveTasks[$task] = @{
                 Name = $task
                 Category = $category
                 Status = "Pending"
@@ -277,14 +292,14 @@ foreach ($task in $SelectedTasks) {
     }
 }
 
-Write-Host "Active tasks transferred to UiHash for UI processing."
+Write-Host "Active tasks transferred to ConfigUiHash for UI processing."
 
 # Create a runspace for the Progression UI
 $UiRunspace = [runspacefactory]::CreateRunspace()
 $UiRunspace.ApartmentState = "STA"
 $UiRunspace.ThreadOptions = "ReuseThread"
 $UiRunspace.Open()
-$UiRunspace.SessionStateProxy.SetVariable('UiHash',$Global:UiHash)
+$UiRunspace.SessionStateProxy.SetVariable('ConfigUiHash',$Global:ConfigUiHash)
 $UiPowershell = [powershell]::Create()
 $UiPowershell.Runspace = $UiRunspace
 # Set the script block to run in the UI runspace
@@ -294,28 +309,28 @@ $Null = $UiPowershell.AddScript({
     [System.Windows.Forms.Application]::EnableVisualStyles()
 
     # Import the helper modules for the UI script
-    Import-Module -Name "$($Global:UiHash['PSScriptroot'])\Helper\FormHelper.psm1" -Force
-    Import-Module -Name "$($Global:UiHash['PSScriptroot'])\Helper\ParsingHelper.psm1" -Force
+    Import-Module -Name "$($Global:ConfigUiHash['PSScriptroot'])\Helper\FormHelper.psm1" -Force
+    Import-Module -Name "$($Global:ConfigUiHash['PSScriptroot'])\Helper\ParsingHelper.psm1" -Force
 
     # Import the UI script for the configuration
-    . (Join-Path $Global:UiHash.PSScriptroot '\Scripts\UI-Scripts\Config-Ui.ps1')
+    . (Join-Path $Global:ConfigUiHash.PSScriptroot '\Scripts\UI-Scripts\Config-Ui.ps1')
 
     # Define function to initialize the configuration UI panel
     function Initialize-ConfigUiPanel {
         Param (
             [Parameter(Mandatory=$true)]
-            [hashtable]$UiHash,
+            [hashtable]$ConfigUiHash,
             [Parameter(Mandatory=$true)]
             [System.Windows.Forms.Panel]$MainPanel
         )
         # Generate the configuration window UI elements
-        . "$($Global:UiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ConfigurationWindow-Ui.ps1" -UiHash $Global:UiHash -Generate
-        $UiHash.TaskPanelInitialized = $true
+        . "$($Global:ConfigUiHash.PSScriptRoot)\Scripts\Ui-Scripts\Gen\Gen-ConfigurationWindow-Ui.ps1" -UiHash $Global:ConfigUiHash -Generate
+        $Global:ConfigUiHash.TaskPanelInitialized = $true
         # Add the generated UI elements to the main panel
-        foreach ($task in $UiHash.TaskControls.Keys) {
-            foreach ($element in $UiHash.TaskControls[$task].Keys) {
+        foreach ($task in $Global:ConfigUiHash.TaskControls.Keys) {
+            foreach ($element in $Global:ConfigUiHash.TaskControls[$task].Keys) {
                 if ($element -eq 'TaskPanel') {
-                    $MainPanel.Controls.Add($UiHash.TaskControls[$task][$element])
+                    $MainPanel.Controls.Add($Global:ConfigUiHash.TaskControls[$task][$element])
                 }
             }
         }
@@ -325,9 +340,9 @@ $Null = $UiPowershell.AddScript({
     $UiTimer = New-Object System.Windows.Forms.Timer
     $UiTimer.Interval = 500 # Set the timer interval to 500 milliseconds (0.5 seconds).
     $UiTimer.Add_Tick({
-        if ($MAIN_TASKACTIVECOUNT_LABEL.Text -ne $Global:UiHash.ActiveTasks.Count.ToString()) {
+        if ($MAIN_TASKACTIVECOUNT_LABEL.Text -ne $Global:ConfigUiHash.ActiveTasks.Count.ToString()) {
             # Update the active task count label if it has changed.
-            $MAIN_TASKACTIVECOUNT_LABEL.Text = "$($Global:UiHash.ActiveTasks.Count.ToString()) / $($Global:UiHash.TotalTasks)"
+            $MAIN_TASKACTIVECOUNT_LABEL.Text = "$($Global:ConfigUiHash.ActiveTasks.Count.ToString()) / $($Global:ConfigUiHash.TotalTasks)"
         }
 
     })
@@ -335,8 +350,8 @@ $Null = $UiPowershell.AddScript({
     $ElapsedTimer.Interval = 1000 # 1 second
     $ElapsedTimer.Add_Tick({
         # Update the elapsed time label every second.
-        if ($Global:UiHash.StartTime) {
-            $elapsedTime = (Get-Date) - $Global:UiHash.StartTime
+        if ($Global:ConfigUiHash.StartTime) {
+            $elapsedTime = (Get-Date) - $Global:ConfigUiHash.StartTime
             $timeString = "{0:D2}:{1:D2}:{2:D2}" -f $elapsedTime.Hours, $elapsedTime.Minutes, $elapsedTime.Seconds
             $MAIN_TASK_ELAPSEDTIMECOUNT_LABEL.Text = $timeString
         }
@@ -344,38 +359,46 @@ $Null = $UiPowershell.AddScript({
 
     # Add Load event handler for the main form.
     $TASK_FORM.add_Load({
-        # Set the form's loaded state to true in the global UiHash.
-        $Global:UiHash.TaskFormLoaded = $true
-        if (-not $Global:UiHash.TaskPanelInitialized) {
+        # Set the form's loaded state to true in the global ConfigUiHash.
+        $Global:ConfigUiHash.TaskFormLoaded = $true
+        if (-not $Global:ConfigUiHash.TaskPanelInitialized) {
             # If the task panel is not initialized, initialize it.
-            Initialize-ConfigUiPanel -UiHash $Global:UiHash -MainPanel $MAIN_TASK_PANEL
+            Initialize-ConfigUiPanel -ConfigUiHash $Global:ConfigUiHash -MainPanel $MAIN_TASK_PANEL
+        }
+        # Check if caffeine was started and update the label accordingly.
+        if ($Global:ConfigUiHash.CaffeineWasStarted) {
+            $MAIN_CAFFEINE_STATUS_LABEL.Text = "Caffeine: On"
+            $MAIN_CAFFEINE_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Green
+        } else {
+            $MAIN_CAFFEINE_STATUS_LABEL.Text = "Caffeine: Off"
+            $MAIN_CAFFEINE_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Red
         }
         # Start the timer to trigger the Tick event every second.
         $UiTimer.Start()
         $ElapsedTimer.Start()
     })
-    $Global:UiHash.UiTimer = $UiTimer
-    $Global:UiHash.ElapsedTimer = $ElapsedTimer
+    $Global:ConfigUiHash.UiTimer = $UiTimer
+    $Global:ConfigUiHash.ElapsedTimer = $ElapsedTimer
 
-    # Assign the TaskForm to the global UiHash variable for later access.
-    $Global:UiHash.TaskForm = $TASK_FORM
+    # Assign the TaskForm to the global ConfigUiHash variable for later access.
+    $Global:ConfigUiHash.TaskForm = $TASK_FORM
     # Initialize the main task panel and other UI elements before loading the form.
-    Initialize-ConfigUiPanel -UiHash $Global:UiHash -MainPanel $MAIN_TASK_PANEL
+    Initialize-ConfigUiPanel -ConfigUiHash $Global:ConfigUiHash -MainPanel $MAIN_TASK_PANEL
 
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Value = 0
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Minimum = 0
-    $MAIN_TOTALPROGRESS_PROGRESSBAR.Maximum = $UiHash.ActiveTasks.Count
-    $MAIN_TASKACTIVECOUNT_LABEL.Text = $UiHash.ActiveTasks.Count.ToString()
-    $Global:UiHash.MAIN_TASKACTIVECOUNT_LABEL = $MAIN_TASKACTIVECOUNT_LABEL
-    $Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR = $MAIN_TOTALPROGRESS_PROGRESSBAR
-    if (Test-Path -Path "$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico") {
-        $TASK_FORM.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("$($Global:UiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico")
+    $MAIN_TOTALPROGRESS_PROGRESSBAR.Maximum = $ConfigUiHash.ActiveTasks.Count
+    $MAIN_TASKACTIVECOUNT_LABEL.Text = $ConfigUiHash.ActiveTasks.Count.ToString()
+    $Global:ConfigUiHash.MAIN_TASKACTIVECOUNT_LABEL = $MAIN_TASKACTIVECOUNT_LABEL
+    $Global:ConfigUiHash.MAIN_TOTALPROGRESS_PROGRESSBAR = $MAIN_TOTALPROGRESS_PROGRESSBAR
+    if (Test-Path -Path "$($Global:ConfigUiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico") {
+        $TASK_FORM.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon("$($Global:ConfigUiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico")
     }
 
     # Show the task form dialog.
     $TASK_FORM.ShowDialog()
 
-    $Global:UiHash.ClosedByUser = $true
+    $Global:ConfigUiHash.ClosedByUser = $true
 })
 # Register an event handler for the InvocationStateChanged event.
 # This event is triggered when the state of the PowerShell invocation changes and automatically handles the closing of the runspace when the Runspace has finished.
@@ -395,14 +418,24 @@ $UiHandle = $UiPowershell.BeginInvoke()
 # Wait Handle for UI to display
 $MainFormLoadLoopCounter = 0
 $Global:TaskHash.TaskListener = $true
-While ($Global:UiHash.TaskFormLoaded -eq $false) {
+While ($Global:ConfigUiHash.TaskFormLoaded -eq $false) {
     if ($MainFormLoadLoopCounter -gt 500) {
         # If the main form is not loaded after 500 iterations, display an error message and exit.
+        Write-Host "Task form failed to load after 500 attempts. This may be due to UI thread conflicts when running with WindowStyle Hidden." -ForegroundColor Red
         Show-TopMostMessageBox -Message "The Task form failed to load after multiple attempts. Please check the application logs for more details." -Title "Error" -Icon "Error"
         $Global:TaskHash.TaskListener = $false
+        # Set error exit data
+        $ExitData = @{
+            Status = "Error"
+            Message = "UI form failed to load"
+        }
         # Clean up the runspace and PowerShell instance to prevent memory leaks.
-        $UiPowershell.EndInvoke($UiHandle)
-        $UiPowershell.Runspace.Dispose()
+        try {
+            $UiPowershell.EndInvoke($UiHandle)
+            $UiPowershell.Runspace.Dispose()
+        } catch {
+            Write-Host "Error during UI cleanup: $($_.Exception.Message)" -ForegroundColor Red
+        }
         Break
     }
     # Sleep for a short duration to prevent high CPU usage while waiting for the main form to load.
@@ -412,49 +445,54 @@ While ($Global:UiHash.TaskFormLoaded -eq $false) {
 }
 
 # If the main form is loaded, set the start time for the task execution.
-$Global:UiHash.StartTime = Get-Date
-$Global:UiHash.TotalTasks = $Global:UiHash.ActiveTasks.Count.ToString()
-# Proceed with task execution
-
-# Start the task execution in the runspace pool
-Start-TaskExecution
+if ($Global:ConfigUiHash.TaskFormLoaded) {
+    $Global:ConfigUiHash.StartTime = Get-Date
+    $Global:ConfigUiHash.TotalTasks = $Global:ConfigUiHash.ActiveTasks.Count.ToString()
+    # Proceed with task execution
+    
+    # Start the task execution in the runspace pool
+    Start-TaskExecution
+    Write-Host "Task execution started successfully." -ForegroundColor Green
+} else {
+    Write-Host "Skipping task execution - UI form failed to load." -ForegroundColor Red
+}
 
 # Main loop to monitor task progress and update the UI
 While ($Global:TaskHash.TaskListener) {
-    Start-Sleep -Milliseconds 500
+    Start-Sleep -Milliseconds $AppSettings.ConfigMainLoopRefreshRate
     
     # Debug: Check communication channel
     Write-Host "=== Debug Info ===" -ForegroundColor Yellow
-    Write-Host "Active Tasks: $($Global:UiHash.ActiveTasks.Keys -join ', ')" -ForegroundColor Yellow
+    Write-Host "Active Tasks: $($Global:ConfigUiHash.ActiveTasks.Keys -join ', ')" -ForegroundColor Yellow
     Write-Host "Communication Channel Tasks: $($Global:TaskHash.CommunicationChannel.Keys -join ', ')" -ForegroundColor Yellow
     
     # Check for running tasks and update their status
-    foreach ($taskName in $Global:UiHash.ActiveTasks.Keys) {
+    foreach ($taskName in $Global:ConfigUiHash.ActiveTasks.Keys) {
         if ($Global:TaskHash.CommunicationChannel.ContainsKey($taskName)) {
             $TaskStatus = $Global:TaskHash.CommunicationChannel[$taskName]
             Write-Host "Task '$taskName' - Status: $($TaskStatus.Status), Progress: $($TaskStatus.Progress)" -ForegroundColor Cyan
             if ($TaskStatus.Status -eq "Running") {
-                if ($TaskStatus.Progress -gt $Global:UiHash.TaskControls[$taskName].ProgressBar.Value) {
-                    $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = $TaskStatus.Progress
+                if ($TaskStatus.Progress -gt $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value) {
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = $TaskStatus.Progress
                 }
-                if ($TaskStatus.Comment -ne $Global:UiHash.TaskControls[$taskName].StatusLabel.Text) {
-                    $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "$($TaskStatus.Comment)"
-                    $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
+                if ($TaskStatus.Comment -ne $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text) {
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "$($TaskStatus.Comment)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
                 }
             } elseif ($TaskStatus.Status -eq "Completed") {
-                $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = 100
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Completed: $($TaskStatus.Comment)"
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Green
+                $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
+                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Completed: $($TaskStatus.Comment)"
+                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Green
                 $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             } elseif ($TaskStatus.Status -eq "Failed" -or $TaskStatus.Status -eq "Error") {
-                $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = 0
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Failed: $($TaskStatus.ErrorMessage)"
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Red
+                $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 0
+                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Failed: $($TaskStatus.ErrorMessage)"
+                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Red
                 $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             } elseif ($TaskStatus.Status -eq "Warning") {
-                $Global:UiHash.TaskControls[$taskName].ProgressBar.Value = 100
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.Text = "Warning: $($TaskStatus.Comment)"
-                $Global:UiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Orange
+                $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
+                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Warning: $($TaskStatus.Comment)"
+                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Orange
                 $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             }
         } else {
@@ -463,43 +501,65 @@ While ($Global:TaskHash.TaskListener) {
     }
 
     foreach ($taskName in $Global:TaskHash.CompletedTasks.Keys) {
-        if ($Global:UiHash.ActiveTasks.ContainsKey($taskName)) {
-            $Global:UiHash.ActiveTasks.Remove($taskName)
+        if ($Global:ConfigUiHash.ActiveTasks.ContainsKey($taskName)) {
+            $Global:ConfigUiHash.ActiveTasks.Remove($taskName)
         }
     }
     # Update the total progress bar
-    if ($Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value -ne $Global:TaskHash.CompletedTasks.Count) {
-        $Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value = $Global:TaskHash.CompletedTasks.Count
-        Write-Host "Updated total progress bar to $($Global:UiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value) out of $($Global:UiHash.ActiveTasks.Count)"
+    if ($Global:ConfigUiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value -ne $Global:TaskHash.CompletedTasks.Count) {
+        $Global:ConfigUiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value = $Global:TaskHash.CompletedTasks.Count
+        Write-Host "Updated total progress bar to $($Global:ConfigUiHash.MAIN_TOTALPROGRESS_PROGRESSBAR.Value) out of $($Global:ConfigUiHash.ActiveTasks.Count)"
     }
     
-    if ($Global:UiHash.ClosedByUser) {
+    if ($Global:ConfigUiHash.ClosedByUser) {
         Write-Host "UI has been closed by user. Stopping task listener."
+        # Kill caffeine if it was started by the script
+        if ($Global:ConfigUiHash.CaffeineWasStarted) {
+            try {
+                ."$PSScriptRoot\Assets\Apps\Caffeine\caffeine64.exe" -appexit
+                Write-Host "Caffeine stopped successfully." -ForegroundColor Green
+            } catch {
+                Write-Host "Failed to stop Caffeine: $($_.Exception.Message)" -ForegroundColor Red
+            }
+        }
         # Clean up task runspaces
         Stop-AllTaskRunspaces
         # Clean up the UI runspace
         $UiPowershell.EndInvoke($UiHandle)
         $UiPowershell.Runspace.Dispose()
         $Global:TaskHash.TaskListener = $false
-        $ExitCode = 1
+        $ExitData = @{
+            Status = "Cancelled"
+        }
         Break
-    } elseif ($Global:UiHash.ClosedByError) {
+    } elseif ($Global:ConfigUiHash.ClosedByError) {
         Write-Host "UI has encountered an error. Stopping task listener."
+        # Kill caffeine if it was started by the script
+        if ($Global:ConfigUiHash.CaffeineWasStarted) {
+            try {
+                ."$PSScriptRoot\Assets\Apps\Caffeine\caffeine64.exe" -appexit
+                Write-Host "Caffeine stopped successfully." -ForegroundColor Green
+            } catch {
+                Write-Host "Failed to stop Caffeine: $($_.Exception.Message)" -ForegroundColor Red
+            }
+        }
         # Clean up task runspaces
         Stop-AllTaskRunspaces
         # Clean up the UI runspace
         $UiPowershell.EndInvoke($UiHandle)
         $UiPowershell.Runspace.Dispose()
         $Global:TaskHash.TaskListener = $false
-        $ExitCode = 2
+        $ExitData = @{
+            Status = "Error"
+        }
         Break
-    } elseif ($Global:UiHash.ActiveTasks.Count -le 0) {
+    } elseif ($Global:ConfigUiHash.ActiveTasks.Count -le 0) {
         Write-Host "All tasks have been completed. Stopping task listener."
         # Clean up task runspaces
         Stop-AllTaskRunspaces
-        $Global:UiHash.UiTimer.Stop()
-        $Global:UiHash.ElapsedTimer.Stop()
-        $Global:UiHash.MAIN_TASKACTIVECOUNT_LABEL.Text = "0"
+        $Global:ConfigUiHash.UiTimer.Stop()
+        $Global:ConfigUiHash.ElapsedTimer.Stop()
+        $Global:ConfigUiHash.MAIN_TASKACTIVECOUNT_LABEL.Text = "0"
         $Global:TaskHash.ExitMessages = @()
         # Verify for end of Configuration scripts
         foreach ($taskName in $Global:TaskHash.CompletedTasks.Keys) {
@@ -516,11 +576,11 @@ While ($Global:TaskHash.TaskListener) {
             } else {
                 Write-Host "No custom exit type defined for task '$taskName'. Using default exit type."
             }
-            if ($TaskStatus.ContainsKey('RemindDefault') -and $TaskStatus.RemindDefault -eq $true) {
+            if ($TaskStatus.ContainsKey('RemindDefault') -and $TaskStatus.RemindDefault -eq $true -and $Global:TaskHash.TaskDefinitions.Configuration.Install.ContainsKey($taskName)) {
                 if ($null -eq $ToRemindDefault) {
                     $ToRemindDefault = @()
                 }
-                $ToRemindDefault += $taskName
+                $ToRemindDefault += $Global:TaskHash.TaskDefinitions.Configuration.Install[$taskName].DisplayName
             }
         }
         if ($ToRemindDefault) {
@@ -530,86 +590,30 @@ While ($Global:TaskHash.TaskListener) {
         } else {
             Show-TopMostMessageBox -Message "The Configuration has ended." -Title "FPCA - Configuration" -Icon "Information"
         }
-        if ($Global:TaskHash.ExitType -eq "Default") {
-            # Clean up the UI runspace
-            $Global:UiHash.TaskForm.Close()
-            $UiPowershell.EndInvoke($UiHandle)
-            $UiPowershell.Runspace.Dispose()
-            $Global:TaskHash.TaskListener = $false
-            $ExitCode = 0
-            Write-Host "All tasks completed successfully. Exiting with code $ExitCode - Default Exit."
-            Break
-        } elseif ($Global:TaskHash.ExitType -eq "BIOS") {
-            $result = Show-TopMostMessageBox -Message "Do you want to restart in BIOS? Reason(s): $($Global:TaskHash.ExitMessages)" -Title "FPCA - Configuration" -Icon "Question" -Buttons "YesNo"
-            if ($result -eq "Yes") {
-                Write-Host "User chose to restart in BIOS."
-                $ExitCode = 3
-            } else {
-                Write-Host "User chose not to restart in BIOS. Exiting with code $ExitCode - BIOS Exit."
-                $ExitCode = 0
+        # Kill caffeine if it was started by the script
+        if ($Global:ConfigUiHash.CaffeineWasStarted) {
+            try {
+                ."$PSScriptRoot\Assets\Apps\Caffeine\caffeine64.exe" -appexit
+                Write-Host "Caffeine stopped successfully." -ForegroundColor Green
+            } catch {
+                Write-Host "Failed to stop Caffeine: $($_.Exception.Message)" -ForegroundColor Red
             }
-            Write-Host "All tasks completed successfully. Exiting with code $ExitCode - BIOS Exit."
-            # Clean up the UI runspace
-            $Global:UiHash.TaskForm.Close()
-            $UiPowershell.EndInvoke($UiHandle)
-            $UiPowershell.Runspace.Dispose()
-            $Global:TaskHash.TaskListener = $false
-            Break
-        } elseif ($Global:TaskHash.ExitType -eq "Override") {
-            Write-Host "All tasks completed successfully. Exiting with code $ExitCode - Override Exit."
-            # Clean up the UI runspace
-            $Global:UiHash.TaskForm.Close()
-            $UiPowershell.EndInvoke($UiHandle)
-            $UiPowershell.Runspace.Dispose()
-            $Global:TaskHash.TaskListener = $false
-            $ExitCode = 4
-            Break
-        } elseif ($Global:TaskHash.ExitType -eq "Restart") {
-            Write-Host "All tasks completed successfully. Exiting with code $ExitCode - Restart Exit."
-            # Clean up the UI runspace
-            $Global:UiHash.TaskForm.Close()
-            $UiPowershell.EndInvoke($UiHandle)
-            $UiPowershell.Runspace.Dispose()
-            $Global:TaskHash.TaskListener = $false
-            $ExitCode = 5
-            Break
-        } elseif ($Global:TaskHash.ExitType -eq "Shutdown") {
-            Write-Host "All tasks completed successfully. Exiting with code $ExitCode - Shutdown Exit."
-            # Clean up the UI runspace
-            $Global:UiHash.TaskForm.Close()
-            $UiPowershell.EndInvoke($UiHandle)
-            $UiPowershell.Runspace.Dispose()
-            $Global:TaskHash.TaskListener = $false
-            $ExitCode = 6
-            Break
-        } elseif ($Global:TaskHash.ExitType -eq "RestartApp") {
-            Write-Host "All tasks completed successfully. Exiting with code $ExitCode - Restart App Exit."
-            # Clean up the UI runspace
-            $Global:UiHash.TaskForm.Close()
-            $UiPowershell.EndInvoke($UiHandle)
-            $UiPowershell.Runspace.Dispose()
-            $Global:TaskHash.TaskListener = $false
-            $ExitCode = 7
-            Break
-        } else {
-            Write-Host "Unknown exit type: $($Global:TaskHash.ExitType). Exiting with code $ExitCode - Unknown Exit."
-            # Clean up the UI runspace
-            $Global:UiHash.TaskForm.Close()
-            $UiPowershell.EndInvoke($UiHandle)
-            $UiPowershell.Runspace.Dispose()
-            $Global:TaskHash.TaskListener = $false
-            $ExitCode = 8
-            Break
         }
+        $ExitData = @{
+            Status = "Success"
+        }
+        if ($Global:TaskHash.ContainsKey('ExitType')) {
+            $ExitData.Type = $Global:TaskHash.ExitType
+        }
+        if ($Global:TaskHash.ContainsKey('ExitMessages')) {
+            $ExitData.Messages = $Global:TaskHash.ExitMessages
+        }
+        $Global:ConfigUiHash.TaskForm.Close()
+        $UiPowershell.EndInvoke($UiHandle)
+        $UiPowershell.Runspace.Dispose()
+        $Global:TaskHash.TaskListener = $false
+        Break
     }
 }
 
-if (-not $ExitCode) {
-    $ExitCode = 0
-}
-
-if ($ExitCode -eq 4) {
-    Return $ExitCode, $OverrideScriptBlock
-} else {
-    Return $ExitCode
-}
+Return $ExitData

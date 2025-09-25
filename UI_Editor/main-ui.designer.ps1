@@ -13,7 +13,6 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Label]$PC_CPU_NAME_LABEL = $null
 [System.Windows.Forms.Label]$CPU_LABEL = $null
 [System.Windows.Forms.LinkLabel]$SYSTEMINFO_LINK_LABEL = $null
-[System.Windows.Forms.Button]$SETTINGS_BUTTON = $null
 [System.Windows.Forms.TabControl]$MAIN_TAB_CONTROL = $null
 [System.Windows.Forms.TabPage]$CONFIG_TAB = $null
 [System.Windows.Forms.Panel]$CONFIG_START_BUTTON_PANEL = $null
@@ -36,8 +35,16 @@ $MAIN_FORM = New-Object -TypeName System.Windows.Forms.Form
 [System.Windows.Forms.Panel]$TITLE_APPMOD_PANEL = $null
 [System.Windows.Forms.Label]$TITLE_AVAILAPPSMOD_LABEL = $null
 [System.Windows.Forms.TabPage]$TOOLS_TAB = $null
+[System.Windows.Forms.Label]$TEMP_COMINGSOON_TOOLS_LABEL = $null
 [System.Windows.Forms.TabPage]$MODS_TAB = $null
-[System.Windows.Forms.TabPage]$INFO_TAB = $null
+[System.Windows.Forms.Label]$TEMP_COMINGSOON_MODS_LABEL = $null
+[System.Windows.Forms.TabPage]$SETTINGS_TAB = $null
+[System.Windows.Forms.Panel]$SETTINGS_PERMABUTTON_BACKPANEL = $null
+[System.Windows.Forms.Panel]$SETTINGS_RESULTMESSAGE_BACKPANEL = $null
+[System.Windows.Forms.Label]$SETTINGS_OPERATIONRESULT_LABEL = $null
+[System.Windows.Forms.Button]$SAVE_SETTINGS_BUTTON = $null
+[System.Windows.Forms.Button]$RESET_SETTINGS_BUTTON = $null
+[System.Windows.Forms.TabControl]$SETTINGS_TAB_CONTROL = $null
 [System.Windows.Forms.Label]$VERSION_LABEL = $null
 [System.Windows.Forms.Label]$VERSION_NUMBER_LABEL = $null
 function InitializeComponent
@@ -56,7 +63,6 @@ $BOARD_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $PC_CPU_NAME_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $CPU_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $SYSTEMINFO_LINK_LABEL = (New-Object -TypeName System.Windows.Forms.LinkLabel)
-$SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $MAIN_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $CONFIG_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $CONFIG_START_BUTTON_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
@@ -79,10 +85,18 @@ $SCROLL_APPMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $TITLE_APPMOD_PANEL = (New-Object -TypeName System.Windows.Forms.Panel)
 $TITLE_AVAILAPPSMOD_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $TOOLS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$TEMP_COMINGSOON_TOOLS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $MODS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
-$INFO_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$TEMP_COMINGSOON_MODS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$SETTINGS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
+$SETTINGS_PERMABUTTON_BACKPANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SAVE_SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
+$RESET_SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
+$SETTINGS_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
+$SETTINGS_RESULTMESSAGE_BACKPANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SETTINGS_OPERATIONRESULT_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
@@ -96,6 +110,11 @@ $MAIN_APP_PANEL.SuspendLayout()
 $TITLE_APPTAB_PANEL.SuspendLayout()
 $MAIN_APPMOD_PANEL.SuspendLayout()
 $TITLE_APPMOD_PANEL.SuspendLayout()
+$TOOLS_TAB.SuspendLayout()
+$MODS_TAB.SuspendLayout()
+$SETTINGS_TAB.SuspendLayout()
+$SETTINGS_PERMABUTTON_BACKPANEL.SuspendLayout()
+$SETTINGS_RESULTMESSAGE_BACKPANEL.SuspendLayout()
 $MAIN_FORM.SuspendLayout()
 #
 #SIDE_PANNEL
@@ -115,7 +134,6 @@ $SIDE_PANNEL.Controls.Add($BOARD_LABEL)
 $SIDE_PANNEL.Controls.Add($PC_CPU_NAME_LABEL)
 $SIDE_PANNEL.Controls.Add($CPU_LABEL)
 $SIDE_PANNEL.Controls.Add($SYSTEMINFO_LINK_LABEL)
-$SIDE_PANNEL.Controls.Add($SETTINGS_BUTTON)
 $SIDE_PANNEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]12,[System.Int32]12))
 $SIDE_PANNEL.Name = [System.String]'SIDE_PANNEL'
 $SIDE_PANNEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]92,[System.Int32]467))
@@ -251,31 +269,13 @@ $SYSTEMINFO_LINK_LABEL.TabIndex = [System.Int32]1
 $SYSTEMINFO_LINK_LABEL.TabStop = $true
 $SYSTEMINFO_LINK_LABEL.Text = [System.String]'System Info:'
 #
-#SETTINGS_BUTTON
-#
-$SETTINGS_BUTTON.BackColor = [System.Drawing.Color]::Silver
-$SETTINGS_BUTTON.FlatAppearance.BorderColor = [System.Drawing.Color]::Silver
-$SETTINGS_BUTTON.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(([System.Int32]([System.Byte][System.Byte]224)),([System.Int32]([System.Byte][System.Byte]224)),([System.Int32]([System.Byte][System.Byte]224)))
-
-$SETTINGS_BUTTON.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(([System.Int32]([System.Byte][System.Byte]224)),([System.Int32]([System.Byte][System.Byte]224)),([System.Int32]([System.Byte][System.Byte]224)))
-
-$SETTINGS_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
-$SETTINGS_BUTTON.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
-$SETTINGS_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]437))
-$SETTINGS_BUTTON.Name = [System.String]'SETTINGS_BUTTON'
-$SETTINGS_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]86,[System.Int32]26))
-$SETTINGS_BUTTON.TabIndex = [System.Int32]0
-$SETTINGS_BUTTON.Text = [System.String]'Settings'
-$SETTINGS_BUTTON.UseVisualStyleBackColor = $false
-$SETTINGS_BUTTON.add_Click($Button1_Click)
-#
 #MAIN_TAB_CONTROL
 #
 $MAIN_TAB_CONTROL.Controls.Add($CONFIG_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($APP_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($TOOLS_TAB)
 $MAIN_TAB_CONTROL.Controls.Add($MODS_TAB)
-$MAIN_TAB_CONTROL.Controls.Add($INFO_TAB)
+$MAIN_TAB_CONTROL.Controls.Add($SETTINGS_TAB)
 $MAIN_TAB_CONTROL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
 $MAIN_TAB_CONTROL.HotTrack = $true
 $MAIN_TAB_CONTROL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]110,[System.Int32]12))
@@ -505,29 +505,101 @@ $TITLE_AVAILAPPSMOD_LABEL.add_Click($TITLE_AVAILMOD_LABEL_Click)
 #TOOLS_TAB
 #
 $TOOLS_TAB.BackColor = [System.Drawing.Color]::Gray
+$TOOLS_TAB.Controls.Add($TEMP_COMINGSOON_TOOLS_LABEL)
 $TOOLS_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $TOOLS_TAB.Name = [System.String]'TOOLS_TAB'
 $TOOLS_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $TOOLS_TAB.TabIndex = [System.Int32]2
 $TOOLS_TAB.Text = [System.String]'Tools'
 #
+#TEMP_COMINGSOON_TOOLS_LABEL
+#
+$TEMP_COMINGSOON_TOOLS_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]14.25,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
+$TEMP_COMINGSOON_TOOLS_LABEL.ForeColor = [System.Drawing.Color]::White
+$TEMP_COMINGSOON_TOOLS_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]110,[System.Int32]120))
+$TEMP_COMINGSOON_TOOLS_LABEL.Name = [System.String]'TEMP_COMINGSOON_TOOLS_LABEL'
+$TEMP_COMINGSOON_TOOLS_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]413,[System.Int32]177))
+$TEMP_COMINGSOON_TOOLS_LABEL.TabIndex = [System.Int32]0
+$TEMP_COMINGSOON_TOOLS_LABEL.Text = [System.String]'Tools Tab Coming Soon...'
+$TEMP_COMINGSOON_TOOLS_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+#
 #MODS_TAB
 #
 $MODS_TAB.BackColor = [System.Drawing.Color]::Gray
+$MODS_TAB.Controls.Add($TEMP_COMINGSOON_MODS_LABEL)
 $MODS_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
 $MODS_TAB.Name = [System.String]'MODS_TAB'
 $MODS_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
 $MODS_TAB.TabIndex = [System.Int32]4
 $MODS_TAB.Text = [System.String]'Mods'
 #
-#INFO_TAB
+#TEMP_COMINGSOON_MODS_LABEL
 #
-$INFO_TAB.BackColor = [System.Drawing.Color]::Gray
-$INFO_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
-$INFO_TAB.Name = [System.String]'INFO_TAB'
-$INFO_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
-$INFO_TAB.TabIndex = [System.Int32]3
-$INFO_TAB.Text = [System.String]'Info'
+$TEMP_COMINGSOON_MODS_LABEL.BackColor = [System.Drawing.Color]::Transparent
+$TEMP_COMINGSOON_MODS_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]14.25))
+$TEMP_COMINGSOON_MODS_LABEL.ForeColor = [System.Drawing.Color]::White
+$TEMP_COMINGSOON_MODS_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]110,[System.Int32]120))
+$TEMP_COMINGSOON_MODS_LABEL.Name = [System.String]'TEMP_COMINGSOON_MODS_LABEL'
+$TEMP_COMINGSOON_MODS_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]413,[System.Int32]177))
+$TEMP_COMINGSOON_MODS_LABEL.TabIndex = [System.Int32]0
+$TEMP_COMINGSOON_MODS_LABEL.Text = [System.String]'Mods Tab Coming Soon...'
+$TEMP_COMINGSOON_MODS_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$TEMP_COMINGSOON_MODS_LABEL.add_Click($Label1_Click)
+#
+#SETTINGS_TAB
+#
+$SETTINGS_TAB.BackColor = [System.Drawing.Color]::Gray
+$SETTINGS_TAB.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SETTINGS_TAB.Controls.Add($SETTINGS_PERMABUTTON_BACKPANEL)
+$SETTINGS_TAB.Controls.Add($SETTINGS_TAB_CONTROL)
+$SETTINGS_TAB.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]4,[System.Int32]24))
+$SETTINGS_TAB.Name = [System.String]'SETTINGS_TAB'
+$SETTINGS_TAB.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]633,[System.Int32]439))
+$SETTINGS_TAB.TabIndex = [System.Int32]3
+$SETTINGS_TAB.Text = [System.String]'Settings'
+#
+#SETTINGS_PERMABUTTON_BACKPANEL
+#
+$SETTINGS_PERMABUTTON_BACKPANEL.BackColor = [System.Drawing.Color]::DarkGray
+$SETTINGS_PERMABUTTON_BACKPANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SETTINGS_PERMABUTTON_BACKPANEL.Controls.Add($SETTINGS_RESULTMESSAGE_BACKPANEL)
+$SETTINGS_PERMABUTTON_BACKPANEL.Controls.Add($SAVE_SETTINGS_BUTTON)
+$SETTINGS_PERMABUTTON_BACKPANEL.Controls.Add($RESET_SETTINGS_BUTTON)
+$SETTINGS_PERMABUTTON_BACKPANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]400))
+$SETTINGS_PERMABUTTON_BACKPANEL.Name = [System.String]'SETTINGS_PERMABUTTON_BACKPANEL'
+$SETTINGS_PERMABUTTON_BACKPANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]621,[System.Int32]31))
+$SETTINGS_PERMABUTTON_BACKPANEL.TabIndex = [System.Int32]1
+#
+#SAVE_SETTINGS_BUTTON
+#
+$SAVE_SETTINGS_BUTTON.BackColor = [System.Drawing.Color]::Silver
+$SAVE_SETTINGS_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
+$SAVE_SETTINGS_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]527,[System.Int32]3))
+$SAVE_SETTINGS_BUTTON.Name = [System.String]'SAVE_SETTINGS_BUTTON'
+$SAVE_SETTINGS_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]89,[System.Int32]23))
+$SAVE_SETTINGS_BUTTON.TabIndex = [System.Int32]1
+$SAVE_SETTINGS_BUTTON.Text = [System.String]'Save'
+$SAVE_SETTINGS_BUTTON.UseVisualStyleBackColor = $false
+#
+#RESET_SETTINGS_BUTTON
+#
+$RESET_SETTINGS_BUTTON.BackColor = [System.Drawing.Color]::Silver
+$RESET_SETTINGS_BUTTON.FlatStyle = [System.Windows.Forms.FlatStyle]::Popup
+$RESET_SETTINGS_BUTTON.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]3,[System.Int32]3))
+$RESET_SETTINGS_BUTTON.Name = [System.String]'RESET_SETTINGS_BUTTON'
+$RESET_SETTINGS_BUTTON.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]89,[System.Int32]23))
+$RESET_SETTINGS_BUTTON.TabIndex = [System.Int32]2
+$RESET_SETTINGS_BUTTON.Text = [System.String]'Reset'
+$RESET_SETTINGS_BUTTON.UseVisualStyleBackColor = $false
+#
+#SETTINGS_TAB_CONTROL
+#
+$SETTINGS_TAB_CONTROL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]6,[System.Int32]7))
+$SETTINGS_TAB_CONTROL.Name = [System.String]'SETTINGS_TAB_CONTROL'
+$SETTINGS_TAB_CONTROL.SelectedIndex = [System.Int32]0
+$SETTINGS_TAB_CONTROL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]621,[System.Int32]388))
+$SETTINGS_TAB_CONTROL.SizeMode = [System.Windows.Forms.TabSizeMode]::Fixed
+$SETTINGS_TAB_CONTROL.TabIndex = [System.Int32]0
 #
 #VERSION_LABEL
 #
@@ -551,6 +623,24 @@ $VERSION_NUMBER_LABEL.Size = (New-Object -TypeName System.Drawing.Size -Argument
 $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
 $VERSION_NUMBER_LABEL.Text = [System.String]'0.0.0'
 $VERSION_NUMBER_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+#
+#SETTINGS_RESULTMESSAGE_BACKPANEL
+#
+$SETTINGS_RESULTMESSAGE_BACKPANEL.BackColor = [System.Drawing.Color]::LightGray
+$SETTINGS_RESULTMESSAGE_BACKPANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Controls.Add($SETTINGS_OPERATIONRESULT_LABEL)
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]98,[System.Int32]3))
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Name = [System.String]'SETTINGS_RESULTMESSAGE_BACKPANEL'
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]423,[System.Int32]23))
+$SETTINGS_RESULTMESSAGE_BACKPANEL.TabIndex = [System.Int32]3
+#
+#SETTINGS_OPERATIONRESULT_LABEL
+#
+$SETTINGS_OPERATIONRESULT_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]-1,[System.Int32]0))
+$SETTINGS_OPERATIONRESULT_LABEL.Name = [System.String]'SETTINGS_OPERATIONRESULT_LABEL'
+$SETTINGS_OPERATIONRESULT_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]423,[System.Int32]21))
+$SETTINGS_OPERATIONRESULT_LABEL.TabIndex = [System.Int32]13
+$SETTINGS_OPERATIONRESULT_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 #
 #MAIN_FORM
 #
@@ -582,6 +672,11 @@ $MAIN_APP_PANEL.ResumeLayout($false)
 $TITLE_APPTAB_PANEL.ResumeLayout($false)
 $MAIN_APPMOD_PANEL.ResumeLayout($false)
 $TITLE_APPMOD_PANEL.ResumeLayout($false)
+$TOOLS_TAB.ResumeLayout($false)
+$MODS_TAB.ResumeLayout($false)
+$SETTINGS_TAB.ResumeLayout($false)
+$SETTINGS_PERMABUTTON_BACKPANEL.ResumeLayout($false)
+$SETTINGS_RESULTMESSAGE_BACKPANEL.ResumeLayout($false)
 $MAIN_FORM.ResumeLayout($false)
 Add-Member -InputObject $MAIN_FORM -Name SIDE_PANNEL -Value $SIDE_PANNEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name INTERNET_TITLE_LABEL -Value $INTERNET_TITLE_LABEL -MemberType NoteProperty
@@ -597,7 +692,6 @@ Add-Member -InputObject $MAIN_FORM -Name BOARD_LABEL -Value $BOARD_LABEL -Member
 Add-Member -InputObject $MAIN_FORM -Name PC_CPU_NAME_LABEL -Value $PC_CPU_NAME_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CPU_LABEL -Value $CPU_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name SYSTEMINFO_LINK_LABEL -Value $SYSTEMINFO_LINK_LABEL -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name SETTINGS_BUTTON -Value $SETTINGS_BUTTON -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name MAIN_TAB_CONTROL -Value $MAIN_TAB_CONTROL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_TAB -Value $CONFIG_TAB -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name CONFIG_START_BUTTON_PANEL -Value $CONFIG_START_BUTTON_PANEL -MemberType NoteProperty
@@ -620,8 +714,16 @@ Add-Member -InputObject $MAIN_FORM -Name SCROLL_APPMOD_PANEL -Value $SCROLL_APPM
 Add-Member -InputObject $MAIN_FORM -Name TITLE_APPMOD_PANEL -Value $TITLE_APPMOD_PANEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name TITLE_AVAILAPPSMOD_LABEL -Value $TITLE_AVAILAPPSMOD_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name TOOLS_TAB -Value $TOOLS_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TEMP_COMINGSOON_TOOLS_LABEL -Value $TEMP_COMINGSOON_TOOLS_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name MODS_TAB -Value $MODS_TAB -MemberType NoteProperty
-Add-Member -InputObject $MAIN_FORM -Name INFO_TAB -Value $INFO_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name TEMP_COMINGSOON_MODS_LABEL -Value $TEMP_COMINGSOON_MODS_LABEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SETTINGS_TAB -Value $SETTINGS_TAB -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SETTINGS_PERMABUTTON_BACKPANEL -Value $SETTINGS_PERMABUTTON_BACKPANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SETTINGS_RESULTMESSAGE_BACKPANEL -Value $SETTINGS_RESULTMESSAGE_BACKPANEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SETTINGS_OPERATIONRESULT_LABEL -Value $SETTINGS_OPERATIONRESULT_LABEL -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SAVE_SETTINGS_BUTTON -Value $SAVE_SETTINGS_BUTTON -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name RESET_SETTINGS_BUTTON -Value $RESET_SETTINGS_BUTTON -MemberType NoteProperty
+Add-Member -InputObject $MAIN_FORM -Name SETTINGS_TAB_CONTROL -Value $SETTINGS_TAB_CONTROL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_LABEL -Value $VERSION_LABEL -MemberType NoteProperty
 Add-Member -InputObject $MAIN_FORM -Name VERSION_NUMBER_LABEL -Value $VERSION_NUMBER_LABEL -MemberType NoteProperty
 }
