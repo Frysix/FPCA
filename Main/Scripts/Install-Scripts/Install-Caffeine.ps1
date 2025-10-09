@@ -9,19 +9,20 @@ Param(
 $CaffeineWasStarted = $false
 if ($AppSettings.ContainsKey('RunCaffeine') -and ($AppSettings.RunCaffeine -eq 'true' -or $AppSettings.RunCaffeine -eq $true)) {
     if (-not (Test-Path -Path "$ScriptRoot\Assets\Apps\Caffeine\caffeine64.exe")) {
-        New-Item -ItemType Directory -Path "$ScriptRoot\Assets\Apps\" -Force | Out-Null
-        $CaffeineUrl = "https://ftp.frysix.com/public/file/dwvt_denm0if8r8dzh8u6g/caffeine.zip"
-        if (Test-Path -Path "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1") {
-            $InstallerComs = @{}
-            . "$ScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Coms $InstallerComs -Url $CaffeineUrl -OutputFile "$ScriptRoot\Assets\Apps\caffeine.zip" -ChunkNumber 2
-        } else {
-            Invoke-WebRequest -Uri $CaffeineUrl -OutFile "$ScriptRoot\Assets\Apps\caffeine.zip" -UseBasicParsing -ErrorAction SilentlyContinue
+        if (-not (Test-Path -Path "$ScriptRoot\Assets\Apps")) {
+            New-Item -Path "$ScriptRoot\Assets\Apps" -ItemType Directory | Out-Null
         }
-        if (Test-Path -Path "$ScriptRoot\Assets\Apps\caffeine.zip") {
-            Expand-Archive -Path "$ScriptRoot\Assets\Apps\caffeine.zip" -DestinationPath "$ScriptRoot\Assets\Apps" -Force
-            Remove-Item -Path "$ScriptRoot\Assets\Apps\caffeine.zip" -Force -ErrorAction SilentlyContinue
+        if (Test-Path -Path "$ScriptRoot\Scripts\Install-Scripts\File-Installer.ps1") {
+            . "$ScriptRoot\Scripts\Install-Scripts\File-Installer.ps1" -ScriptRoot $ScriptRoot -RefName "CAFFEINE" -OutputPath "$ScriptRoot\Assets\Apps\"
         } else {
-            Write-Host "Failed to download Caffeine application." -ForegroundColor Red
+            Write-Host "File-Installer.ps1 not found, cannot install Caffeine." -ForegroundColor Red
+            return $CaffeineWasStarted
+        }
+        if ($Coms.Status -eq 'Completed') {
+            Write-Host "Caffeine installed successfully." -ForegroundColor Green
+        } else {
+            Write-Host "Failed to install Caffeine." -ForegroundColor Red
+            return $CaffeineWasStarted
         }
     }
     if (Test-Path -Path "$ScriptRoot\Assets\Apps\Caffeine\caffeine64.exe") {

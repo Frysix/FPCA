@@ -90,13 +90,13 @@ $MODS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $TEMP_COMINGSOON_MODS_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $SETTINGS_TAB = (New-Object -TypeName System.Windows.Forms.TabPage)
 $SETTINGS_PERMABUTTON_BACKPANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SETTINGS_RESULTMESSAGE_BACKPANEL = (New-Object -TypeName System.Windows.Forms.Panel)
+$SETTINGS_OPERATIONRESULT_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $SAVE_SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $RESET_SETTINGS_BUTTON = (New-Object -TypeName System.Windows.Forms.Button)
 $SETTINGS_TAB_CONTROL = (New-Object -TypeName System.Windows.Forms.TabControl)
 $VERSION_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $VERSION_NUMBER_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
-$SETTINGS_RESULTMESSAGE_BACKPANEL = (New-Object -TypeName System.Windows.Forms.Panel)
-$SETTINGS_OPERATIONRESULT_LABEL = (New-Object -TypeName System.Windows.Forms.Label)
 $SIDE_PANNEL.SuspendLayout()
 $MAIN_TAB_CONTROL.SuspendLayout()
 $CONFIG_TAB.SuspendLayout()
@@ -570,6 +570,24 @@ $SETTINGS_PERMABUTTON_BACKPANEL.Name = [System.String]'SETTINGS_PERMABUTTON_BACK
 $SETTINGS_PERMABUTTON_BACKPANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]621,[System.Int32]31))
 $SETTINGS_PERMABUTTON_BACKPANEL.TabIndex = [System.Int32]1
 #
+#SETTINGS_RESULTMESSAGE_BACKPANEL
+#
+$SETTINGS_RESULTMESSAGE_BACKPANEL.BackColor = [System.Drawing.Color]::LightGray
+$SETTINGS_RESULTMESSAGE_BACKPANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Controls.Add($SETTINGS_OPERATIONRESULT_LABEL)
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]98,[System.Int32]3))
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Name = [System.String]'SETTINGS_RESULTMESSAGE_BACKPANEL'
+$SETTINGS_RESULTMESSAGE_BACKPANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]423,[System.Int32]23))
+$SETTINGS_RESULTMESSAGE_BACKPANEL.TabIndex = [System.Int32]3
+#
+#SETTINGS_OPERATIONRESULT_LABEL
+#
+$SETTINGS_OPERATIONRESULT_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]-1,[System.Int32]0))
+$SETTINGS_OPERATIONRESULT_LABEL.Name = [System.String]'SETTINGS_OPERATIONRESULT_LABEL'
+$SETTINGS_OPERATIONRESULT_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]423,[System.Int32]21))
+$SETTINGS_OPERATIONRESULT_LABEL.TabIndex = [System.Int32]13
+$SETTINGS_OPERATIONRESULT_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+#
 #SAVE_SETTINGS_BUTTON
 #
 $SAVE_SETTINGS_BUTTON.BackColor = [System.Drawing.Color]::Silver
@@ -605,7 +623,7 @@ $SETTINGS_TAB_CONTROL.TabIndex = [System.Int32]0
 #
 $VERSION_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75,[System.Drawing.FontStyle]::Regular,[System.Drawing.GraphicsUnit]::Point,([System.Byte][System.Byte]0)))
 $VERSION_LABEL.ForeColor = [System.Drawing.Color]::White
-$VERSION_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]673,[System.Int32]8))
+$VERSION_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]634,[System.Int32]8))
 $VERSION_LABEL.Name = [System.String]'VERSION_LABEL'
 $VERSION_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]57,[System.Int32]25))
 $VERSION_LABEL.TabIndex = [System.Int32]3
@@ -617,30 +635,12 @@ $VERSION_LABEL.add_Click($VERSION_LABEL_Click)
 #
 $VERSION_NUMBER_LABEL.Font = (New-Object -TypeName System.Drawing.Font -ArgumentList @([System.String]'Segoe UI',[System.Single]9.75))
 $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::White
-$VERSION_NUMBER_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]722,[System.Int32]8))
+$VERSION_NUMBER_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]684,[System.Int32]8))
 $VERSION_NUMBER_LABEL.Name = [System.String]'VERSION_NUMBER_LABEL'
-$VERSION_NUMBER_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]38,[System.Int32]25))
+$VERSION_NUMBER_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]77,[System.Int32]25))
 $VERSION_NUMBER_LABEL.TabIndex = [System.Int32]0
 $VERSION_NUMBER_LABEL.Text = [System.String]'0.0.0'
 $VERSION_NUMBER_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
-#
-#SETTINGS_RESULTMESSAGE_BACKPANEL
-#
-$SETTINGS_RESULTMESSAGE_BACKPANEL.BackColor = [System.Drawing.Color]::LightGray
-$SETTINGS_RESULTMESSAGE_BACKPANEL.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
-$SETTINGS_RESULTMESSAGE_BACKPANEL.Controls.Add($SETTINGS_OPERATIONRESULT_LABEL)
-$SETTINGS_RESULTMESSAGE_BACKPANEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]98,[System.Int32]3))
-$SETTINGS_RESULTMESSAGE_BACKPANEL.Name = [System.String]'SETTINGS_RESULTMESSAGE_BACKPANEL'
-$SETTINGS_RESULTMESSAGE_BACKPANEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]423,[System.Int32]23))
-$SETTINGS_RESULTMESSAGE_BACKPANEL.TabIndex = [System.Int32]3
-#
-#SETTINGS_OPERATIONRESULT_LABEL
-#
-$SETTINGS_OPERATIONRESULT_LABEL.Location = (New-Object -TypeName System.Drawing.Point -ArgumentList @([System.Int32]-1,[System.Int32]0))
-$SETTINGS_OPERATIONRESULT_LABEL.Name = [System.String]'SETTINGS_OPERATIONRESULT_LABEL'
-$SETTINGS_OPERATIONRESULT_LABEL.Size = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]423,[System.Int32]21))
-$SETTINGS_OPERATIONRESULT_LABEL.TabIndex = [System.Int32]13
-$SETTINGS_OPERATIONRESULT_LABEL.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 #
 #MAIN_FORM
 #

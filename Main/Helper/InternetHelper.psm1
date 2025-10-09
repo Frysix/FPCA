@@ -109,3 +109,58 @@ function Get-HttpFileLength {
 
     Return $FileLength
 }
+
+# Function to resolve redirections 
+function Resolve-RedirectUrl {
+    param (
+        [string]$Url, 
+        [int]$MaxRedirects = 10
+    )
+        
+    $currentUrl = $Url
+    $redirectCount = 0
+        
+    while ($redirectCount -lt $MaxRedirects) {
+        try {
+            # Create HttpClient with redirect handling disabled
+            $handler = New-Object System.Net.Http.HttpClientHandler
+            $handler.AllowAutoRedirect = $false
+            $client = New-Object System.Net.Http.HttpClient($handler)
+                
+            # Send HEAD request to check for redirects
+            $response = $client.SendAsync((New-Object System.Net.Http.HttpRequestMessage([System.Net.Http.HttpMethod]::Head, $currentUrl))).Result
+                
+            if ($response.StatusCode -in @([System.Net.HttpStatusCode]::MovedPermanently, [System.Net.HttpStatusCode]::Found, [System.Net.HttpStatusCode]::SeeOther, [System.Net.HttpStatusCode]::TemporaryRedirect, [System.Net.HttpStatusCode]::PermanentRedirect, 308)) {
+                $location = $response.Headers.Location
+                if ($location) {
+                    if ($location.IsAbsoluteUri) {
+                        $currentUrl = $location.ToString()
+                    } else {
+                        # Handle relative redirects
+                        $baseUri = New-Object System.Uri($currentUrl)
+                        $currentUrl = (New-Object System.Uri($baseUri, $location)).ToString()
+                    }
+                    Write-Host "Redirect $($redirectCount + 1): $currentUrl"
+                    $redirectCount++
+                } else {
+                    break
+                }
+            } else {
+                # No more redirects
+                break
+            }
+                
+            $client.Dispose()
+                
+        } catch {
+            Write-Host "Error resolving redirect: $($_.Exception.Message)"
+            break
+        }
+    }
+        
+    if ($redirectCount -ge $MaxRedirects) {
+        throw "Too many redirects (>$MaxRedirects)"
+    }
+        
+    return $currentUrl
+}

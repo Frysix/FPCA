@@ -203,12 +203,39 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
                 $MainCheckBox.ForeColor = [System.Drawing.Color]::Black
             }
         } else {
-            if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultState') -and $UiHash.ConfigTabDefinitionElements[$category][$config].DefaultState -eq 'true') {
-                $MainCheckBox.Checked = $true
-                $MainCheckBox.ForeColor = [System.Drawing.Color]::Green
+            if ($UiHash.ConfigTabUiGeneratedOnce) {
+                if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultState') -and $UiHash.ConfigTabDefinitionElements[$category][$config].DefaultState -eq 'true') {
+                    $MainCheckBox.Checked = $true
+                    $MainCheckBox.ForeColor = [System.Drawing.Color]::Green
+                } else {
+                    $MainCheckBox.Checked = $false
+                    $MainCheckBox.ForeColor = [System.Drawing.Color]::Black
+                }
             } else {
-                $MainCheckBox.Checked = $false
-                $MainCheckBox.ForeColor = [System.Drawing.Color]::Black
+                if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultState') -and $UiHash.ConfigTabDefinitionElements[$category][$config].DefaultState -match "Setting_") {
+                    $StringParts = $UiHash.ConfigTabDefinitionElements[$category][$config].DefaultState -split "_"
+                    $SettingName = $StringParts[1]  # Get the part after "Setting_"
+                    if ($UiHash.ActiveSettingsValues.ContainsKey($SettingName)) {
+                        if ($UiHash.ActiveSettingsValues[$SettingName] -eq 'true') {
+                            $MainCheckBox.Checked = $true
+                            $MainCheckBox.ForeColor = [System.Drawing.Color]::Green
+                        } else {
+                            $MainCheckBox.Checked = $false
+                            $MainCheckBox.ForeColor = [System.Drawing.Color]::Black
+                        }
+                    } else {
+                        $MainCheckBox.Checked = $false
+                        $MainCheckBox.ForeColor = [System.Drawing.Color]::Black
+                    }
+                } else {
+                    if ($UiHash.ConfigTabDefinitionElements[$category][$config].ContainsKey('DefaultState') -and $UiHash.ConfigTabDefinitionElements[$category][$config].DefaultState -eq 'true') {
+                        $MainCheckBox.Checked = $true
+                        $MainCheckBox.ForeColor = [System.Drawing.Color]::Green
+                    } else {
+                        $MainCheckBox.Checked = $false
+                        $MainCheckBox.ForeColor = [System.Drawing.Color]::Black
+                    }
+                }
             }
         }
 

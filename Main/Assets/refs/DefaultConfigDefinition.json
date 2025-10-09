@@ -311,7 +311,7 @@
             "SELFDELETEONRESTART": {
                 "DisplayName": "Self Delete on Restart",
                 "Description": "Delete the application after a restart",
-                "DefaultState": "true",
+                "DefaultState": "Setting_SelfDeleteTickedOnByDefault",
                 "Type": "CheckBox",
                 "Script": "SelfDeleteOnRestart.ps1",
                 "RequireInternet": "false"

@@ -13,6 +13,12 @@
                 "Type": "ComboBox",
                 "Options": ["Auto", "Disabled", "Prompt"],
                 "Default": "Prompt"
+            },
+            "AlwaysKeepOnTop": {
+                "DisplayName": "Always keep on top",
+                "Description": "Keep the main window always on top of other windows",
+                "Type": "CheckBox",
+                "Default": "false"
             }
         },
         "Update": {
@@ -60,6 +66,18 @@
             "RunCaffeine": {
                 "DisplayName": "Run Caffeine",
                 "Description": "Aquire and Run Caffeine to prevent the system from sleeping during configuration",
+                "Type": "CheckBox",
+                "Default": "true"
+            },
+            "RestartReminderDefaultMins": {
+                "DisplayName": "Restart Reminder Default Minutes",
+                "Description": "Default minutes to remind the user to restart the computer after configuration",
+                "Type": "IntTextBox",
+                "Default": "15"
+            },
+            "SelfDeleteTickedOnByDefault": {
+                "DisplayName": "Self Delete Ticked On By Default",
+                "Description": "Tick the 'Delete on Exit' option by default in the configuration scripts",
                 "Type": "CheckBox",
                 "Default": "true"
             }

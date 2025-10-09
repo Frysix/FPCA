@@ -224,6 +224,7 @@ $Global:ConfigUiHash.PSScriptRoot = $PSScriptroot
 $Global:TaskHash.PSScriptRoot = $PSScriptroot
 $Global:ConfigUiHash.CaffeineWasStarted = $CaffeineWasStarted
 $Global:ConfigUiHash.TaskFormLoaded = $false
+$Global:ConfigUiHash.AlwaysKeepOnTop = $AppSettings.AlwaysKeepOnTop
 $Global:TaskHash.ExitType = "Default"
 $Global:TaskHash.TaskListener = $true
 $Global:ConfigUiHash.ActiveTasks = @{}
@@ -286,6 +287,7 @@ foreach ($task in $SelectedTasks) {
                 TaskDefinition = $Global:TaskHash.TaskDefinitions.Configuration[$category][$task]
             }
             Write-Host "Task '$task' found in category '$category' and selected for execution."
+            Break
         } else {
             Write-Host "Task '$task' not found in category '$category'."
         }    
@@ -372,6 +374,12 @@ $Null = $UiPowershell.AddScript({
         } else {
             $MAIN_CAFFEINE_STATUS_LABEL.Text = "Caffeine: Off"
             $MAIN_CAFFEINE_STATUS_LABEL.ForeColor = [System.Drawing.Color]::Red
+        }
+        # Set the AlwaysOnTop property based on the configuration setting.
+        if ($Global:ConfigUiHash.AlwaysKeepOnTop -eq "true") {
+            $TASK_FORM.TopMost = $true
+        } else {
+            $TASK_FORM.TopMost = $false
         }
         # Start the timer to trigger the Tick event every second.
         $UiTimer.Start()

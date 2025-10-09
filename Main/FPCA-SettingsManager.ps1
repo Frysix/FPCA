@@ -162,10 +162,13 @@ Try {
 
         # General Settings
         $UiHash.ActiveSettingsValues.DeleteOnExit = $ActiveSettings.General.DeleteOnExit
+        $UiHash.ActiveSettingsValues.AlwaysKeepOnTop = $ActiveSettings.General.AlwaysKeepOnTop
 
         # Configuration Settings
         $UiHash.ActiveSettingsValues.RestartAfterConfig = $ActiveSettings.Configuration.RestartAfterConfig
         $UiHash.ActiveSettingsValues.RunCaffeine = $ActiveSettings.Configuration.RunCaffeine
+        $UiHash.ActiveSettingsValues.RestartReminderDefaultMins = Convert-StringToInt -InputString $ActiveSettings.Configuration.RestartReminderDefaultMins
+        $UiHash.ActiveSettingsValues.SelfDeleteTickedOnByDefault = $ActiveSettings.Configuration.SelfDeleteTickedOnByDefault
 
         # Build result hashtable
         $Result.Result = $true

@@ -48,6 +48,7 @@ $Global:MainHash.PSScriptroot = $PSScriptRoot
 $Global:MainHash.ImportButtonMode = "None"
 $Global:MainHash.PreviousTab = $null
 $Global:UiHash.UIClosedFor = ""
+$Global:UiHash.OldAlwaysKeepOnTop = ""
 $Global:UiHash.AppButtonsFlags = @{}
 $Global:UiHash.EnabledMods = @{}
 $Global:UiHash.ActiveSettingsValues = @{}
@@ -63,6 +64,7 @@ $Global:UiHash.ConfigButtonClicked = $false
 $Global:UiHash.PermanentButtonClicked = $false
 $Global:UiHash.LinkLabelClicked = $false
 $Global:UiHash.AppButtonClicked = $false
+$Global:UiHash.ConfigTabUiGeneratedOnce = $false
 $Global:UiHash.ModEnabledAppCheckBoxChanged = $false
 $Global:UiHash.ModEnabledConfigCheckBoxChanged = $false
 $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_PRESENCEFLAG = $false
@@ -196,7 +198,16 @@ $Null = $UiPowershell.AddScript({
                 $Timer.Interval = $Global:UiHash.ActiveSettingsValues.MainUiTimerInterval
                 $Timer.Start()
             }
-            
+            # Check and apply Always on Top setting
+            if ($Global:UiHash.ActiveSettingsValues.AlwaysKeepOnTop -ne $Global:UiHash.OldAlwaysKeepOnTop) {
+                if ($Global:UiHash.ActiveSettingsValues.AlwaysKeepOnTop -eq "true") {
+                    $MAIN_FORM.TopMost = $true
+                } else {
+                    $MAIN_FORM.TopMost = $false
+                }
+                $Global:UiHash.OldAlwaysKeepOnTop = $Global:UiHash.ActiveSettingsValues.AlwaysKeepOnTop
+            }
+
             if ($MAIN_TAB_CONTROL.SelectedTab.Name -eq "CONFIG_TAB") {
 
                 ### CONFIG TAB HANDLING ###
@@ -378,7 +389,7 @@ $Null = $UiPowershell.AddScript({
                             $SCROLL_APPMOD_PANEL.Controls.Add($Global:UiHash.AppTabModUIElements[$mod][$element])
                             }
                         }
-                    $Global:UiHash.REFRESH_APP_MODPANEL = $false
+                        $Global:UiHash.REFRESH_APP_MODPANEL = $false
                     
                     } finally {
                         # Resume layout and trigger a refresh
@@ -446,6 +457,12 @@ $Null = $UiPowershell.AddScript({
                 # Change color of the version label to red to indicate an outdated version.
                 $VERSION_LABEL.ForeColor = [System.Drawing.Color]::Red
                 $VERSION_NUMBER_LABEL.ForeColor = [System.Drawing.Color]::Red
+            }
+            # Apply Always on Top setting from the settings.
+            if ($Global:UiHash.ActiveSettingsValues.AlwaysKeepOnTop -eq "true") {
+                $MAIN_FORM.TopMost = $true
+            } else {
+                $MAIN_FORM.TopMost = $false
             }
             # Set the MainFormLoaded variable to true to indicate that the main form has been loaded.
             # This is used to control the main loop in the script.
@@ -712,8 +729,11 @@ While ($Global:MainHash.MainListener) {
                         Write-Host "Configuration script reported error: $errorMessage" -ForegroundColor Red
                         Show-TopMostMessageBox -Message "Configuration process encountered an error: $errorMessage" -Title "FPCA - Configuration Error" -Icon "Error"
                     } elseif ($ExitData.ContainsKey('Status')) {
+                        Write-Host "DEBUG: Status Exists" -ForegroundColor Yellow
                         if ($ExitData.Status -eq "Success") {
+                            Write-Host "DEBUG: Returned status is Success" -ForegroundColor Green
                             if ($ExitData.ContainsKey('Type')) {
+                                Write-Host "DEBUG: Type Exists: $($ExitData.Type)" -ForegroundColor Yellow
                                 Switch ($ExitData.Type) {
                                     "BIOS" {
                                         if ($ExitData.ContainsKey('Messages')) {
@@ -738,25 +758,207 @@ While ($Global:MainHash.MainListener) {
                                     Break
                                 }
                             }
-                            # If it was a success but no restart/shutdown was required or worked out, fallback to default selected behavior.
-                            Switch ($Global:UiHash.ActiveSettingsValues.RestartAfterConfig) {
-                                "Prompt" {
-                                    $Result = Show-TopMostMessageBox -Message "Configuration completed successfully!`nDo you want to restart now?" -Title "FPCA - Configuration Completed" -Icon "Question" -Buttons "YesNoCancel"
-                                    if ($Result -eq [System.Windows.Forms.DialogResult]::Yes) {
-                                        $Result = Restart-ComputerCustom -Normal -DelaySecs 10 -MaxRestartAttempts 3
-                                        if ($Result.Result) {
-                                            Write-Host "System restart initiated successfully."
-                                            Break
+                            Write-Host "No specific action required. Checking user settings for restart options." -ForegroundColor Cyan
+                            $SelectedRestartSetting = $Global:UiHash.ActiveSettingsValues.RestartAfterConfig
+                            Write-Host "User selected restart option: $SelectedRestartSetting" -ForegroundColor Cyan
+                            if ($SelectedRestartSetting -eq "Prompt") {
+                                # If the user selected "Prompt", create a runspace to run a custom threaded UI for the prompt.
+                                ############ Create a synchronized hashtable to share data between the main thread and the UI thread. ############
+                                $Global:PromptHash = [hashtable]::Synchronized(@{})
+                                $Global:PromptHash.PSScriptRoot = $PSScriptRoot
+                                $Global:PromptHash.DefaultMins = $Global:UiHash.ActiveSettingsValues.RestartReminderDefaultMins
+                                ############ Create the runspace and PowerShell instance to run the prompt UI in a separate thread. ############
+                                ############ This is necessary to prevent the main thread from being blocked by the UI. ########################
+                                $PromptUiRunspace = [runspacefactory]::CreateRunspace()
+                                $PromptUiRunspace.ApartmentState = "STA"
+                                $PromptUiRunspace.ThreadOptions = "ReuseThread"
+                                $PromptUiRunspace.Open()
+                                $PromptUiRunspace.SessionStateProxy.SetVariable('PromptHash',$Global:PromptHash)
+                                $PromptUiPowershell = [powershell]::Create()
+                                $PromptUiPowershell.Runspace = $PromptUiRunspace
+                                # Add the script to create and show the prompt UI.
+                                $null = $PromptUiPowershell.AddScript({
+                                    Add-Type -AssemblyName System.Windows.Forms
+                                    [System.Windows.Forms.Application]::EnableVisualStyles()
+                                    While ($true) {
+                                        # Initialize the ButtonStates hashtable to track button clicks.
+                                        $Global:PromptHash.RestartLaterSelected = $false
+                                        $Global:PromptHash.RestartLaterConfirmed = $false
+                                        $Global:PromptHash.ButtonStates = @{
+                                            "RestartBios" = $false
+                                            "RestartApp" = $false
+                                            "RestartComputer" = $false
+                                            "RestartinWinRE" = $false
+                                            "NoRestart" = $false
+                                            "RestartLater" = $false
+                                            "Confirmed" = $false
+                                            "Canceled" = $false
+                                        }
+                                        # Add the form to the runspace.
+                                        . (Join-Path $Global:PromptHash.PSScriptRoot '\Scripts\UI-Scripts\RestartOptions-ui.ps1')
+                                        # Add event handlers for the buttons to update the ButtonStates in the PromptHash.
+                                        $RESTARTOPTIONS_RESTARTPC_BUTTON.Add_Click({
+                                            if ($Global:PromptHash.ButtonStates.RestartComputer -eq $false) {
+                                                $Global:PromptHash.ButtonStates.RestartComputer = $true
+                                            }
+                                        })
+                                        $RESTARTOPTIONS_RESTARTBIOS_BUTTON.Add_Click({
+                                            if ($Global:PromptHash.ButtonStates.RestartBios -eq $false) {
+                                                $Global:PromptHash.ButtonStates.RestartBios = $true
+                                            }
+                                        })
+                                        $RESTARTOPTIONS_RESTARTRE_BUTTON.Add_Click({
+                                            if ($Global:PromptHash.ButtonStates.RestartinWinRE -eq $false) {
+                                                $Global:PromptHash.ButtonStates.RestartinWinRE = $true
+                                            }
+                                        })
+                                        $RESTARTOPTIONS_RESTARTFPCA_BUTTON.Add_Click({
+                                            if ($Global:PromptHash.ButtonStates.RestartApp -eq $false) {
+                                                $Global:PromptHash.ButtonStates.RestartApp = $true
+                                            }
+                                        })
+                                        $RESTARTOPTIONS_REMINDLATER_BUTTON.Add_Click({
+                                            if ($Global:PromptHash.ButtonStates.RestartLater -eq $false) {
+                                                $Global:PromptHash.ButtonStates.RestartLater = $true
+                                            }
+                                        })
+                                        $RESTARTOPTIONS_NORESTART_BUTTON.Add_Click({
+                                            if ($Global:PromptHash.ButtonStates.NoRestart -eq $false) {
+                                                $Global:PromptHash.ButtonStates.NoRestart = $true
+                                            }
+                                        })
+                                        # Add the form to the hash
+                                        $Global:PromptHash.RESTARTOPTIONS_FORM = $RESTARTOPTIONS_FORM
+                                        # Show the form as a dialog to block the thread until the user makes a selection.
+                                        $RESTARTOPTIONS_FORM.ShowDialog()
+                                        # When the form is closed, check if the RestartLater button was selected.
+                                        if ($Global:PromptHash.RestartLaterSelected) {
+                                            # If it was, show the Remind Later form to get the time input from the user.
+                                            . (Join-Path $Global:PromptHash.PSScriptRoot '\Scripts\UI-Scripts\RemindLater-ui.ps1')
+                                            # Force Textbox to only accept numbers.
+                                            $REMINDER_MINS_INPUT_TEXTBOX.Add_KeyPress({
+                                                if (-not ([char]::IsControl($_.KeyChar) -or [char]::IsDigit($_.KeyChar))) {
+                                                    $_.Handled = $true
+                                                }
+                                            })
+                                            # Estimated time at which the restart will occur.
+                                            $CurrentTime = Get-Date
+                                            $DefaultMinsParsed = 0
+                                            if (-not [int]::TryParse([string]$Global:PromptHash.DefaultMins, [ref]$DefaultMinsParsed)) {
+                                                $DefaultMinsParsed = 15   # fallback default
+                                                $Global:PromptHash.DefaultMins = $DefaultMinsParsed
+                                            }
+                                            $EstimatedTime = $CurrentTime.AddMinutes($DefaultMinsParsed)
+                                            $REMINDER_ESTIMATEDTIME_LABEL.Text = "Reminder scheduled for: $($EstimatedTime.ToString('HH:mm'))"
+
+                                            # Live update when user changes minutes
+                                            $REMINDER_MINS_INPUT_TEXTBOX.Add_TextChanged({
+                                                param($sender,$e)
+                                                $val = $sender.Text.Trim()
+                                                $n = 0
+                                                if ([int]::TryParse($val, [ref]$n)) {
+                                                    if ($n -lt 0) { $n = 0 }
+                                                    if ($n -gt 1440) { $n = 1440 }
+                                                    $Global:PromptHash.DefaultMins = $n
+                                                    $now = Get-Date
+                                                    $REMINDER_ESTIMATEDTIME_LABEL.Text = "Reminder scheduled for: $($now.AddMinutes($n).ToString('HH:mm'))"
+                                                }
+                                            })
+                                            $Global:PromptHash.REMINDER_MINS_INPUT_TEXTBOX = $REMINDER_MINS_INPUT_TEXTBOX
+
+                                            $REMINDER_CONFIRM_BUTTON.Add_Click({
+                                                if ($Global:PromptHash.ButtonStates.Confirmed -eq $false) {
+                                                    $Global:PromptHash.ButtonStates.Confirmed = $true
+                                                }
+                                            })
+                                            $REMINDER_CANCEL_BUTTON.Add_Click({
+                                                if ($Global:PromptHash.ButtonStates.Canceled -eq $false) {
+                                                    $Global:PromptHash.ButtonStates.Canceled = $true
+                                                }
+                                            })
+
+                                            $Global:PromptHash.RESTARTREMINDER_FORM = $RESTARTREMINDER_FORM
+                                            # Show the form as a dialog to block the thread until the user makes a selection.
+                                            $RESTARTREMINDER_FORM.ShowDialog()
+                                            # After the dialog is closed, check if the user confirmed the reminder.
+                                            if ($Global:PromptHash.RestartLaterConfirmed) {
+                                                Break
+                                            }
                                         } else {
-                                            Show-TopMostMessageBox -Message "Failed to restart the computer. Please restart manually." -Title "FPCA - Restart Failed" -Icon "Error"
                                             Break
                                         }
-                                    } elseif ($Result -eq [System.Windows.Forms.DialogResult]::No) {
-                                        # Do nothing, just exit the application.
+                                    }
+                                    ############ End of the UI thread script. ############
+                                    # Exit the thread                                    
+                                })
+                                $null = Register-ObjectEvent -InputObject $PromptUiPowershell -EventName InvocationStateChanged -Action {
+                                    $State = $EventArgs.InvocationStateInfo.State
+                                    if ($State -in 'Completed', 'Failed') {
+                                        $PromptUiPowershell.EndInvoke($PromptUiHandle)
+                                        $PromptUiPowershell.Runspace.Dispose()
+                                    }
+                                }
+                                $PromptUiHandle = $PromptUiPowershell.BeginInvoke()
+                                Write-Host "Runspace for restart prompt UI started." -ForegroundColor Green
+                                # Listen for the user to make a selection in the prompt UI.
+                                While ($true) {
+                                    Start-Sleep -Milliseconds 200
+                                    if ($Global:PromptHash.ButtonStates.RestartBios) {
+                                        $Global:PromptHash.RESTARTOPTIONS_FORM.Close()
+                                        $SelectedRestartSetting = "Restart Bios"
                                         Break
-                                    } elseif ($Result -eq [System.Windows.Forms.DialogResult]::Cancel) {
-                                        # Relaunch the application by starting the Start.bat file with elevated privileges.
-                                        Start-Process -FilePath "$PSScriptRoot\Start.bat" -WindowStyle Hidden -Verb RunAs
+                                    } elseif ($Global:PromptHash.ButtonStates.RestartApp) {
+                                        $Global:PromptHash.RESTARTOPTIONS_FORM.Close()
+                                        $SelectedRestartSetting = "Restart App"
+                                        Break
+                                    } elseif ($Global:PromptHash.ButtonStates.RestartComputer) {
+                                        $Global:PromptHash.RESTARTOPTIONS_FORM.Close()
+                                        $SelectedRestartSetting = "Restart Computer"
+                                        Break
+                                    } elseif ($Global:PromptHash.ButtonStates.RestartinWinRE) {
+                                        $Global:PromptHash.RESTARTOPTIONS_FORM.Close()
+                                        $SelectedRestartSetting = "Restart in WinRE"
+                                        Break
+                                    } elseif ($Global:PromptHash.ButtonStates.NoRestart) {
+                                        $Global:PromptHash.RESTARTOPTIONS_FORM.Close()
+                                        $SelectedRestartSetting = "No Restart"
+                                        Break
+                                    } elseif ($Global:PromptHash.ButtonStates.RestartLater) {
+                                        $Global:PromptHash.RestartLaterSelected = $true
+                                        $Global:PromptHash.RESTARTOPTIONS_FORM.Close()
+                                        # Second listen loop for the Remind Later form.
+                                        $OldEstimatedMins = $Global:PromptHash.DefaultMins
+                                        While ($true) {
+                                            Start-Sleep -Milliseconds 200
+                                            if ($Global:PromptHash.ButtonStates.Confirmed) {
+                                                if ($Global:PromptHash.REMINDER_MINS_INPUT_TEXTBOX.Text -ne "") {
+                                                    $SelectedRestartSetting = "Restart Later"
+                                                    $Global:PromptHash.SelectedMins = Convert-StringToInt -InputString $Global:PromptHash.REMINDER_MINS_INPUT_TEXTBOX.Text -Default 15
+                                                    $Global:PromptHash.RestartLaterConfirmed = $true
+                                                    $Global:PromptHash.RESTARTREMINDER_FORM.Close()
+                                                    Break
+                                                }
+                                            } elseif ($Global:PromptHash.ButtonStates.Canceled) {
+                                                $Global:PromptHash.RestartLaterConfirmed = $false
+                                                $Global:PromptHash.RESTARTREMINDER_FORM.Close()
+                                                Break
+                                            }
+                                        }
+                                        if ($Global:PromptHash.RestartLaterConfirmed) {
+                                            Break
+                                        }
+                                    }
+                                }
+                            }
+                            # If it was a success but no restart/shutdown was required or worked out, fallback to default selected behavior.
+                            Switch ($SelectedRestartSetting) {
+                                "Restart Bios" {
+                                    $Result = Restart-ComputerCustom -BIOS -DelaySecs 10 -MaxRestartAttempts 5
+                                    if ($Result.Result) {
+                                        Write-Host "System restart into BIOS initiated successfully."
+                                        Break
+                                    } else {
+                                        Show-TopMostMessageBox -Message "Failed to restart the computer into BIOS. Please restart manually." -Title "FPCA - Restart Failed" -Icon "Error"
                                         Break
                                     }
                                 }
@@ -794,6 +996,13 @@ While ($Global:MainHash.MainListener) {
                                         Show-TopMostMessageBox -Message "Failed to shutdown the computer. Please shutdown manually." -Title "FPCA - Shutdown Failed" -Icon "Error"
                                         Break
                                     }
+                                }
+                                "Restart Later" {
+                                    New-ScheduledRestartReminder -DelayMins $Global:PromptHash.SelectedMins -ScriptPath $PSScriptRoot
+                                    Break
+                                }
+                                "No Restart" {
+                                    Break
                                 }
                             }
                             # If no valid option is selected, just exit the application.

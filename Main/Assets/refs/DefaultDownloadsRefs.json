@@ -1,0 +1,150 @@
+{
+    "Information": {
+
+    },
+    "References": {
+        "CHROME": {
+            "InstallPaths": ["%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe", "%ProgramFiles(x86)%\\Google\\Chrome\\Application\\chrome.exe", "%LocalAppData%\\Google\\Chrome\\Application\\chrome.exe"],
+            "RegistryPaths": ["HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome", "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome", "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"],
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi",
+                        "FileType": "msi"
+                    },
+                    "DL_2": {
+                        "Url": "https://dl.google.com/chrome/install/latest/chrome_installer.exe",
+                        "FileType": "exe"
+                    }
+                }
+            }
+        },
+        "ACROBAT": {
+            "InstallPaths": ["%ProgramFiles%\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe", "%ProgramFiles(x86)%\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe", "%ProgramFiles(x86)%\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe", "%ProgramFiles%\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe", "%ProgramFiles(x86)%\\Adobe\\Reader 11.0\\Reader\\AcroRd32.exe"],
+            "RegistryPaths": ["HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Reader*", "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Reader*", "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Reader*", "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Acrobat*", "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Acrobat*"],
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/misc/AcroRdrDCUpd2300820360.msp",
+                        "FileType": "msi"
+                    }
+                }
+            }
+        },
+        "CAFFEINE": {
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/dwvt_denm0if8r8dzh8u6g/caffeine.zip",
+                        "FileType": "zip",
+                        "SubFolder": "caffeine"
+                    }
+                }
+            }
+        },
+        "FPCA-APP": {
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://fpca-app.frysix.com",
+                        "FileType": "zip",
+                        "SubFolder": "FPCA"
+                    }
+                }
+            }
+        },
+        "OFFICE": {
+            "Versions": {
+                "PRO365": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/t3x2vzchnuooa62z-hbgtw/FRCA_OfficeSetup_O365BusinessRetail.exe",
+                        "FileType": "exe"
+                    },
+                    "DL_2": {
+                        "Url": "https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=O365BusinessRetail&platform=x64&language=fr-ca&version=O16GA",
+                        "FileType": "exe"
+                    }
+                },
+                "HOME365": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/lohscihhskmquitggss2vw/FRCA_OfficeSetup_O365HomePremRetail.exe",
+                        "FileType": "exe"
+                    },
+                    "DL_2": {
+                        "Url": "https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=O365HomePremRetail&platform=x64&language=fr-ca&version=O16GA",
+                        "FileType": "exe"
+                    }
+                },
+                "PRO2024": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/l8uefewgukqrkxa0a9sx_w/FRCA_OfficeSetup_HomeBusiness2024Retail.exe",
+                        "FileType": "exe"
+                    },
+                    "DL_2": {
+                        "Url": "https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=HomeBusiness2024Retail&platform=x64&language=fr-ca&version=O16GA",
+                        "FileType": "exe"
+                    },
+                    "DL_3": {
+                        "Url": "https://ftp.frysix.com/public/file/_wotvuw-tugddvexyuke6a/FRCA_HomeBusiness2024Retail.zip",
+                        "FileType": "zip",
+                        "SubFolder": "HomeBusiness2024Retail"
+                    }
+                },
+                "HOME2024": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/v53mywop30mmfmjji6rpca/FRCA_OfficeSetup_Home2024Retail.exe",
+                        "FileType": "exe"
+                    },
+                    "DL_2": {
+                        "Url": "https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=Home2024Retail&platform=x64&language=fr-ca&version=O16GA",
+                        "FileType": "exe"
+                    },
+                    "DL_3": {
+                        "Url": "https://ftp.frysix.com/public/file/wjbv62l_yuqhyybq7yv2aa/FRCA_Home2024Retail.zip",
+                        "FileType": "zip",
+                        "SubFolder": "Home2024Retail"
+                    }
+                },
+                "PRO2021": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/zdsawofbjucz6rsqvzn29a/FRCA_OfficeSetup_HomeBusiness2021Retail.exe",
+                        "FileType": "exe"
+                    },
+                    "DL_2": {
+                        "Url": "https://c2rsetup.officeapps.live.com/c2r/download.aspx?ProductreleaseID=HomeBusiness2021Retail&platform=x64&language=fr-ca&version=O16GA",
+                        "FileType": "exe"
+                    },
+                    "DL_3": {
+                        "Url": "https://ftp.frysix.com/public/file/7j6gk7u1v4y5z6x8w9e0aa/FRCA_HomeBusiness2021Retail.zip",
+                        "FileType": "zip",
+                        "SubFolder": "HomeBusiness2021Retail"
+                    }
+                },
+                "HOME2021": {
+
+                }
+            }
+        },
+        "MACRIUM": {
+            "Versions": {
+                "8": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/dd_yorpr2e_pwmzbq5qxfg/Macrium%20Reflect%208.exe",
+                        "FileType": "exe"
+                    }
+                }
+            }
+        },
+        "NVIDIA-APP": {
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://fr.download.nvidia.com/nvapp/client/<VERSION>/NVIDIA_app_v<VERSION>.exe",
+                        "FileType": "exe",
+                        "VersionFetchScript": "%ScriptRoot%\\Scripts\\Info-Scripts\\Get-NvidiaAppVersion.ps1"
+                    }
+                }
+            }
+        }
+    }
+}
