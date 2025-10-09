@@ -53,7 +53,6 @@ $Global:UiHash.AppButtonsFlags = @{}
 $Global:UiHash.EnabledMods = @{}
 $Global:UiHash.ActiveSettingsValues = @{}
 $Global:MainHash.SETTINGS_OPERATIONRESULT_LABEL_COUNTER = 0
-$InternetCheckUpdateCounter = 0
 # Initialize bool variable to initial state.
 $Global:UiHash.UIClosedByUser = $false
 $Global:UiHash.StartConfigClosingRunning = $false
@@ -105,6 +104,9 @@ if ($Result.Result) {
 }
 
 $Result = $null
+
+# This ensures the InternetCheckUpdateCounter is initialized from settings and checks instantly on startup
+$InternetCheckUpdateCounter = $Global:UiHash.ActiveSettingsValues.InternetCheckUpdateCounter
 
 # Run the modloader script to parse and enable mods.
 if (Test-Path -Path "$PSScriptRoot\Mod-Loader.ps1") {
@@ -577,6 +579,7 @@ While ($Global:MainHash.MainListener) {
     # If the UI is closed, set the MainListener to false to exit the loop.
     if ($Global:UiHash.UIClosedByUser) {
         # If the UI is closed, break the loop and exit the script.
+        Write-Host "UI closed by user. Exiting application..." -ForegroundColor Yellow
         # Display a message box to inform the user that the application is closing and if they want to delete the application
         $result = [System.Windows.Forms.DialogResult]::No
         if ($Global:UiHash.ActiveSettingsValues.DeleteOnExit -eq "Auto") {
@@ -600,6 +603,7 @@ While ($Global:MainHash.MainListener) {
     # Checks to trigger the UI refresh. On tab opening.
     $Global:MainHash.CurrentTab = $Global:UiHash.MAIN_TAB_CONTROL.SelectedTab.Name
     if ($Global:MainHash.CurrentTab -eq "APP_TAB" -and $Global:MainHash.PreviousTab -ne "APP_TAB") {
+        Write-Host "App Tab opened. Refreshing App Panel and Mod Panel..." -ForegroundColor Cyan
         if ($Global:UiHash.REFRESH_APP_PANEL -eq $false) {
             $Global:UiHash.REFRESH_APP_PANEL = $true
         }
@@ -607,6 +611,7 @@ While ($Global:MainHash.MainListener) {
             $Global:UiHash.REFRESH_APP_MODPANEL = $true
         }
     } elseif ($Global:MainHash.CurrentTab -eq "CONFIG_TAB" -and $Global:MainHash.PreviousTab -ne "CONFIG_TAB") {
+        Write-Host "Config Tab opened. Refreshing Config Panel and Mod Panel..." -ForegroundColor Cyan
         if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
             $Global:UiHash.REFRESH_CONFIG_PANEL = $true
         }
@@ -614,6 +619,7 @@ While ($Global:MainHash.MainListener) {
             $Global:UiHash.REFRESH_CONFIG_MODPANEL = $true
         }
     } elseif ($Global:MainHash.CurrentTab -eq "SETTINGS_TAB" -and $Global:MainHash.PreviousTab -ne "SETTINGS_TAB") {
+        Write-Host "Settings Tab opened. Refreshing Settings Tab..." -ForegroundColor Cyan
         if ($Global:UiHash.REFRESH_SETTINGS_TAB -eq $false) {
             $Global:UiHash.REFRESH_SETTINGS_TAB = $true
         }
@@ -630,11 +636,13 @@ While ($Global:MainHash.MainListener) {
         # If it is, update the InternetConnection property in the MainHash to true.
         # If it is not, update the InternetConnection property in the MainHash to false.
         if (Get-InternetStatus) {
+            Write-Host "Internet connection is available." -ForegroundColor Green
             $Global:MainHash.InternetConnection = $true
             $Global:UiHash.CONNECTION_TITLE_LABEL.Text = "Connected"
             $Global:UiHash.CONNECTION_TITLE_LABEL.ForeColor = [System.Drawing.Color]::Green
             #$Global:UiHash.CONNECTION_STATUS_PICTUREBOX.Image = [System.Drawing.Image]::FromFile("$PSScriptRoot\Assets\img\Internet-Connected.jpg")
         } else {
+            Write-Host "Internet connection is not available." -ForegroundColor Red
             $Global:MainHash.InternetConnection = $false
             $Global:UiHash.CONNECTION_TITLE_LABEL.Text = "Disconnected"
             $Global:UiHash.CONNECTION_TITLE_LABEL.ForeColor = [System.Drawing.Color]::Red
@@ -655,6 +663,8 @@ While ($Global:MainHash.MainListener) {
         if ($Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED) {
             # If it is set, open the System Information window.
             Start-Process -FilePath "msinfo32.exe"
+            # Log the action to the console.
+            Write-Host "System Information link label clicked. Opening System Information window..." -ForegroundColor Yellow
             # Reset the SYSTEMINFO_LINK_LABEL_CLICKED flag to false after processing the link label click.
             $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
         }
@@ -671,6 +681,8 @@ While ($Global:MainHash.MainListener) {
         # UI interaction and event handling.
         # Check if the ButtonClicked flag is set to true in the UiHash.
         if ($Global:UiHash.ConfigButtonClicked) {
+            # Log the button click event to the console.
+            Write-Host "Config Button clicked. Processing..." -ForegroundColor Yellow
             # Reset the ButtonClicked flag to false.
             $Global:UiHash.ConfigButtonClicked = $false
             # Check if the CONFIG_START_BUTTON_CLICKED flag is set to true in the UiHash.
@@ -714,6 +726,8 @@ While ($Global:MainHash.MainListener) {
                     $Global:UiHash.UIClosedFor = "StartConfig"
                     # Close the main form to prevent further interaction.
                     $Global:UiHash.MainForm.Close()
+                    # Log the action to the console.
+                    Write-Host "Starting configuration process with selected tasks: $($selectedTasks -join ', ')" -ForegroundColor Yellow
                     # Launch the configuration script with the selected tasks.
                     . "$PSScriptRoot\FPCA-Config.ps1" -SelectedTasks $selectedTasks -SelectedTasksSettings $configSettings -AppSettings $Global:UiHash.ActiveSettingsValues
 

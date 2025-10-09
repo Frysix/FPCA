@@ -1,7 +1,7 @@
-REM Description: This script sets up the environment for the project and starts the main application.
-REM Usage: Double-click this batch file to start the application.
 @echo off
 setlocal enabledelayedexpansion
+REM Description: This script sets up the environment for the project and starts the main application.
+REM Usage: Double-click this batch file to start the application.
 
 REM Check if the script is running with administrative privileges
 REM If not, create a file to indicate the user is not an admin
