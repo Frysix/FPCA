@@ -31,7 +31,7 @@ Try {
     }
     
     # Disable file sync
-    Set-ItemProperty -Path $policyPath -Name "DisableFileSyncNGSC" -Value 1 -Type DWord
+    Set-ItemProperty -Path $policyPath -Name "DisableFileSyncNGSC" -Value 0 -Type DWord
     Set-ItemProperty -Path $policyPath -Name "DisableFileSync" -Value 1 -Type DWord
     
     # Remove OneDrive from File Explorer sidebar
