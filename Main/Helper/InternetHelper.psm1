@@ -164,3 +164,43 @@ function Resolve-RedirectUrl {
         
     return $currentUrl
 }
+
+
+function Get-WebPageWithLinks {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Url
+    )
+
+    $handler = [System.Net.Http.HttpClientHandler]::new()
+    $handler.AutomaticDecompression = [System.Net.DecompressionMethods]::GZip -bor `
+                                      [System.Net.DecompressionMethods]::Deflate -bor `
+                                      [System.Net.DecompressionMethods]::Brotli
+    $client = [System.Net.Http.HttpClient]::new($handler)
+    $client.DefaultRequestHeaders.UserAgent.ParseAdd('Mozilla/5.0 (Windows NT 10.0; Win64; x64) FPCA/1.0')
+    $client.DefaultRequestHeaders.Accept.ParseAdd('text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
+
+    try {
+        $html = $client.GetStringAsync($Url).GetAwaiter().GetResult()
+    } finally {
+        $client.Dispose(); $handler.Dispose()
+    }
+
+    $baseUri = [System.Uri]::new($Url)
+    $pattern = '<a\b[^>]*?href\s*=\s*["'']([^"'']+)["'']'
+
+    $matches = [System.Text.RegularExpressions.Regex]::Matches(
+        $html, $pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
+    )
+
+    $links = foreach ($m in $matches) {
+        $href = $m.Groups[1].Value.Trim()
+        if ([string]::IsNullOrWhiteSpace($href) -or $href.StartsWith('#')) { continue }
+        try {
+            $u = [System.Uri]::new($baseUri, $href)
+            [pscustomobject]@{ href = $u.AbsoluteUri }
+        } catch { }
+    }
+
+    [pscustomobject]@{ Url = $Url; Html = $html; Links = $links }
+}

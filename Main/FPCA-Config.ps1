@@ -89,6 +89,7 @@ function Start-TaskExecution {
 
     # Start the task distribution process
     $Global:TaskHash.RunspacePool = [runspacefactory]::CreateRunspacePool(1, 4)
+    $Global:TaskHash.RunspacePool.ApartmentState = "MTA"
     $Global:TaskHash.RunspacePool.Open()
     $Global:TaskHash.PowerShellInstances = @{}
     $Global:TaskHash.CommunicationChannel = [hashtable]::Synchronized(@{})
@@ -195,7 +196,7 @@ function Start-TaskExecution {
             }
         }
         # Add the script block to the PowerShell instance
-        $Global:TaskHash.PowerShellInstances[$task].AddScript($ScriptBlock).Add
+        $Global:TaskHash.PowerShellInstances[$task].AddScript($ScriptBlock)
         # Add the parameters to the script block
         $Global:TaskHash.PowerShellInstances[$task].AddParameter('TaskName', $TaskName)
         $Global:TaskHash.PowerShellInstances[$task].AddParameter('TaskHash', $Global:TaskHash)
@@ -344,7 +345,7 @@ $Null = $UiPowershell.AddScript({
     $UiTimer.Add_Tick({
         if ($MAIN_TASKACTIVECOUNT_LABEL.Text -ne $Global:ConfigUiHash.ActiveTasks.Count.ToString()) {
             # Update the active task count label if it has changed.
-            $MAIN_TASKACTIVECOUNT_LABEL.Text = "$($Global:ConfigUiHash.ActiveTasks.Count.ToString()) / $($Global:ConfigUiHash.TotalTasks)"
+            $MAIN_TASKACTIVECOUNT_LABEL.Text = "Tasks Running: $($Global:ConfigUiHash.ActiveTasks.Count.ToString()) / $($Global:ConfigUiHash.TotalTasks)"
         }
 
     })
@@ -355,7 +356,7 @@ $Null = $UiPowershell.AddScript({
         if ($Global:ConfigUiHash.StartTime) {
             $elapsedTime = (Get-Date) - $Global:ConfigUiHash.StartTime
             $timeString = "{0:D2}:{1:D2}:{2:D2}" -f $elapsedTime.Hours, $elapsedTime.Minutes, $elapsedTime.Seconds
-            $MAIN_TASK_ELAPSEDTIMECOUNT_LABEL.Text = $timeString
+            $MAIN_TASK_ELAPSEDTIMECOUNT_LABEL.Text = "Time Elapsed: $timeString"
         }
     })
 
@@ -477,31 +478,86 @@ While ($Global:TaskHash.TaskListener) {
     # Check for running tasks and update their status
     foreach ($taskName in $Global:ConfigUiHash.ActiveTasks.Keys) {
         if ($Global:TaskHash.CommunicationChannel.ContainsKey($taskName)) {
+            # Create a local copy of the task status to avoid threading issues
             $TaskStatus = $Global:TaskHash.CommunicationChannel[$taskName]
-            Write-Host "Task '$taskName' - Status: $($TaskStatus.Status), Progress: $($TaskStatus.Progress)" -ForegroundColor Cyan
-            if ($TaskStatus.Status -eq "Running") {
-                if ($TaskStatus.Progress -gt $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value) {
-                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = $TaskStatus.Progress
+            if ($TaskStatus.ContainsKey("InstallMode") -and $TaskStatus.InstallMode -eq $true) {
+                # if the task is in install mode, update the UI accordingly
+                Write-Host "Install Task '$taskName' - Status: $($TaskStatus.Status), Progress: $($Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value)%" -ForegroundColor Cyan
+                if ($TaskStatus.Status -eq "Initializing") {
+                    if ($TaskStatus.Progress -gt $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value) {
+                        $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = $TaskStatus.Progress
+                    }
+                    if ($TaskStatus.Comment -ne $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text) {
+                        $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Initializing: $($TaskStatus.Comment)"
+                        $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
+                    }
+                } elseif ($TaskStatus.Status -eq "Starting") {
+                    if ($TaskStatus.Comment -ne $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text) {
+                        $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Starting: $($TaskStatus.Comment)"
+                        $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
+                    }
+                } elseif ($TaskStatus.Status -eq "Downloading") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Downloading: $($TaskStatus.DownloadProgress)%"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::BlueViolet
+                    if ($TaskStatus.DownloadIsZip) {
+                        $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = [math]::Round($TaskStatus.DownloadProgress * 0.25)
+                    } else {
+                        $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = [math]::Round($TaskStatus.DownloadProgress * 0.50)
+                    }
+                } elseif ($TaskStatus.Status -eq "Extracting") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Extracting: $($TaskStatus.ExtractProgress)%"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::BlueViolet
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 25 + [math]::Round($TaskStatus.ExtractProgress * 0.25)
+                } elseif ($TaskStatus.Status -eq "Installing") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Installing: $($TaskStatus.InstallProgress)%"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::BlueViolet
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 50 + [math]::Round($TaskStatus.InstallProgress * 0.40)
+                } elseif ($TaskStatus.Status -eq "Verifying") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Verifying: $($TaskStatus.Comment)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Orange
+                } elseif ($TaskStatus.Status -eq "Completed") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Completed: $($TaskStatus.Comment)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Green
+                    $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
+                } elseif ($TaskStatus.Status -eq "Failed" -or $TaskStatus.Status -eq "Error") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 0
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Failed: $($TaskStatus.ErrorMessage)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Red
+                    $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
+                } elseif ($TaskStatus.Status -eq "Warning") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Warning: $($TaskStatus.Comment)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::OrangeRed
+                    $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
                 }
-                if ($TaskStatus.Comment -ne $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text) {
-                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "$($TaskStatus.Comment)"
-                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
+            } else {
+                # if the task is not in install mode, update the UI accordingly
+                Write-Host "Task '$taskName' - Status: $($TaskStatus.Status), Progress: $($TaskStatus.Progress)" -ForegroundColor Cyan
+                if ($TaskStatus.Status -eq "Running") {
+                    if ($TaskStatus.Progress -gt $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value) {
+                        $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = $TaskStatus.Progress
+                    }
+                    if ($TaskStatus.Comment -ne $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text) {
+                        $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "$($TaskStatus.Comment)"
+                        $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
+                    }
+                } elseif ($TaskStatus.Status -eq "Completed") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Completed: $($TaskStatus.Comment)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Green
+                    $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
+                } elseif ($TaskStatus.Status -eq "Failed" -or $TaskStatus.Status -eq "Error") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 0
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Failed: $($TaskStatus.ErrorMessage)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Red
+                    $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
+                } elseif ($TaskStatus.Status -eq "Warning") {
+                    $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Warning: $($TaskStatus.Comment)"
+                    $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::OrangeRed
+                    $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
                 }
-            } elseif ($TaskStatus.Status -eq "Completed") {
-                $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
-                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Completed: $($TaskStatus.Comment)"
-                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Green
-                $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
-            } elseif ($TaskStatus.Status -eq "Failed" -or $TaskStatus.Status -eq "Error") {
-                $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 0
-                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Failed: $($TaskStatus.ErrorMessage)"
-                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Red
-                $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
-            } elseif ($TaskStatus.Status -eq "Warning") {
-                $Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value = 100
-                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Warning: $($TaskStatus.Comment)"
-                $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Orange
-                $Global:TaskHash.CompletedTasks[$taskName] = $TaskStatus
             }
         } else {
             Write-Host "Task '$taskName' not found in communication channel" -ForegroundColor Red
@@ -567,7 +623,7 @@ While ($Global:TaskHash.TaskListener) {
         Stop-AllTaskRunspaces
         $Global:ConfigUiHash.UiTimer.Stop()
         $Global:ConfigUiHash.ElapsedTimer.Stop()
-        $Global:ConfigUiHash.MAIN_TASKACTIVECOUNT_LABEL.Text = "0"
+        $Global:ConfigUiHash.MAIN_TASKACTIVECOUNT_LABEL.Text = "Tasks Running: 0 / $($Global:ConfigUiHash.TotalTasks)"
         $Global:TaskHash.ExitMessages = @()
         # Verify for end of Configuration scripts
         foreach ($taskName in $Global:TaskHash.CompletedTasks.Keys) {

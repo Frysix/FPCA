@@ -17,7 +17,7 @@
                     "CreateShortcut": "false",
                     "RemindDefault": "true"
                 },
-                "Script": "Install-Chrome.ps1",
+                "Script": "Install-ChromeV2.ps1",
                 "RequireInternet": "true"
             },
             "FIREFOX": {
@@ -37,7 +37,7 @@
                     "CreateShortcut": "false",
                     "RemindDefault": "true"
                 },
-                "Script": "Install-Acrobat.ps1",
+                "Script": "Install-AcrobatV2.ps1",
                 "RequireInternet": "true"
             },
             "WINRAR": {
@@ -195,7 +195,7 @@
                 "Description": "Install NVIDIA graphics drivers and software",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-Nvidia.ps1",
+                "Script": "Install-NvidiaApp.ps1",
                 "RequireInternet": "true"
             },
             "AMD": {
@@ -211,7 +211,7 @@
                 "Description": "Install ASUS Driver Hub for ASUS devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-ASUS.ps1",
+                "Script": "Install-AsusDriverHub.ps1",
                 "RequireInternet": "true"
             },
             "MYASUS": {
@@ -280,6 +280,16 @@
                 "Options": ["French", "English"],
                 "DefaultOption": "French",
                 "Script": "QuickAssistToDesktop.ps1",
+                "RequireInternet": "false"
+            },
+            "OUTLOOKNEWTODESKTOP": {
+                "DisplayName": "Outlook New to Desktop",
+                "Description": "Pin the new Outlook app to desktop for easy access",
+                "DefaultState": "true",
+                "Type": "ComboBox",
+                "Options": ["French", "English"],
+                "DefaultOption": "French",
+                "Script": "OutlookNewToDesktop.ps1",
                 "RequireInternet": "false"
             },
             "CHECKWINACTSTATUS": {

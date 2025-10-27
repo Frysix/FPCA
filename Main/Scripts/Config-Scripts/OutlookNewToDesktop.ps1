@@ -9,7 +9,7 @@ Param(
     [hashtable]$TaskSettings
 )
 
-try {
+Try {
 
     $Coms.Status = "Running"
     $Coms.Progress = 10
@@ -19,12 +19,12 @@ try {
     $DesktopPath = [Environment]::GetFolderPath("Desktop")
     $Coms.Comment = "Located desktop path: $DesktopPath. `n`rPlacing icon in AppData folder..."
     $IconCopied = $false
-    if (Test-Path -Path "$ScriptRoot\Assets\img\icons\QuickAssist_Icon.ico") {
-        if (-not (Test-Path -Path "$env:APPDATA\quickassisticon")) {
-            New-Item -ItemType Directory -Path "$env:APPDATA\quickassisticon" -force
+    if (Test-Path -Path "$ScriptRoot\Assets\img\icons\OutlookNew_Icon.ico") {
+        if (-not (Test-Path -Path "$env:APPDATA\outlooknewicon")) {
+            New-Item -ItemType Directory -Path "$env:APPDATA\outlooknewicon" -force
         }
-        Copy-Item -Path "$ScriptRoot\Assets\img\icons\QuickAssist_Icon.ico" -Destination "$env:APPDATA\quickassisticon\QuickAssist_Icon.ico" -Force
-        if (Test-Path -Path "$env:APPDATA\quickassisticon\QuickAssist_Icon.ico") {
+        Copy-Item -Path "$ScriptRoot\Assets\img\icons\OutlookNew_Icon.ico" -Destination "$env:APPDATA\outlooknewicon\OutlookNew_Icon.ico" -Force
+        if (Test-Path -Path "$env:APPDATA\outlooknewicon\OutlookNew_Icon.ico") {
             $Coms.Comment = "Icon file copied to AppData folder."
             $IconCopied = $true
         }
@@ -33,61 +33,65 @@ try {
     }
 
     $Coms.Progress = 30
-    
+
     # Create shortcut on desktop
     if ($TaskSettings.InputCombo -eq "French") {
         $Coms.Comment = "Creating shortcut in french..."
-        $ShortcutPath = Join-Path $DesktopPath "Assistance Rapide.lnk"
-        $ShortcutDescription = "Assistance Rapide - Aidez quelqu'un ou obtenez de l'aide"
+        $ShortcutDescription = "Outlook New - Accédez facilement à vos courriels et calendriers"
     } elseif ($TaskSettings.InputCombo -eq "English") {
         $Coms.Comment = "Creating shortcut in english..."
-        $ShortcutPath = Join-Path $DesktopPath "Quick Assist.lnk"
-        $ShortcutDescription = "Windows Quick Assist - Help someone or get help"
+        $ShortcutDescription = "Outlook New - Easily access your emails and calendars"
     }
+    # Define the shortcut path
+    $ShortcutPath = Join-Path $DesktopPath "Outlook New.lnk"
+
     $Coms.Progress = 50
     $Coms.Comment = "Creating shortcut at path: $ShortcutPath"
+
     # Create WScript.Shell COM object to create shortcut
     $WshShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WshShell.CreateShortcut($ShortcutPath)
 
-    # Use protocol handler for UWP app
+    # Identify the new outlook app id
+    $Apps = Get-StartApps | Where-Object { $_.Name -like "Outlook*" }
+    Foreach ($app in $Apps) {
+        if (-not ($app.Name -match "(classic)")) {
+            $OutlookAppId = $app.AppID
+            Break
+        }
+    }
+
     $Shortcut.TargetPath = "${env:WINDIR}\System32\cmd.exe"
-    $Shortcut.Arguments = "/c start ms-quick-assist:"
+    $Shortcut.Arguments = "/c powershell -ExecutionPolicy ByPass -Command `"Start-Process shell:AppsFolder\$OutlookAppId`""
     $Shortcut.WindowStyle = 7  # Minimized
-    
     $Shortcut.Description = $ShortcutDescription
     if ($IconCopied) {
-        $Shortcut.IconLocation = "$env:APPDATA\quickassisticon\QuickAssist_Icon.ico"
+        $Shortcut.IconLocation = "$env:APPDATA\outlooknewicon\OutlookNew_Icon.ico"
         $Coms.Comment = "Applying custom icon to shortcut."
     } else {
-         # Use default Quick Assist icon if custom icon not copied
-        $Shortcut.IconLocation = "${env:WINDIR}\System32\quickassist.exe,0"
-        $Coms.Comment = "Trying to apply default Quick Assist icon to shortcut."
+        # Use default app icon
+        $Shortcut.IconLocation = "${env:WINDIR}\System32\imageres.dll, -5302"
+        $Coms.Comment = "Applying default Outlook New icon to shortcut."
     }
-    
-    $Coms.Progress = 75
-    $Coms.Comment = "Saving shortcut..."
-    
-    # Save the shortcut
     $Shortcut.Save()
-    
+
     # Release COM object
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($WshShell) | Out-Null
-    
+        
     $Coms.Progress = 90
     $Coms.Comment = "Verifying shortcut..."
-    
+
     # Verify shortcut was created
     if (Test-Path $ShortcutPath) {
-        Write-Host "Quick Assist shortcut successfully created on desktop: $ShortcutPath"
+        Write-Host "Outlook New shortcut successfully created on desktop: $ShortcutPath"
         $Coms.Status = "Completed"
-        $Coms.Comment = "Quick Assist shortcut created successfully."
+        $Coms.Comment = "Outlook New shortcut created successfully."
         $Coms.Progress = 100
         $Coms.EndTime = Get-Date
     } else {
         throw "Failed to create shortcut file"
     }
-} catch {
+} Catch {
     Write-Host "Error creating Quick Assist shortcut: $($_.Exception.Message)" -ForegroundColor Red
     $Coms.Status = "Failed"
     $Coms.Progress = 0

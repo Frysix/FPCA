@@ -141,8 +141,6 @@ Try {
     } elseif ($Remove) {
         # Remove locker logic here
         Write-Host "Removing Locker with name: ${LockName} for Process ID: $ProcessID"
-        If (Test-Path -Path )
-        
     } else {
         Throw "Invalid operation. Use -Create or -Remove."
     }

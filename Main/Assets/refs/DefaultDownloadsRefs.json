@@ -4,8 +4,7 @@
     },
     "References": {
         "CHROME": {
-            "InstallPaths": ["%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe", "%ProgramFiles(x86)%\\Google\\Chrome\\Application\\chrome.exe", "%LocalAppData%\\Google\\Chrome\\Application\\chrome.exe"],
-            "RegistryPaths": ["HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome", "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome", "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Google Chrome"],
+            "DefaultVersion": "latest",
             "Versions": {
                 "latest": {
                     "DL_1": {
@@ -13,25 +12,29 @@
                         "FileType": "msi"
                     },
                     "DL_2": {
-                        "Url": "https://dl.google.com/chrome/install/latest/chrome_installer.exe",
-                        "FileType": "exe"
-                    }
-                }
-            }
-        },
-        "ACROBAT": {
-            "InstallPaths": ["%ProgramFiles%\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe", "%ProgramFiles(x86)%\\Adobe\\Acrobat DC\\Acrobat\\Acrobat.exe", "%ProgramFiles(x86)%\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe", "%ProgramFiles%\\Adobe\\Acrobat Reader DC\\Reader\\AcroRd32.exe", "%ProgramFiles(x86)%\\Adobe\\Reader 11.0\\Reader\\AcroRd32.exe"],
-            "RegistryPaths": ["HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Reader*", "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Reader*", "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Reader*", "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Acrobat*", "HKLM:\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*Adobe*Acrobat*"],
-            "Versions": {
-                "latest": {
-                    "DL_1": {
-                        "Url": "https://ardownload2.adobe.com/pub/adobe/acrobat/win/AcrobatDC/misc/AcroRdrDCUpd2300820360.msp",
+                        "Url": "https://ftp.frysix.com/public/file/o2m-bbmrwe_tjlpmvcdy3q/googlechromestandaloneenterprise64.msi",
                         "FileType": "msi"
                     }
                 }
             }
         },
+        "ACROBAT": {
+            "DefaultVersion": "latest",
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820533/AcroRdrDC2300820533_en_US.exe",
+                        "FileType": "exe"
+                    },
+                    "DL_2": {
+                        "Url": "https://ftp.frysix.com/public/file/yf0kgjfklee-3uenfoyrjq/AcroRdrDC2300820533_en_US.exe",
+                        "FileType": "exe"
+                    }
+                }
+            }
+        },
         "CAFFEINE": {
+            "DefaultVersion": "latest",
             "Versions": {
                 "latest": {
                     "DL_1": {
@@ -43,6 +46,7 @@
             }
         },
         "FPCA-APP": {
+            "DefaultVersion": "latest",
             "Versions": {
                 "latest": {
                     "DL_1": {
@@ -54,6 +58,7 @@
             }
         },
         "OFFICE": {
+            "DefaultVersion": "HOME2024",
             "Versions": {
                 "PRO365": {
                     "DL_1": {
@@ -126,6 +131,7 @@
             }
         },
         "MACRIUM": {
+            "DefaultVersion": "8",
             "Versions": {
                 "8": {
                     "DL_1": {
@@ -136,12 +142,92 @@
             }
         },
         "NVIDIA-APP": {
+            "DefaultVersion": "11.0.5.266",
+            "Versions": {
+                "11.0.5.266": {
+                    "DL_1": {
+                        "Url": "https://fr.download.nvidia.com/nvapp/client/11.0.5.266/NVIDIA_app_v11.0.5.266.exe",
+                        "FileType": "exe"
+                    }
+                }
+            }
+        },
+        "REVO-UNINSTALLER": {
+            "DefaultVersion": "FreePortable",
+            "Versions": {
+                "FreePortable": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/2nyiirktzegyutoj6u6ipa/RevoUninstallerPortable.zip",
+                        "FileType": "zip",
+                        "SubFolder": "RevoUninstallerPortable"
+                    }
+                }
+            }
+        },
+        "TREESIZE": {
+            "DefaultVersion": "FreePortable",
+            "Versions": {
+                "FreePortable": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/sto9lo6k70uqdi9wbwxppw/TreeSizeFreePortable.zip",
+                        "FileType": "zip",
+                        "SubFolder": "TreeSizeFreePortable"
+                    }
+                }
+            }
+        },
+        "HDSENTINEL": {
+            "DefaultVersion": "ProPortable",
+            "Versions": {
+                "ProPortable": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/cym0nhp6ikq_ihpj8xxsdw/HDSentinelPro_Portable.zip",
+                        "FileType": "zip",
+                        "SubFolder": "HDSentinelProPortable"
+                    }
+                }
+            }
+        },
+        "FIREFOX": {
+            "DefaultVersion": "latest",
             "Versions": {
                 "latest": {
                     "DL_1": {
-                        "Url": "https://fr.download.nvidia.com/nvapp/client/<VERSION>/NVIDIA_app_v<VERSION>.exe",
-                        "FileType": "exe",
-                        "VersionFetchScript": "%ScriptRoot%\\Scripts\\Info-Scripts\\Get-NvidiaAppVersion.ps1"
+                        "Url": "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=fr",
+                        "FileType": "exe"
+                    }
+                }
+            }
+        },
+        "ASUSDRIVERHUB": {
+            "DefaultVersion": "latest",
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://driverhub.asus.com/download/ASUS-DriverHub-Installer.exe",
+                        "FileType": "exe"
+                    }
+                }
+            }
+        },
+        "MSICENTER": {
+            "DefaultVersion": "latest",
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://download.msi.com/uti_exe/desktop/MSI-Center.zip",
+                        "FileType": "zip"
+                    }
+                }
+            }
+        },
+        "HPSUPPORTASSISTANT": {
+            "DefaultVersion": "163238",
+            "Versions": {
+                "163238": {
+                    "DL_1": {
+                        "Url": "https://ftp.hp.com/pub/softpaq/sp163001-163500/sp163238.exe",
+                        "FileType": "exe"
                     }
                 }
             }

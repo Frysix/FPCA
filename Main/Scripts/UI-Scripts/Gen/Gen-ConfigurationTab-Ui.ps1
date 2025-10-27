@@ -149,13 +149,17 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
 
     # Go over each config in the category
     foreach ($config in $UiHash.ConfigTabDefinitionElements[$category].Keys) {
-
+        # Skip entries that do not have their script available in the folders
+        if (-not (Test-Path -Path "$($UiHash.PSScriptRoot)\$($DefaultConfigDefinition.Information.ScriptFolderPath)\$($UiHash.ConfigTabDefinitionElements[$category][$config].Script)")) {
+            Continue
+        }
+        
         # Reset state tracking variables for each config
         [bool]$ChangedCreateShortcut = $false
         [bool]$ChangedRemindDefault = $false
-
         # Initialize the hashtable for this config
         $UiHash.ConfigTabUIElements.Configs[$config] = @{}
+        $UiHash.ConfigTabUIElements.Configs[$config].SimpleCheckBox = $false
 
         # Create a Title for the config
         $ConfigTitleLabel = New-Object System.Windows.Forms.Label
@@ -244,6 +248,10 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
             "CheckBox" {
                 # No additional controls needed for CheckBox type
                 Write-Host "Simple CheckBox type, no additional controls needed." -ForegroundColor Cyan
+                # Reset simple checkbox flag if the category is install
+                if ($category -ne "Install") {
+                    $UiHash.ConfigTabUIElements.Configs[$config].SimpleCheckBox = $true
+                }
             }
             "TextBox" {
                 # If the maincheckbox is checked, create a TextBox for user input
@@ -290,7 +298,6 @@ foreach ($category in $UiHash.ConfigTabDefinitionElements.Keys) {
                 }
             }
         }
-
         # Checks if the category is Install, if so, create additional UI elements
         if ($category -eq "Install" -and $MainCheckBox.Checked) {
             # Create base install checkboxes

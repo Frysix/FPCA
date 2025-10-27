@@ -74,6 +74,7 @@ $Global:UiHash.REFRESH_APP_MODPANEL = $false
 $Global:UiHash.SYSTEMINFO_LINK_LABEL_CLICKED = $false
 $Global:UiHash.CONFIG_START_BUTTON_CLICKED = $false
 $Global:UiHash.REFRESH_CONFIG_PANEL = $false
+$Global:UiHash.REFRESH_CONFIG_PANEL_COLORS = $false
 $Global:UiHash.REFRESH_CUSTOMCONFIG_PANEL = $false
 $Global:UiHash.SAVESETTINGSBUTTON_CLICKED = $false
 $Global:UiHash.RESETSETTINGSBUTTON_CLICKED = $false
@@ -237,18 +238,24 @@ $Null = $UiPowershell.AddScript({
                         # Add individual config elements
                         foreach ($config in $Global:UiHash.ConfigTabUIElements.Configs.Keys) {
                             foreach ($element in $Global:UiHash.ConfigTabUIElements.Configs[$config].Keys) {
-                                if ($element -eq "MainCheckBox" -or $element -eq "CreateShortcutCheckBox" -or $element -eq "RemindDefaultCheckBox") {
-                                $Global:UiHash.ConfigTabUIElements.Configs[$config][$element].Add_CheckedChanged({
-                                    if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
-                                        $Global:UiHash.REFRESH_CONFIG_PANEL = $true
-                                    }
-                                })
-                                
+                                if ($element -eq "MainCheckBox" -and $UiHash.ConfigTabUIElements.Configs[$config].SimpleCheckBox -eq $false) {
+                                    $Global:UiHash.ConfigTabUIElements.Configs[$config][$element].Add_CheckedChanged({
+                                        if ($Global:UiHash.REFRESH_CONFIG_PANEL -eq $false) {
+                                            $Global:UiHash.REFRESH_CONFIG_PANEL = $true
+                                        }
+                                    })
+                                } elseif (($element -eq "CreateShortcutCheckBox") -or ($element -eq "RemindDefaultCheckBox") -or ($element -eq "MainCheckBox" -and $UiHash.ConfigTabUIElements.Configs[$config].SimpleCheckBox -eq $true)) {
+                                    $Global:UiHash.ConfigTabUIElements.Configs[$config][$element].Add_CheckedChanged({
+                                        if ($Global:UiHash.REFRESH_CONFIG_PANEL_COLORS -eq $false) {
+                                            $Global:UiHash.REFRESH_CONFIG_PANEL_COLORS = $true
+                                        }
+                                    })
                                 }
-                            $SCROLL_CONFIG_PANEL.Controls.Add($Global:UiHash.ConfigTabUIElements.Configs[$config][$element])
+                                if ($element -ne "SimpleCheckBox") {
+                                    $SCROLL_CONFIG_PANEL.Controls.Add($Global:UiHash.ConfigTabUIElements.Configs[$config][$element])
+                                }
                             }
                         }
-                        $Global:UiHash.CONFIG_CHECKBOX_CHECKED = $true
                         $Global:UiHash.REFRESH_CONFIG_PANEL = $false
                     
                     } finally {
@@ -259,6 +266,22 @@ $Null = $UiPowershell.AddScript({
                         $Global:UiHash.PendingScrollPosition = $savedScrollPosition
                         $Global:UiHash.RestoreScrollPosition = $true
                     }
+                }
+                if ($Global:UiHash.REFRESH_CONFIG_PANEL_COLORS) {
+                    foreach ($config in $Global:UiHash.ConfigTabUIElements.Configs.Keys) {
+                        foreach ($element in $Global:UiHash.ConfigTabUIElements.Configs[$config].Keys) {
+                            if ($element -eq "MainCheckBox" -or $element -eq "CreateShortcutCheckBox" -or $element -eq "RemindDefaultCheckBox") {
+                                if ($Global:UiHash.ConfigTabUIElements.Configs[$config][$element].Checked) {
+                                    # Change color to enabled color
+                                    $Global:UiHash.ConfigTabUIElements.Configs[$config][$element].ForeColor = [System.Drawing.Color]::Green
+                                } else {
+                                    # Change color to disabled color
+                                    $Global:UiHash.ConfigTabUIElements.Configs[$config][$element].ForeColor = [System.Drawing.Color]::Black
+                                }
+                            }
+                        }
+                    }
+                    $Global:UiHash.REFRESH_CONFIG_PANEL_COLORS = $false
                 }
                 if ($Global:UiHash.REFRESH_CONFIG_MODPANEL) {
                     # Store the current scroll position before refresh

@@ -126,3 +126,88 @@ function Show-TopMostMessageBox {
         }
     }
 }
+
+# Function to create a credentials prompt form
+Function Show-CredentialsPrompt {
+    Param(
+        [Parameter(Mandatory=$false)]
+        [string]$Message = "Please enter the required connection information below:",
+        [Parameter(Mandatory=$false)]
+        [switch]$UseEmail = $false,
+        [Parameter(Mandatory=$false)]
+        [switch]$TopMost = $false
+    )
+    # Enter try block to catch any errors during form creation or display
+    Try {
+        # Get parent folder of the current script
+        $ParentFolder = Split-Path -Parent $PSScriptRoot
+        # Test for the existence of CredentialsPrompt-Ui.ps1 script
+        if (-not (Test-Path -Path "$ParentFolder\Scripts\Ui-Scripts\CredentialsPrompt-Ui.ps1")) {
+            Throw "CredentialsPrompt-Ui.ps1 not found in $ParentFolder\Scripts\Ui-Scripts"
+        }
+        # Create result hashtable as a synchronized hashtable
+        $Result = [hashtable]::Synchronized(@{
+            Status = "Cancelled"
+            ErrorMessage = "User cancelled the operation."
+        })
+        # Import the CredentialsPrompt-Ui.ps1 script
+        . "$ParentFolder\Scripts\Ui-Scripts\CredentialsPrompt-Ui.ps1"
+        # Add actions to the buttons
+        $CREDSPROMPT_CONFIRM_BUTTON.Add_Click({
+            $CONFIRM = $true
+            if ($UseEmail) {
+                if ([string]::IsNullOrWhiteSpace($CREDSPROMPT_USERNAME_TEXTBOX.Text)) {
+                    Show-TopMostMessageBox -Message "Email adress cannot be empty." -Title "Invalid Email" -Icon "Error" -Buttons "OK" -Owner $CREDSPROMPT_FORM -ForceTopMost:$TopMost
+                    $CONFIRM = $false
+                } else {
+                    if ($CREDSPROMPT_USERNAME_TEXTBOX.Text -notmatch '^[^@\s]+@[^@\s]+\.[^@\s]+$') {
+                        Show-TopMostMessageBox -Message "Please enter a valid email address." -Title "Invalid Email" -Icon "Error" -Buttons "OK" -Owner $CREDSPROMPT_FORM -ForceTopMost:$TopMost
+                        $CONFIRM = $false
+                    }
+                }
+            } else {
+                if ([string]::IsNullOrWhiteSpace($CREDSPROMPT_USERNAME_TEXTBOX.Text)) {
+                    Show-TopMostMessageBox -Message "Username cannot be empty." -Title "Invalid Username" -Icon "Error" -Buttons "OK" -Owner $CREDSPROMPT_FORM -ForceTopMost:$TopMost
+                    $CONFIRM = $false
+                }
+            }
+            if ([string]::IsNullOrWhiteSpace($CREDSPROMPT_PASSWORD_TEXTBOX.Text)) {
+                Show-TopMostMessageBox -Message "Password cannot be empty." -Title "Invalid Password" -Icon "Error" -Buttons "OK" -Owner $CREDSPROMPT_FORM -ForceTopMost:$TopMost
+                $CONFIRM = $false
+            }
+            if ($CONFIRM) {
+                $Result.Status = "Success"
+                $Result.Username = $CREDSPROMPT_USERNAME_TEXTBOX.Text
+                $Result.Password = $CREDSPROMPT_PASSWORD_TEXTBOX.Text
+                $Result.ErrorMessage = $null
+                $CREDSPROMPT_FORM.Close()
+            }
+        })
+        $CREDSPROMPT_CANCEL_BUTTON.Add_Click({
+            $CREDSPROMPT_FORM.Close()
+        })
+        # Set custom message label
+        $CREDSPROMPT_CUSTOMTEXT_LABEL.Text = $Message
+        # Adjust username label if using email
+        if ($UseEmail) {
+            $CREDSPROMPT_USERNAME_LABEL.Text = "Email Address:"
+        } else {
+            $CREDSPROMPT_USERNAME_LABEL.Text = "Username:"
+        }
+        # Set form to be topmost if specified
+        if ($TopMost) {
+            $CREDSPROMPT_FORM.TopMost = $true
+        } else {
+            $CREDSPROMPT_FORM.TopMost = $false
+        }
+        # Show the form as a dialog
+        $CREDSPROMPT_FORM.ShowDialog()
+        # Return the result hashtable
+        Return $Result
+    } Catch {
+        Return $Result = @{
+            Status = "Failed"
+            ErrorMessage = "Error: $($_.Exception.Message)"
+        }
+    }
+}

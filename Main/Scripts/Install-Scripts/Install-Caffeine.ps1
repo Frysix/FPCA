@@ -18,7 +18,7 @@ if ($AppSettings.ContainsKey('RunCaffeine') -and ($AppSettings.RunCaffeine -eq '
             Write-Host "File-Installer.ps1 not found, cannot install Caffeine." -ForegroundColor Red
             return $CaffeineWasStarted
         }
-        if ($Coms.Status -eq 'Completed') {
+        if ($ComsChannel.Status -eq 'Download Completed') {
             Write-Host "Caffeine installed successfully." -ForegroundColor Green
         } else {
             Write-Host "Failed to install Caffeine." -ForegroundColor Red
