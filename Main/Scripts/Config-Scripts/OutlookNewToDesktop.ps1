@@ -53,8 +53,10 @@ Try {
     $Shortcut = $WshShell.CreateShortcut($ShortcutPath)
 
     # Identify the new outlook app id
-    $Apps = Get-StartApps | Where-Object { $_.Name -like "Outlook*" }
-    Foreach ($app in $Apps) {
+    $shell = New-Object -ComObject shell.application
+    $apps = $shell.Namespace('shell:AppsFolder').Items()
+    $OlkApps = $apps | Where-Object { $_.Name -match 'Outlook' } | Select-Object Name, @{n='AppID';e={$_.Path}}
+    Foreach ($app in $OlkApps) {
         if (-not ($app.Name -match "(classic)")) {
             $OutlookAppId = $app.AppID
             Break

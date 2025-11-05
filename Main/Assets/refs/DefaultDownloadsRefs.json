@@ -231,6 +231,17 @@
                     }
                 }
             }
+        },
+        "DELLSUPPORTASSIST": {
+            "DefaultVersion": "latest",
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://downloads.dell.com/serviceability/SupportAssistinstaller.exe",
+                        "FileType": "exe"
+                    }
+                }
+            }
         }
     }
 }

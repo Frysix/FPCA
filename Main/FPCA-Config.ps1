@@ -397,7 +397,7 @@ $Null = $UiPowershell.AddScript({
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Value = 0
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Minimum = 0
     $MAIN_TOTALPROGRESS_PROGRESSBAR.Maximum = $ConfigUiHash.ActiveTasks.Count
-    $MAIN_TASKACTIVECOUNT_LABEL.Text = $ConfigUiHash.ActiveTasks.Count.ToString()
+    $MAIN_TASKACTIVECOUNT_LABEL.Text = "Tasks Running: $($Global:ConfigUiHash.ActiveTasks.Count.ToString()) / $($Global:ConfigUiHash.TotalTasks)"
     $Global:ConfigUiHash.MAIN_TASKACTIVECOUNT_LABEL = $MAIN_TASKACTIVECOUNT_LABEL
     $Global:ConfigUiHash.MAIN_TOTALPROGRESS_PROGRESSBAR = $MAIN_TOTALPROGRESS_PROGRESSBAR
     if (Test-Path -Path "$($Global:ConfigUiHash.PSScriptroot)\Assets\img\icons\FPCA_Icon.ico") {
