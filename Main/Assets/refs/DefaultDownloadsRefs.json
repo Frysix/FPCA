@@ -57,6 +57,18 @@
                 }
             }
         },
+        "FPCA-UPDATER": {
+            "DefaultVersion": "latest",
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://fpca-updater.frysix.com",
+                        "FileType": "zip",
+                        "SubFolder": "Updater"
+                    }
+                }
+            }
+        },
         "OFFICE": {
             "DefaultVersion": "HOME2024",
             "Versions": {
@@ -227,6 +239,10 @@
                 "163238": {
                     "DL_1": {
                         "Url": "https://ftp.hp.com/pub/softpaq/sp163001-163500/sp163238.exe",
+                        "FileType": "exe"
+                    },
+                    "DL_2": {
+                        "Url": "https://ftp.frysix.com/public/file/csjpb_mh30yo8jf2digrgw/sp163238.exe",
                         "FileType": "exe"
                     }
                 }

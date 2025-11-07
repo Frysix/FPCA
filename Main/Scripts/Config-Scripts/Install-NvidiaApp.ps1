@@ -107,7 +107,7 @@ Try {
     While ($Installed -eq $false -and $maxTries -gt 0) {
         # Start the installation process
         $Coms.InstallProgress = 0
-        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList '/S' -PassThru -Verb RunAs
+        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "-silent -noreboot -noeula -nofinish -passive" -PassThru -Verb RunAs
         While ($true) {
             # Check if installation was successful
             if ($Coms.InstallProgress -lt 95) {

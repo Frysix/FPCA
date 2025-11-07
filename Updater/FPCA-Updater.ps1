@@ -15,6 +15,7 @@ $Global:UpdaterHash.MainListernerLoop = $false
 $Global:UiHash.ClosedBy = ""
 $Global:UiHash.UpdaterState = "Initializing"
 $Global:UpdaterHash.State = "Initializing"
+$OldLog = ""
 # Define Arrays
 $Global:UiHash.LatestLog = @()
 # Define hashtables
@@ -26,7 +27,6 @@ $Global:UpdaterHash.Versions = @{
     New = ""
     Old = ""
 }
-$OldLog = ""
 # Define Ints
 $Global:UpdaterHash.Progress = 0
 

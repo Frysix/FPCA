@@ -61,7 +61,7 @@
                 "Description": "Install Macrium Reflect backup software",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "Install-Macrium.ps1",
+                "Script": "Install-MacriumReflect.ps1",
                 "RequireInternet": "true"
             },
             "DISCORD": {
@@ -219,7 +219,7 @@
                 "Description": "Install MyASUS application for ASUS devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-MyASUS.ps1",
+                "Script": "Install-MyASUS.ps1",
                 "RequireInternet": "true"
             },
             "MSICENTER": {
@@ -227,7 +227,7 @@
                 "Description": "Install MSI Center application for MSI devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-MSICenter.ps1",
+                "Script": "Install-MSICenter.ps1",
                 "RequireInternet": "true"
             },
             "LENOVOVANTAGE": {
@@ -235,7 +235,7 @@
                 "Description": "Install Lenovo Vantage application for Lenovo devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-LenovoVantage.ps1",
+                "Script": "Install-LenovoVantage.ps1",
                 "RequireInternet": "true"
             },
             "HPSUPPORTASSIST": {
@@ -243,7 +243,7 @@
                 "Description": "Install HP Support Assistant application for HP devices",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-HPSupportAssistant.ps1",
+                "Script": "Install-HPSupportAssistant.ps1",
                 "RequireInternet": "true"
             },
             "ASROCKDRVINST": {
@@ -251,7 +251,15 @@
                 "Description": "Install ASRock Auto Driver Installer for ASRock motherboards",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-ASRock.ps1",
+                "Script": "Install-ASRockAutoDriverInstaller.ps1",
+                "RequireInternet": "true"
+            },
+            "DELLSUPPORTASSIST": {
+                "DisplayName": "Install Dell SupportAssist",
+                "Description": "Install Dell SupportAssist application for Dell devices",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-DellSupportAssist.ps1",
                 "RequireInternet": "true"
             }
         },
