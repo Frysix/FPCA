@@ -78,11 +78,59 @@ Try {
     }
     # Proceed to install HPSupportAssistant
     $maxTries = 3
+    $extracted = $false
+    # Create a temp directory for the extraction
+    $tempDir = Join-Path -Path $Env:TEMP -ChildPath "HPSA_Install"
+    $installerPath = Join-Path -Path $tempDir -ChildPath "InstallHPSA.exe"
+    if (Test-Path -Path $tempDir) {
+        Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    New-Item -Path $tempDir -ItemType Directory | Out-Null
+    While ($extracted -eq $false -and $maxTries -gt 0) {
+        # Start the Extraction process
+        $Coms.InstallProgress = 0
+        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "/s /e /f `"$tempDir`"" -PassThru -Verb RunAs
+        While ($true) {
+            # Check if installation was successful
+            if ($Coms.InstallProgress -lt 45) {
+                $Coms.InstallProgress += 1
+            }
+            $installProcess.Refresh()
+            if ($installProcess.HasExited) {
+                if ($installProcess.ExitCode -eq 0) {
+                    if (Test-Path -Path $installerPath) {
+                        $Coms.InstallProgress = 50
+                        $extracted = $true
+                    } else {
+                        Write-Host "HPSupportAssistant extraction did not produce expected installer. Retrying..."
+                        $maxTries -= 1
+                    }
+                } else {
+                    Write-Host "HPSupportAssistant extraction failed with exit code: $($installProcess.ExitCode). Retrying..."
+                    $maxTries -= 1
+                }
+                Break
+            }
+            # Sleep for a short period before checking again
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    # Clean up the installer file
+    if (Test-Path -Path $ComsChannel.EndFilePath) {
+        Remove-Item -Path $ComsChannel.EndFilePath -Force -ErrorAction SilentlyContinue
+    }
+    # Extraction check after exiting loop
+    if ($extracted -eq $false) {
+        Throw "HPSupportAssistant extraction failed after multiple attempts."
+    }
+    # Proceed to run the extracted installer
+    $maxTries = 3
     $Installed = $false
+    # Second loop to run the extracted installer
     While ($Installed -eq $false -and $maxTries -gt 0) {
         # Start the installation process
-        $Coms.InstallProgress = 0
-        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "/silent" -PassThru -Verb RunAs
+        $Coms.InstallProgress = 50
+        $installProcess = Start-Process -FilePath $installerPath -ArgumentList "/s" -WorkingDirectory $tempDir -PassThru -Verb RunAs
         While ($true) {
             # Check if installation was successful
             if ($Coms.InstallProgress -lt 95) {
@@ -103,9 +151,9 @@ Try {
             Start-Sleep -Milliseconds 500
         }
     }
-    # Clean up the installer file
-    if (Test-Path -Path $ComsChannel.EndFilePath) {
-        Remove-Item -Path $ComsChannel.EndFilePath -Force -ErrorAction SilentlyContinue
+    # Clean up the temp directory
+    if (Test-Path -Path $tempDir) {
+        Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
     }
     # Final check after exiting loop
     if ($Installed) {
@@ -115,6 +163,11 @@ Try {
         Throw "HPSupportAssistant installation failed after multiple attempts."
     }
 } Catch {
+    # Ensure temp directory is cleaned up
+    if (Test-Path -Path "$Env:TEMP\HPSA_Install") {
+        Remove-Item -Path "$Env:TEMP\HPSA_Install" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    # Set error message and status
     $Coms.ErrorMessage = $_.Exception.Message
     $Coms.Status = "Error"
 }
