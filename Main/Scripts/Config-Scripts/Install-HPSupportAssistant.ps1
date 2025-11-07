@@ -97,16 +97,11 @@ Try {
             }
             $installProcess.Refresh()
             if ($installProcess.HasExited) {
-                if ($installProcess.ExitCode -eq 0) {
-                    if (Test-Path -Path $installerPath) {
-                        $Coms.InstallProgress = 50
-                        $extracted = $true
-                    } else {
-                        Write-Host "HPSupportAssistant extraction did not produce expected installer. Retrying..."
-                        $maxTries -= 1
-                    }
+                if (Test-Path -Path $installerPath) {
+                    $Coms.InstallProgress = 50
+                    $extracted = $true
                 } else {
-                    Write-Host "HPSupportAssistant extraction failed with exit code: $($installProcess.ExitCode). Retrying..."
+                    Write-Host "HPSupportAssistant extraction did not produce expected installer. Retrying..."
                     $maxTries -= 1
                 }
                 Break
