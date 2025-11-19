@@ -9,14 +9,23 @@ Param(
     [Parameter(Mandatory=$false)]
     [hashtable]$TaskSettings
 )
-
-# Since this is an installation script, set InstallMode to true in the communication channel
-$Coms.InstallMode = $true
-$nvidiaInstalled = $false
-$Coms.Status = "Starting"
-$Coms.Comment = "Starting Nvidia App installation..."
-
+# First enter try catch block to catch all errors
 Try {
+    # Since this is an installation script, set InstallMode to true in the communication channel. 
+    # Set the mode to waiting to indicate to the config script that the installation is waiting for approval.
+    $Coms.InstallMode = $true
+    $Coms.Status = "Waiting"
+    While ($true) {
+        Start-Sleep -Milliseconds 500
+        if ($Coms.Status -eq "Starting") {
+            Break
+        } elseif ($Coms.Status -ne "Waiting" -and $Coms.Status -ne "Starting") {
+            Throw "Installation of ${TaskName} was cancelled or encountered an error before starting."
+        }
+    }
+    $nvidiaInstalled = $false
+    $Coms.Comment = "Starting Nvidia App installation..."
+
     $arpRoots = @(
         'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
         'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
@@ -107,13 +116,12 @@ Try {
     While ($Installed -eq $false -and $maxTries -gt 0) {
         # Start the installation process
         $Coms.InstallProgress = 0
-        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "-silent -noreboot -noeula -nofinish -passive" -PassThru -Verb RunAs
+        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "-s -noreboot -noeula -nofinish -nosplash" -PassThru -Verb RunAs
         While ($true) {
             # Check if installation was successful
             if ($Coms.InstallProgress -lt 95) {
                 $Coms.InstallProgress += 1
             }
-            $installProcess.Refresh()
             if ($installProcess.HasExited) {
                 if ($installProcess.ExitCode -eq 0) {
                     $Coms.InstallProgress = 100
@@ -134,9 +142,6 @@ Try {
     }
     # Final check after exiting loop
     if ($Installed) {
-        if ($TaskSettings.ContainsKey('RemindDefault') -and $TaskSettings.RemindDefault -eq $true) {
-            $Coms.RemindDefault = $true
-        }
         $Coms.Comment = "Nvidia App installation completed successfully."
         $Coms.Status = "Completed"
     } else {

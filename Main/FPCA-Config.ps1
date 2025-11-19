@@ -474,13 +474,17 @@ While ($Global:TaskHash.TaskListener) {
     Write-Host "=== Debug Info ===" -ForegroundColor Yellow
     Write-Host "Active Tasks: $($Global:ConfigUiHash.ActiveTasks.Keys -join ', ')" -ForegroundColor Yellow
     Write-Host "Communication Channel Tasks: $($Global:TaskHash.CommunicationChannel.Keys -join ', ')" -ForegroundColor Yellow
-    
+
+    # Reset install mode count
+    $InstallModeCount = 0
     # Check for running tasks and update their status
     foreach ($taskName in $Global:ConfigUiHash.ActiveTasks.Keys) {
         if ($Global:TaskHash.CommunicationChannel.ContainsKey($taskName)) {
             # Create a local copy of the task status to avoid threading issues
             $TaskStatus = $Global:TaskHash.CommunicationChannel[$taskName]
             if ($TaskStatus.ContainsKey("InstallMode") -and $TaskStatus.InstallMode -eq $true) {
+                # First update installmode count
+                $InstallModeCount++
                 # if the task is in install mode, update the UI accordingly
                 Write-Host "Install Task '$taskName' - Status: $($TaskStatus.Status), Progress: $($Global:ConfigUiHash.TaskControls[$taskName].ProgressBar.Value)%" -ForegroundColor Cyan
                 if ($TaskStatus.Status -eq "Initializing") {
@@ -490,6 +494,10 @@ While ($Global:TaskHash.TaskListener) {
                     if ($TaskStatus.Comment -ne $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text) {
                         $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text = "Initializing: $($TaskStatus.Comment)"
                         $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
+                    }
+                } elseif ($TaskStatus.Status -eq "Waiting") {
+                    if ($InstallModeCount -lt 2) {
+                        $Global:TaskHash.CommunicationChannel[$taskName].Status = "Starting"
                     }
                 } elseif ($TaskStatus.Status -eq "Starting") {
                     if ($TaskStatus.Comment -ne $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.Text) {

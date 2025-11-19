@@ -10,13 +10,23 @@ Param(
     [Parameter(Mandatory=$false)]
     [hashtable]$TaskSettings
 )
-# Since this is an installation script, set InstallMode to true in the communication channel
-$Coms.InstallMode = $true
-$chromeInstalled = $false
-$Coms.Status = "Starting"
-$Coms.Comment = "Starting Chrome installation..."
-
+# First enter try catch block to catch all errors
 Try {
+    # Since this is an installation script, set InstallMode to true in the communication channel. 
+    # Set the mode to waiting to indicate to the config script that the installation is waiting for approval.
+    $Coms.InstallMode = $true
+    $Coms.Status = "Waiting"
+    While ($true) {
+        Start-Sleep -Milliseconds 500
+        if ($Coms.Status -eq "Starting") {
+            Break
+        } elseif ($Coms.Status -ne "Waiting" -and $Coms.Status -ne "Starting") {
+            Throw "Installation of ${TaskName} was cancelled or encountered an error before starting."
+        }
+    }
+    $chromeInstalled = $false
+    $Coms.Comment = "Starting Chrome installation..."
+
     $chromePaths = @(
         "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
         "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe",
