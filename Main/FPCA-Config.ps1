@@ -496,7 +496,7 @@ While ($Global:TaskHash.TaskListener) {
                         $Global:ConfigUiHash.TaskControls[$taskName].StatusLabel.ForeColor = [System.Drawing.Color]::Blue
                     }
                 } elseif ($TaskStatus.Status -eq "Waiting") {
-                    if ($InstallModeCount -lt 2) {
+                    if ($InstallModeCount -le 2) {
                         $Global:TaskHash.CommunicationChannel[$taskName].Status = "Starting"
                     }
                 } elseif ($TaskStatus.Status -eq "Starting") {

@@ -253,7 +253,7 @@
             "Versions": {
                 "latest": {
                     "DL_1": {
-                        "Url": "https://downloads.dell.com/serviceability/SupportAssistinstaller.exe",
+                        "Url": "https://downloads.dell.com/serviceability/catalog/SupportAssistinstaller.exe",
                         "FileType": "exe"
                     }
                 }
