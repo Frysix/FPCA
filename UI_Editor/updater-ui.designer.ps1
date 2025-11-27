@@ -153,6 +153,7 @@ $UPDATER_MAIN_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -Argum
 $UPDATER_MAIN_FORM.Controls.Add($MAIN_UPDATER_PANEL)
 $UPDATER_MAIN_FORM.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
 $UPDATER_MAIN_FORM.MaximizeBox = $false
+$UPDATER_MAIN_FORM.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $UPDATER_MAIN_FORM.Text = [System.String]'Updater - FPCA - (Frysix''s Powershell Configurator App)'
 $MAIN_UPDATER_PANEL.ResumeLayout($false)
 $UPDATER_MAIN_FORM.ResumeLayout($false)

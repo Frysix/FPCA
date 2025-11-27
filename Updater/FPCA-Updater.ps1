@@ -527,7 +527,26 @@ $Null = $UpdaterPowershell.AddScript({
                 if (Test-Path -Path $InstallPath) {
                     # First, stop any potential FPCA processes that might lock files
                     $Global:UpdaterHash.LatestLog += "Stopping any running FPCA processes...`r`n"
-                    Get-Process | Where-Object { $_.ProcessName -like "*FPCA*" -or $_.Path -like "*$InstallPath*" } | Stop-Process -Force -ErrorAction SilentlyContinue
+                    # Check for running FPCA processes using the temp lock file in the old installation path
+                    if (test-path -path "${InstallPath}\Assets\locks\FPCA_Main.lock") {
+                        # Spliting the content to get the process ID only
+                        $FPCAProcessId = (Get-Content -Path "${InstallPath}\Assets\locks\FPCA_Main.lock").Split("=")[1].Trim()
+                        $MatchingProcesses = Get-Process -Id $FPCAProcessId -ErrorAction SilentlyContinue
+                        if ($MatchingProcesses) {
+                            foreach ($proc in $MatchingProcesses) {
+                                try {
+                                    $Global:UpdaterHash.LatestLog += "Stopping process ID $($proc.Id) - $($proc.ProcessName)`r`n"
+                                    $proc.Kill()
+                                    $proc.WaitForExit()
+                                    $Global:UpdaterHash.LatestLog += "Process ID $($proc.Id) stopped successfully`r`n"
+                                } catch {
+                                    # Ignore individual process kill errors
+                                }
+                            }
+                        } else {
+                            $Global:UpdaterHash.LatestLog += "No running FPCA processes found with ID $FPCAProcessId`r`n"
+                        }
+                    }
                     Start-Sleep -Seconds 2
                     
                     # Force unlock any locked files by removing read-only attributes
