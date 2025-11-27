@@ -24,31 +24,25 @@ Try {
         Throw "No Internet Connection / Unstable Connection."
     }
     
-    # Create temp directory
-    if (-not (Test-Path -path "$env:TEMP\FPCA_Temp")) {
-        New-Item -Path "$env:TEMP\FPCA_Temp" -ItemType Directory -Force | Out-Null
+    # Create and remove old temp directory
+    if (Test-Path -path "$env:TEMP\FPCA_Temp") {
+        Remove-Item -Path "$env:TEMP\FPCA_Temp" -Recurse -Force
     }
+    New-Item -Path "$env:TEMP\FPCA_Temp" -ItemType Directory | Out-Null
     
     # Try Method 1: FTP Server with Threaded Installer (if module is available)
     if ($ModuleStatus) {
         Try {
             $DownloadSites.FrysixFTPStatus = Get-HttpWebSiteStatus -Url "https://ftp.frysix.com"
             if ($DownloadSites.FrysixFTPStatus) {
-                if (Test-Path -Path "$PSScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1") {
+                if (Test-Path -Path "$PSScriptRoot\Scripts\Install-Scripts\File-Installer.ps1") {
                     $Coms = [hashtable]::Synchronized(@{})
-                    . "$PSScriptRoot\Scripts\Install-Scripts\Threaded-InstallerV2.ps1" -Coms $Coms -Url "https://fpca-updater.frysix.com" -OutputFile "$env:TEMP\FPCA_Temp\UpdaterPackage" -ChunkNumber 1
-                    
-                    if ($Coms.Status -eq "Completed") {
-                        if (Test-Path -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip") {
-                            Expand-Archive -Path "$env:TEMP\FPCA_Temp\UpdaterPackage.zip" -DestinationPath "$env:TEMP\FPCA_Temp" -Force
-                            if (Test-Path -Path "$env:TEMP\FPCA_Temp\Updater\Start-Updater.bat") {
-                                $WasDownloaded = $true
-                            }
-                        } else {
-                            Throw "Downloaded file not found"
-                        }
+                    . "$PSScriptRoot\Scripts\Install-Scripts\File-Installer.ps1" -ScriptRoot $PSScriptRoot -RefName "FPCA-UPDATER" -ComsChannel $Coms -OutputPath "$env:TEMP\FPCA_Temp\" -TimeoutSeconds 400
+                    # Check the result of the installation
+                    if ($ComsChannel.ContainsKey("ConfigReturn") -and $ComsChannel.ConfigReturn -eq 'Completed') {
+                        $WasDownloaded = $true
                     } else {
-                        Throw "FTP Download failed"
+                        Throw "FPCA Updater download failed: $($ComsChannel.EndMessage)"
                     }
                 } else {
                     Throw "Threaded-InstallerV2.ps1 not found"

@@ -10,11 +10,14 @@ $Global:UpdaterHash.PSScriptRoot = $PSScriptRoot
 # Define Bools
 $Global:UiHash.UiLoaded = $false
 $Global:UiHash.UiClosed = $false
+$Global:UiHash.HasErrorMessage = $false
 $Global:UpdaterHash.MainListernerLoop = $false
 # Define Strings
 $Global:UiHash.ClosedBy = ""
+$Global:UiHash.ErrorMessage = ""
 $Global:UiHash.UpdaterState = "Initializing"
 $Global:UpdaterHash.State = "Initializing"
+$Global:UpdaterHash.ErrorMessage = ""
 $OldLog = ""
 # Define Arrays
 $Global:UiHash.LatestLog = @()
@@ -98,6 +101,11 @@ $Null = $UiPowershell.AddScript({
             $Global:UiHash.UiClosed = $true
         } elseif ($Global:UiHash.ClosedBy -eq "UpdateFailed") {
             # If the update failed, show a message box
+            if ($Global:UiHash.HasErrorMessage) {
+                [System.Windows.Forms.MessageBox]::Show("Update failed with error:`r`n$($Global:UiHash.ErrorMessage)", "FPCA - Update Failed", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+            } else {
+                [System.Windows.Forms.MessageBox]::Show("Update failed with an unknown error.", "FPCA - Update Failed", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+            }
             $Global:UiHash.UiClosed = $true
         } else {
             # If the user cancelled the update, show a message box
@@ -663,6 +671,7 @@ $Null = $UpdaterPowershell.AddScript({
         Start-Sleep -Seconds 3
         $Global:UpdaterHash.State = "Failed"
         $Global:UpdaterHash.LatestLog += "An error ocurred during the updating process: $($_.Exception.Message)`r`n"
+        $Global:UpdaterHash.ErrorMessage = $_.Exception.Message
         Write-Host $($_.Exception.Message) -ForegroundColor Red
         Exit
     }
@@ -734,7 +743,12 @@ While ($Global:UpdaterHash.MainListernerLoop) {
         $Global:UiHash.PROGRESS_NUM_LABEL.Text = "$($Global:UpdaterHash.Progress)%"
         $Global:UiHash.MAIN_UPDATE_PROGRESSBAR.Value = 0
         $Global:UiHash.LIVEINFO_TEXTBOX.Text += "Update failed:`r`n$($Global:UpdaterHash.LatestLog)`r`n"
-        [System.Windows.Forms.MessageBox]::Show("An error occurred during the update process.", "FPCA - Update Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        if ($Global:UpdaterHash.ErrorMessage -ne "" -and $Global:UpdaterHash.ErrorMessage -ne $null) {
+            $Global:UiHash.ErrorMessage = $Global:UpdaterHash.ErrorMessage
+            $Global:UiHash.HasErrorMessage = $true
+        } else {
+            $Global:UiHash.HasErrorMessage = $false
+        }
         $Global:UiHash.ClosedBy = "UpdateFailed"
         $Global:UiHash.TIMER.Stop()
         $Global:UiHash.UPDATER_MAIN_FORM.Close()
