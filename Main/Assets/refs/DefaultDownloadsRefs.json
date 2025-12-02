@@ -260,11 +260,11 @@
             }
         },
         "INTELDSA": {
-            "DefaultVersion": "latest",
+            "DefaultVersion": "FTPVer",
             "Versions": {
-                "latest": {
+                "FTPVer": {
                     "DL_1": {
-                        "Url": "https://dsadata.intel.com/installer",
+                        "Url": "https://ftp.frysix.com/public/file/sfuic0643eomebowqla5sg/Intel-Driver-and-Support-Assistant-Installer.exe",
                         "FileType": "exe"
                     }
                 }

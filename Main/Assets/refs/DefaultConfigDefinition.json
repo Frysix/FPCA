@@ -207,8 +207,8 @@
                 "RequireInternet": "true"
             },
             "INTELDRIVERANDSUPPORT": {
-                "DisplayName": "Install Intel Driver & Support Assistant",
-                "Description": "Install Intel Driver & Support Assistant for Intel drivers and chipsets",
+                "DisplayName": "Install Intel Driver and Support Assistant",
+                "Description": "Install Intel Driver and Support Assistant for Intel drivers and chipsets",
                 "DefaultState": "false",
                 "Type": "CheckBox",
                 "Script": "Install-IntelDriverSupport.ps1",
