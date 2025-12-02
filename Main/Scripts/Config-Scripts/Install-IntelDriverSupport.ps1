@@ -1,4 +1,4 @@
-# Installs Dell SupportAssist application using the File-Installer.ps1 script
+# Install Intel Driver And Support Assistant with File-Installer.ps1
 Param(
     [Parameter(Mandatory=$true)]
     [hashtable]$Coms,
@@ -23,71 +23,58 @@ Try {
             Throw "Installation of ${TaskName} was cancelled or encountered an error before starting."
         }
     }
-    $dellsupportAssistInstalled = $false
-    $Coms.Comment = "Starting Dell SupportAssist installation..."
+    $intelDSAInstalled = $false
+    $Coms.Comment = "Starting Intel Driver & Support Assistant installation..."
 
-    # Check if Dell SupportAssist is already installed via registry
+    # Multiple methods to check if Intel Driver & Support Assistant is already installed
     $arpRoots = @(
         'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
         'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
     )
-    $RegistryResults = Get-ChildItem $arpRoots -ErrorAction SilentlyContinue | Get-ItemProperty | Where-Object { $_.DisplayName -like 'Dell SupportAssist*' } | Select-Object DisplayName, DisplayVersion, InstallLocation, UninstallString
+    $RegistryResults = Get-ChildItem $arpRoots -ErrorAction SilentlyContinue | Get-ItemProperty | Where-Object { $_.DisplayName -like 'Intel Driver & Support Assistant*' } | Select-Object DisplayName, DisplayVersion, InstallLocation, UninstallString
     if ($RegistryResults.Count -gt 0) {
-        $dellsupportAssistInstalled = $true
+        $intelDSAInstalled = $true
     }
-
-    if ($dellsupportAssistInstalled -eq $false) {
+    if ($intelDSAInstalled -eq $false) {
         $lnks = @(
-            "$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Dell SupportAssist\Dell SupportAssist.lnk",
-            "$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Dell SupportAssist.lnk"
+            "$Env:ProgramData\Microsoft\Windows\Start Menu\Programs\Intel Driver & Support Assistant.lnk"
         )
         $StartMenuResults = $lnks | Where-Object { Test-Path $_ }
         if ($StartMenuResults.Count -gt 0) {
-            $dellsupportAssistInstalled = $true
+            $intelDSAInstalled = $true
         }
     }
-
-    if ($dellsupportAssistInstalled -eq $false) {
+    if ($intelDSAInstalled -eq $false) {
         $paths = @(
-            "$Env:ProgramFiles\Dell\SupportAssist\SupportAssist.exe",
-            "$Env:ProgramFiles(x86)\Dell\SupportAssist\SupportAssist.exe"
+            "$Env:ProgramFiles\Intel\Driver and Support Assistant\DSA.exe",
+            "$Env:ProgramFiles(x86)\Intel\Driver and Support Assistant\DSA.exe"
         )
         $FileResults = $paths | Where-Object { Test-Path $_ } | ForEach-Object { Get-Item $_ | Select-Object FullName,@{n='FileVersion';e={$_.VersionInfo.FileVersion}} }
         if ($FileResults.Count -gt 0) {
-            $dellsupportAssistInstalled = $true
+            $intelDSAInstalled = $true
         }
     }
-
-    if ($dellsupportAssistInstalled -eq $false) {
-        $processResults = Get-Process -ErrorAction SilentlyContinue | Where-Object {
-            $_.ProcessName -like 'SupportAssist*' -or ($_.Path -and $_.Path -like '*\Dell\SupportAssist\*')
-        } | Select-Object ProcessName, Path, FileVersion
-        if ($processResults.Count -gt 0) {
-            $dellsupportAssistInstalled = $true
-        }
-    }
-
-    # If Dell SupportAssist is already installed, update status and exit
-    if ($dellsupportAssistInstalled) {
-        $Coms.Comment = "Dell SupportAssist is already installed. Skipping installation."
+    # If already installed, exit the script
+    if ($intelDSAInstalled -eq $true) {
+        $Coms.Comment = "Intel Driver & Support Assistant is already installed. Skipping installation."
         $Coms.Status = "Completed"
         Exit
     }
     # Verify that File-Installer.ps1 exists
     $fileInstallerPath = "$ScriptRoot\Scripts\Install-Scripts\File-Installer.ps1"
     if (-not (Test-Path -Path $fileInstallerPath)) {
-        Throw "File-Installer.ps1 not found, cannot install Dell SupportAssist."
+        Throw "File-Installer.ps1 not found, cannot install Intel Driver & Support Assistant."
     }
-    # Install Dell SupportAssist using File-Installer script
-    . $fileInstallerPath -ScriptRoot $ScriptRoot -RefName "DELLSUPPORTASSIST" -ComsChannel $Coms -TimeoutSeconds 300
+    # Install intel DSA using File-Installer.ps1
+    . $fileInstallerPath -ScriptRoot $ScriptRoot -RefName "INTELDSA" -ComsChannel $Coms -TimeoutSeconds 300
     # Check the result of the installation
     if ($ComsChannel.ContainsKey("ConfigReturn") -and $ComsChannel.ConfigReturn -eq 'Completed') {
-        $Coms.Comment = "Dell SupportAssist download completed successfully."
+        $Coms.Comment = "Intel Driver & Support Assistant download completed successfully."
         $Coms.Status = "Installing"
     } else {
-        Throw "Dell SupportAssist download failed: $($ComsChannel.EndMessage)"
+        Throw "Intel Driver & Support Assistant download failed: $($ComsChannel.EndMessage)"
     }
-    # Proceed to install Dell SupportAssist
+    # Proceed to install Intel DSA
     $maxTries = 3
     $currentTry = 0
     $ErrorCodeLog = @()
@@ -96,7 +83,7 @@ Try {
         # Start the installation process
         $currentTry += 1
         $Coms.InstallProgress = 0
-        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "/silent" -PassThru -Verb RunAs
+        $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "/s" -PassThru -Verb RunAs
         While ($true) {
             # Check if installation was successful
             if ($Coms.InstallProgress -lt 95) {
@@ -108,7 +95,7 @@ Try {
                     $Coms.InstallProgress = 100
                     $Installed = $true
                 } else {
-                    Write-Host "Dell SupportAssist installation failed with exit code: $($installProcess.ExitCode). Retrying..."
+                    Write-Host "Intel Driver & Support Assistant installation failed with exit code: $($installProcess.ExitCode). Retrying..."
                     $ErrorCodeLog += "Try ${currentTry} failed with Exit code: $($installProcess.ExitCode)`n`r"
                     $maxTries -= 1
                 }
@@ -124,10 +111,10 @@ Try {
     }
     # Final check after exiting loop
     if ($Installed) {
-        $Coms.Comment = "Dell SupportAssist installation completed successfully."
+        $Coms.Comment = "Intel Driver & Support Assistant installation completed successfully."
         $Coms.Status = "Completed"
     } else {
-        Throw "Dell SupportAssist installation failed after multiple attempts.`n`r$($ErrorCodeLog -join '')"
+        Throw "Intel Driver & Support Assistant installation failed after multiple attempts.`n`r$($ErrorCodeLog -join '')"
     }
 } Catch {
     $Coms.ErrorMessage = $_.Exception.Message

@@ -112,9 +112,12 @@ Try {
     }
     # Define max tries and delay between tries
     $maxTries = 3
+    $currentTry = 0
+    $ErrorCodeLog = @()
     $Installed = $false
     While ($Installed -eq $false -and $maxTries -gt 0) {
         # Start the installation process
+        $currentTry += 1
         $Coms.InstallProgress = 0
         $installProcess = Start-Process -FilePath $ComsChannel.EndFilePath -ArgumentList "-s -noreboot -noeula -nofinish -nosplash" -PassThru -Verb RunAs
         While ($true) {
@@ -128,6 +131,7 @@ Try {
                     $Installed = $true
                 } else {
                     Write-Host "Nvidia App installation failed with exit code: $($installProcess.ExitCode). Retrying..."
+                    $ErrorCodeLog += "Try ${currentTry} failed with Exit code: $($installProcess.ExitCode)`n`r"
                     $maxTries -= 1
                 }
                 Break
@@ -145,7 +149,7 @@ Try {
         $Coms.Comment = "Nvidia App installation completed successfully."
         $Coms.Status = "Completed"
     } else {
-        Throw "Nvidia App installation failed after multiple attempts."
+        Throw "Nvidia App installation failed after multiple attempts.`n`r$($ErrorCodeLog -join '')"
     }
 } Catch {
     $Coms.ErrorMessage = $_.Exception.Message

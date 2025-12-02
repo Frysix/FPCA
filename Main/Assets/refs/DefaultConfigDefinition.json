@@ -206,6 +206,14 @@
                 "Script": "InstallDriver-AMD.ps1",
                 "RequireInternet": "true"
             },
+            "INTELDRIVERANDSUPPORT": {
+                "DisplayName": "Install Intel Driver & Support Assistant",
+                "Description": "Install Intel Driver & Support Assistant for Intel drivers and chipsets",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "Install-IntelDriverSupport.ps1",
+                "RequireInternet": "true"
+            },
             "ASUSDRVHUB": {
                 "DisplayName": "Install ASUS Driver Hub",
                 "Description": "Install ASUS Driver Hub for ASUS devices",

@@ -92,9 +92,12 @@ Try {
     }
     # Define max tries and delay between tries
     $maxTries = 3
+    $currentTry = 0
+    $ErrorCodeLog = @()
     $Installed = $false
     While ($Installed -eq $false -and $maxTries -gt 0) {
         # Start the installation process
+        $currentTry += 1
         $Coms.InstallProgress = 0
         $installProcess = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$($ComsChannel.EndFilePath)`" /qn /norestart" -PassThru -Verb RunAs
         While ($true) {
@@ -108,7 +111,8 @@ Try {
                     $Coms.InstallProgress = 100
                     $Installed = $true
                 } else {
-                    Write-Host "Acrobat installation failed with exit code: $($installProcess.ExitCode). Retrying..."
+                    Write-Host "Chrome installation failed with exit code: $($installProcess.ExitCode). Retrying..."
+                    $ErrorCodeLog += "Try ${currentTry} failed with Exit code: $($installProcess.ExitCode)`n`r"
                     $maxTries -= 1
                 }
                 Break
@@ -129,7 +133,7 @@ Try {
         $Coms.Comment = "Google Chrome installation completed successfully."
         $Coms.Status = "Completed"
     } else {
-        Throw "Google Chrome installation failed after multiple attempts."
+        Throw "Google Chrome installation failed after multiple attempts.`n`r$($ErrorCodeLog -join '')"
     }
 } Catch {
     $Coms.ErrorMessage = $_.Exception.Message

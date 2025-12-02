@@ -258,6 +258,17 @@
                     }
                 }
             }
+        },
+        "INTELDSA": {
+            "DefaultVersion": "latest",
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "https://dsadata.intel.com/installer",
+                        "FileType": "exe"
+                    }
+                }
+            }
         }
     }
 }

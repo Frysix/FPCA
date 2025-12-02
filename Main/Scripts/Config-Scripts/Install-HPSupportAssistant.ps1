@@ -130,10 +130,13 @@ Try {
     }
     # Proceed to run the extracted installer
     $maxTries = 3
+    $currentTry = 0
+    $ErrorCodeLog = @()
     $Installed = $false
     # Second loop to run the extracted installer
     While ($Installed -eq $false -and $maxTries -gt 0) {
         # Start the installation process
+        $currentTry += 1
         $Coms.InstallProgress = 50
         $installProcess = Start-Process -FilePath $installerPath -ArgumentList "/s" -WorkingDirectory $tempDir -PassThru -Verb RunAs
         While ($true) {
@@ -148,6 +151,7 @@ Try {
                     $Installed = $true
                 } else {
                     Write-Host "HPSupportAssistant installation failed with exit code: $($installProcess.ExitCode). Retrying..."
+                    $ErrorCodeLog += "Try ${currentTry} failed with Exit code: $($installProcess.ExitCode)`n`r"
                     $maxTries -= 1
                 }
                 Break
@@ -165,7 +169,7 @@ Try {
         $Coms.Comment = "HPSupportAssistant installation completed successfully."
         $Coms.Status = "Completed"
     } else {
-        Throw "HPSupportAssistant installation failed after multiple attempts."
+        Throw "HPSupportAssistant installation failed after multiple attempts.`n`r$($ErrorCodeLog -join '')"
     }
 } Catch {
     # Ensure temp directory is cleaned up
