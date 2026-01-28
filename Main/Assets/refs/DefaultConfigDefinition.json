@@ -144,7 +144,7 @@
                 "Description": "Configure FIle Explorer settings",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "Configure-Explorer.ps1",
+                "Script": "Configure-FileExplorer.ps1",
                 "RequireInternet": "false"
             },
             "DISABLEPWEXP": {
@@ -152,7 +152,7 @@
                 "Description": "Disable password expiration for the user account",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "DisablePasswordExpiration.ps1",
+                "Script": "Disable-PasswordExpiration.ps1",
                 "RequireInternet": "false"
             },
             "RENAMEDISK": {
@@ -198,12 +198,12 @@
                 "Script": "Install-NvidiaApp.ps1",
                 "RequireInternet": "true"
             },
-            "AMD": {
+            "AMDADRENALIN": {
                 "DisplayName": "Install AMD Adrenalin",
                 "Description": "Install AMD graphics drivers and software",
                 "DefaultState": "false",
                 "Type": "CheckBox",
-                "Script": "InstallDriver-AMD.ps1",
+                "Script": "Install-AMDAdrenalin.ps1",
                 "RequireInternet": "true"
             },
             "INTELDRIVERANDSUPPORT": {
@@ -277,7 +277,7 @@
                 "Description": "Check if Secure Boot is enabled",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "CheckSecureBoot.ps1",
+                "Script": "Check-SecureBoot.ps1",
                 "RequireInternet": "false"
             },
             "CHECKTPM": {
@@ -285,7 +285,7 @@
                 "Description": "Check if TPM is enabled",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "CheckTPM.ps1",
+                "Script": "Check-TPMStatus.ps1",
                 "RequireInternet": "false"
             },
             "QUICKASSISTTODESKTOP": {
@@ -295,7 +295,7 @@
                 "Type": "ComboBox",
                 "Options": ["French", "English"],
                 "DefaultOption": "French",
-                "Script": "QuickAssistToDesktop.ps1",
+                "Script": "Create-QuickAssistShortcut.ps1",
                 "RequireInternet": "false"
             },
             "OUTLOOKNEWTODESKTOP": {
@@ -305,7 +305,7 @@
                 "Type": "ComboBox",
                 "Options": ["French", "English"],
                 "DefaultOption": "French",
-                "Script": "OutlookNewToDesktop.ps1",
+                "Script": "Create-OutlookNewShortcut.ps1",
                 "RequireInternet": "false"
             },
             "CHECKWINACTSTATUS": {
@@ -313,7 +313,7 @@
                 "Description": "Check if Windows is activated",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "CheckWindowsActivationStatus.ps1",
+                "Script": "Check-WindowsActivationStatus.ps1",
                 "RequireInternet": "false"
             },
             "REMKEYBOARDLAYOUT": {
@@ -331,7 +331,7 @@
                 "Description": "Show common icons like This PC, User Folder and Control Panel on the desktop",
                 "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "Show-CommonDesktopIcons.ps1",
+                "Script": "Create-CommonDesktopShortcuts.ps1",
                 "RequireInternet": "false"
             },
             "SELFDELETEONRESTART": {
@@ -339,7 +339,15 @@
                 "Description": "Delete the application after a restart",
                 "DefaultState": "Setting_SelfDeleteTickedOnByDefault",
                 "Type": "CheckBox",
-                "Script": "SelfDeleteOnRestart.ps1",
+                "Script": "Configure-SelfDeleteOnRestart.ps1",
+                "RequireInternet": "false"
+            },
+            "CONFIGDEMOPC": {
+                "DisplayName": "Configure Demo PC",
+                "Description": "Special configuration to prepare a Demo PC",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "**IGNORE**Configure-DemoPC.ps1",
                 "RequireInternet": "false"
             }
         }

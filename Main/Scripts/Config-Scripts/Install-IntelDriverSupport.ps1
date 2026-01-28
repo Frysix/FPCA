@@ -94,6 +94,11 @@ Try {
                 if ($installProcess.ExitCode -eq 0) {
                     $Coms.InstallProgress = 100
                     $Installed = $true
+                } elseif ($installProcess.ExitCode -eq 1618) {
+                    Write-Host "Another installation is already in progress. Retrying..."
+                    $ErrorCodeLog += "Try ${currentTry} failed with Exit code: $($installProcess.ExitCode)`n`r"
+                    Start-Sleep -Seconds 5
+                    # ** Do not decrement maxTries for this case **
                 } else {
                     Write-Host "Intel Driver & Support Assistant installation failed with exit code: $($installProcess.ExitCode). Retrying..."
                     $ErrorCodeLog += "Try ${currentTry} failed with Exit code: $($installProcess.ExitCode)`n`r"

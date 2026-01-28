@@ -269,6 +269,28 @@
                     }
                 }
             }
+        },
+        "AMDADRENALIN": {
+            "DefaultVersion": "25.11.1",
+            "Versions": {
+                "25.11.1": {
+                    "DL_1": {
+                        "Url": "https://ftp.frysix.com/public/file/ivqpbwagauwq0p8ki72grg/amd-software-adrenalin-edition-25.11.1-minimalsetup-251111_web.exe",
+                        "FileType": "exe"
+                    }
+                }
+            }
+        },
+        "DEMOVIDEO": {
+            "DefaultVersion": "latest",
+            "Versions": {
+                "latest": {
+                    "DL_1": {
+                        "Url": "",
+                        "FileType": "mp4"
+                    }
+                }
+            }
         }
     }
 }

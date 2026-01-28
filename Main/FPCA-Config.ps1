@@ -211,7 +211,6 @@ if (Test-Path -Path "$PSScriptroot\Scripts\Install-Scripts\Install-Caffeine.ps1"
     . "$PSScriptroot\Scripts\Install-Scripts\Install-Caffeine.ps1" -AppSettings $AppSettings -ScriptRoot $PSScriptroot
 }
 
-
 # Define synchronized hashtables for the script
 $Global:ConfigUiHash = [hashtable]::Synchronized(@{})
 $Global:TaskHash = [hashtable]::Synchronized(@{})
@@ -230,11 +229,12 @@ $Global:TaskHash.ExitType = "Default"
 $Global:TaskHash.TaskListener = $true
 $Global:ConfigUiHash.ActiveTasks = @{}
 $Global:ConfigUiHash.StartTime = $null
-$ConfigUiHash.TaskPanelInitialized = $false
+$Global:ConfigUiHash.TaskPanelInitialized = $false
 $Global:ConfigUiHash.ClosedByUser = $false
 $Global:ConfigUiHash.ClosedByError = $false
 $Global:ConfigUiHash.TaskPanelInitialized = $false
 $Global:TaskHash.CompletedTasks = [hashtable]::Synchronized(@{})
+$Global:ConfigUiHash.UiTimerLoopCounter = 0
 
 $Global:TaskHash.TaskDefinitions = Convert-JsonToHashtable -FilePath "$($Global:ConfigUiHash.PSScriptRoot)\Assets\refs\DefaultConfigDefinition.json"
 
@@ -347,7 +347,15 @@ $Null = $UiPowershell.AddScript({
             # Update the active task count label if it has changed.
             $MAIN_TASKACTIVECOUNT_LABEL.Text = "Tasks Running: $($Global:ConfigUiHash.ActiveTasks.Count.ToString()) / $($Global:ConfigUiHash.TotalTasks)"
         }
-
+        # Check counter to refresh Ui Window Size.
+        if ($Global:ConfigUiHash.UiTimerLoopCounter -ge 20) {
+            # Reset the counter and refresh the form size to ensure proper layout.
+            $TASK_FORM.ClientSize = (New-Object -TypeName System.Drawing.Size -ArgumentList @([System.Int32]900,[System.Int32]628))
+            $Global:ConfigUiHash.UiTimerLoopCounter = 0
+        } else {
+            # if less than 20, increment the counter.
+            $Global:ConfigUiHash.UiTimerLoopCounter += 1
+        }
     })
     $ElapsedTimer = New-Object System.Windows.Forms.Timer
     $ElapsedTimer.Interval = 1000 # 1 second
