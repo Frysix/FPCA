@@ -139,6 +139,32 @@ $UpdaterPowershell.Runspace = $UpdaterRunspace
 # Load the main updater script
 $Null = $UpdaterPowershell.AddScript({
     ### UPDATER SCRIPT ###
+    function Close-ExplorerWindows {
+        Param(
+            [Parameter(Mandatory=$true)]
+            [string]$TargetPath
+        )
+        try {
+            $resolvedPath = (Resolve-Path -LiteralPath $TargetPath -ErrorAction Stop).Path.TrimEnd('\')
+            $resolvedLower = $resolvedPath.ToLowerInvariant()
+            $shell = New-Object -ComObject Shell.Application
+            foreach ($window in @($shell.Windows())) {
+                try {
+                    $uri = $window.LocationURL
+                    if ([string]::IsNullOrWhiteSpace($uri)) { continue }
+                    if ($uri -notlike "file:*") { continue }
+                    $path = [Uri]::UnescapeDataString($uri -replace '^file:///', '').Replace('/', '\').TrimEnd('\')
+                    if (-not $path) { continue }
+                    $pathLower = $path.ToLowerInvariant()
+                    if ($pathLower -eq $resolvedLower -or $pathLower.StartsWith("$resolvedLower\\")) {
+                        $window.Quit()
+                    }
+                } catch {
+                }
+            }
+        } catch {
+        }
+    }
     # Wait for the UI to load before starting the updater logic
     $TimeoutCount = 0
     While ($Global:UpdaterHash.MainListernerLoop -eq $false) {
@@ -526,6 +552,7 @@ $Null = $UpdaterPowershell.AddScript({
 
         # Completely delete the old installation with retry logic
         $Global:UpdaterHash.LatestLog += "Completely removing old installation...`r`n"
+        Close-ExplorerWindows -TargetPath $InstallPath
         $maxRetries = 3
         $retryCount = 0
         $deletionSuccess = $false

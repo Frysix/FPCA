@@ -23,14 +23,10 @@
             "Versions": {
                 "latest": {
                     "DL_1": {
-                        "Url": "https://ftp.frysix.com/public/file/rmgzpymd0eak0q5g5w-a6a/Reader_fr_install.exe",
-                        "FileType": "exe"
-                    },
-                    "DL_2": {
                         "Url": "https://ftp.frysix.com/public/file/yf0kgjfklee-3uenfoyrjq/AcroRdrDC2300820533_en_US.exe",
                         "FileType": "exe"
                     },
-                    "DL_3": {
+                    "DL_2": {
                         "Url": "https://ardownload2.adobe.com/pub/adobe/reader/win/AcrobatDC/2300820533/AcroRdrDC2300820533_en_US.exe",
                         "FileType": "exe"
                     }

@@ -334,6 +334,16 @@
                 "Script": "Create-CommonDesktopShortcuts.ps1",
                 "RequireInternet": "false"
             },
+            "CONFIGDEMOPC": {
+                "DisplayName": "Configure Demo PC",
+                "Description": "Special configuration to prepare a Demo PC",
+                "DefaultState": "false",
+                "Type": "CheckBox",
+                "Script": "**IGNORE**Configure-DemoPC.ps1",
+                "RequireInternet": "false"
+            }
+        },
+        "Cleanups": {
             "SELFDELETEONRESTART": {
                 "DisplayName": "Self Delete on Restart",
                 "Description": "Delete the application after a restart",
@@ -342,12 +352,12 @@
                 "Script": "Configure-SelfDeleteOnRestart.ps1",
                 "RequireInternet": "false"
             },
-            "CONFIGDEMOPC": {
-                "DisplayName": "Configure Demo PC",
-                "Description": "Special configuration to prepare a Demo PC",
-                "DefaultState": "false",
+            "CLEANUPBROWSERHISTORY": {
+                "DisplayName": "Cleanup Browser History",
+                "Description": "Clean up browser history and temporary files",
+                "DefaultState": "true",
                 "Type": "CheckBox",
-                "Script": "**IGNORE**Configure-DemoPC.ps1",
+                "Script": "Remove-BrowserHistory.ps1",
                 "RequireInternet": "false"
             }
         }

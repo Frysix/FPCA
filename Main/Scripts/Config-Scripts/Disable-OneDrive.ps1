@@ -29,10 +29,42 @@ Try {
     if (!(Test-Path $policyPath)) {
         New-Item -Path $policyPath -Force | Out-Null
     }
-    
-    # Disable file sync
-    Set-ItemProperty -Path $policyPath -Name "DisableFileSyncNGSC" -Value 0 -Type DWord
-    Set-ItemProperty -Path $policyPath -Name "DisableFileSync" -Value 1 -Type DWord
+
+    # Remove existing OneDrive account bindings so no user stays signed in
+    $Coms.Comment = "Removing OneDrive account associations"
+    $Coms.Progress = 70
+    $accountRoot = "HKCU:\Software\Microsoft\OneDrive"
+    $accountPath = Join-Path $accountRoot "Accounts"
+    if (Test-Path $accountPath) {
+        Remove-Item -Path $accountPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    if (Test-Path $accountRoot) {
+        Remove-ItemProperty -Path $accountRoot -Name "UserFolder" -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path $accountRoot -Name "MountPoint" -ErrorAction SilentlyContinue
+    }
+
+    # Remove OneDrive from startup entries (Task Manager Startup tab)
+    $Coms.Comment = "Removing OneDrive from startup"
+    $Coms.Progress = 80
+    $runKeys = @(
+        "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run",
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
+    )
+    foreach ($runKey in $runKeys) {
+        if (Test-Path $runKey) {
+            Remove-ItemProperty -Path $runKey -Name "OneDrive" -ErrorAction SilentlyContinue
+        }
+    }
+
+    $startupApprovedKeys = @(
+        "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run",
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"
+    )
+    foreach ($startupKey in $startupApprovedKeys) {
+        if (Test-Path $startupKey) {
+            Remove-ItemProperty -Path $startupKey -Name "OneDrive" -ErrorAction SilentlyContinue
+        }
+    }
     
     # Remove OneDrive from File Explorer sidebar
     $namespacePath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"

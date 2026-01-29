@@ -112,7 +112,8 @@ Try {
         "/norestart",      # No restart
         "/quiet",          # Quiet mode
         "EULA_ACCEPT=YES", # Accept EULA
-        "SUPPRESS_APP_LAUNCH=YES" # Don't launch after install
+        "SUPPRESS_APP_LAUNCH=YES", # Don't launch after install
+        "LANG_LIST=French" # Install in French
     )
     # Define max tries and delay between tries
     $maxTries = 3
