@@ -144,7 +144,11 @@ Try {
             if ($Coms.InstallProgress -lt 95) {
                 $Coms.InstallProgress += 1
             }
-            $installProcess.Refresh()
+            Try{
+                $installProcess.Refresh()
+            } Catch {
+                # Process may have exited, ignore errors
+            }
             if ($installProcess.HasExited) {
                 if ($installProcess.ExitCode -eq 0) {
                     $Coms.InstallProgress = 100
