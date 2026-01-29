@@ -1,6 +1,7 @@
 REM Simple batch file to start the Updater script, it ensures that the script is run with administrative privileges first.
 @echo off
 setlocal enabledelayedexpansion
+pushd "%~dp0"
 
 REM Check if the script is running with administrative privileges
 REM If not, create a file to indicate the user is not an admin
@@ -21,4 +22,5 @@ goto Close
 
 REM If the script reaches here, it means the Updater-Check script has completed
 :Close
+popd
 Exit
